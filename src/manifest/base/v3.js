@@ -1,6 +1,6 @@
-const { version } = require('./version.json');
-const permissions = require('./permissions');
-const { name, short_name, description } = require('./app_info');
+const { version } = require('../version.json');
+const permissions = require('../permissions');
+const { name, short_name, description } = require('../app_info');
 
 module.exports = {
   version,
@@ -27,6 +27,10 @@ module.exports = {
   },
   background: {
     service_worker: "background.js"
+  },
+  options_ui: {
+    "page": "assets/html/options.html",
+	"open_in_tab": true
   },
   web_accessible_resources: [{
     resources: ["assets/**"],

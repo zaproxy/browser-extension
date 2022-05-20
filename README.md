@@ -1,75 +1,55 @@
-# Browser Extension Template [![Generic badge](https://img.shields.io/twitter/follow/KarmakarDebdut?style=social)](https://twitter.com/KarmakarDebdut)
-## w/ React Preact Typescript 
+# OWASP ZAP Browser Extension
 
-![Generic badge](https://img.shields.io/badge/build-success-brightgreen.svg)
+A browser extension which allows [OWASP ZAP](https://www.zaproxy.org) to interact directly with the browser.
 
-> A Out of the Box 🎁 Browser Extension Template with support for React, Preact, Typescript and Manifest V3
+Works in both Firefox and Chrome but does not provide any useful functionality unless it is used with ZAP.
 
-## 🏡 Builtin
+Initially generated from https://github.com/abhijithvijayan/web-extension-starter 
 
-- Manifest V3
-- Content Scripts
-- Background Worker
-- Popup
-- Options Page
+## Start Commands
 
-## 🎗 Supports
-
-- React 17
-- Typescript
-- Preact X
-- PostCSS
-- GraphQL
-- JSON Imports
-- Sass
-- Webpack 5
-
-Simply remove or don't use the technologies you don't like.
-
-## 👩🏻‍🏫 Notes
-
-🥇 Content Scripts, Popup and Options Page support Preact
-
-🥈 You can choose to not use preact in any of these, just remove the preact imports
-
-🥉 React, Preact, Typescript or PostCSS are all optional
-
-For Disabling TS
-
-- Just change file extensions ts to js and tsx to jsx
-- Change all ts to js and tsx to jsx in `webpack/base.js`
-
-For Preact builds
-
-- Disable TS using instructions above
-- `npm install preact`
-- Enable `{ "pragma":"h" }` in `webpack/base.js`
-- Enable `"jsxImportSource": "preact"` in `tsconfig.json`
-- Change react imports to preact
-
-```js
-import { render } from 'react-dom'
-import React from 'react'
-
-import { h, render } from 'preact'
+```sh
+npm install
+npm run prebuild
+npm run init:profile
+npm run build:<browser_name> # brave | chrome | firefox
+npm run start:<browser_name> # brave | chrome | firefox
 ```
 
+After first run, you can just do `npm run start:<browser_name>`
 
 ## Commands
 
 ```sh
+# Initial Setup
+# Install packages
+npm install
+
+# Prebuild
+npm run prebuild
+
+# Init dirs for browser profiles
+npm run init:profile
+
 # Live Build for specific browser
-# browser_name: chrome | firefox | safari 
-npm run start:<browser_name>
+# browser_name: chrome | firefox
+npm run watch:<browser_name>
 
 # Live Build for chrome
+npm run watch:chrome
+
+# Live Build and Reload for specific browser
+# browser_name: chrome | firefox
+npm run start:<browser_name>
+
+# Live Build and Reload for chrome
 npm run start:chrome
 
 # Build for all Browsers
 npm run build
 
 # Build for specific browser
-# browser_name: chrome | firefox | safari 
+# browser_name: chrome | firefox
 npm run build:<browser_name>
 
 # Build for chrome
@@ -82,10 +62,3 @@ npm run test
 npm run clean
 ```
 
-## Browser Support
-
-- [x] Chrome
-- [ ] Firefox
-- [x] Opera (Chrome Build)
-- [x] Edge (Chrome  Build)
-- [ ] Safari

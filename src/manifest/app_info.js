@@ -1,5 +1,5 @@
 module.exports = {
-  name: "Browser Extension | A Template",
-  short_name: "Browser Extension",
-  description: "A Default Template for Multi Browser Extension V3",
+  name: "OWASP ZAP Browser Extension",
+  short_name: "ZAP-Ext",
+  description: "OWASP ZAP Browser Extension - allows ZAP to interact directly with the browser.",
 }

@@ -10,7 +10,6 @@
     "lib": ["es2019", "dom"],
     "esModuleInterop": true,
     "jsx": "react-jsx",
-    // "jsxImportSource": "preact",
     "resolveJsonModule": true,
     "downlevelIteration": true,
     "baseUrl": "./src",

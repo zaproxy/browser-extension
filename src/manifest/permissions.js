@@ -1,6 +1,8 @@
 // https://developer.chrome.com/docs/extensions/mv2/declare_permissions/
 
 module.exports = [
+  "http://*/",
+  "https://*/",
   // "activeTab",
   // "alarms",
   // "background",
@@ -33,7 +35,7 @@ module.exports = [
   // "fontSettings",
   // "gcm",
   // "geolocation",
-  // "history",
+  "history",
   // "identity",
   // "idle",
   // "loginState",
@@ -68,6 +70,6 @@ module.exports = [
   // "vpnProvider",
   // "wallpaper",
   // "webNavigation",
-  // "webRequest",
+  "webRequest",
   // "webRequestBlocking"
 ]
