@@ -47,4 +47,9 @@ function handleMessage(request: any, zapurl: string, zapkey: string): boolean {
 	return true;
 }
 
+function onToolbarButtonClick(_tab: any) {
+	chrome.runtime.openOptionsPage();
+}
+
+chrome.browserAction.onClicked.addListener(onToolbarButtonClick);
 chrome.runtime.onMessage.addListener(onMessageHandler);

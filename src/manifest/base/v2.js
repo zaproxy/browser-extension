@@ -16,8 +16,7 @@ module.exports = {
   description,
   permissions: [...permissions, "https://*/*"],
   browser_action: {
-    "default_title": short_name,
-    "default_popup": "assets/html/popup.html"
+    "default_title": short_name
   },
   "content_scripts": [{
     "matches": ["<all_urls>"],

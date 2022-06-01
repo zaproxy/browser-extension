@@ -1,7 +1,5 @@
 console.log("Options loading");
 
-import "./index.scss";
-
 const ZAP_URL = 'zapurl';
 const ZAP_KEY = 'zapkey';
 
