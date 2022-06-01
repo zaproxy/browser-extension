@@ -22,7 +22,7 @@ module.exports = {
     }
   ],
   icons: {
-    "128": "assets/images/logo.png"
+    "512": "assets/images/logo.png"
   },
   background: {
     service_worker: "background.js"
