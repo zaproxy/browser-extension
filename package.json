@@ -11,6 +11,7 @@
     "clean": "rm -rf dist",
     "prebuild": "npm run clean",
     "lint": "eslint src --ext .ts,.tsx,.js --ignore-path .gitignore",
+    "lint:fix": "eslint src --ext .ts,.tsx,.js --ignore-path .gitignore --fix",
     "init:profile": "mkdir -p tmp/profile/chrome tmp/profile/firefox",
     "build": "NODE_ENV=production webpack",
     "build:chrome": "NODE_ENV=development webpack --config ./webpack/chrome.js",

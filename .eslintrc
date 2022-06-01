@@ -2,7 +2,7 @@
     "parser": "@typescript-eslint/parser",
     "extends": ["plugin:@typescript-eslint/recommended", "plugin:prettier/recommended"],
     "plugins": [
-      "@typescript-eslint",
+      "@typescript-eslint"
     ],
     "parserOptions": {
       "ecmaVersion": 2020,
@@ -156,7 +156,7 @@
       "keyword-spacing": "off",
       "linebreak-style": "off",
       "lines-around-comment": "off",
-      "max-classes-per-file": ["error", 1],
+      "max-classes-per-file": ["off", 1],
       "max-len": "off",
       "multiline-ternary": "off",
       "new-parens": "off",
@@ -167,7 +167,7 @@
       "no-comma-dangle": "off",
       "no-cond-assign": "error",
       "no-confusing-arrow": "off",
-      "no-console": "error",
+      "no-console": "off",
       "no-debugger": "error",
       "no-duplicate-case": "error",
       "no-duplicate-imports": "error",

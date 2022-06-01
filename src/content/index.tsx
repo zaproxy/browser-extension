@@ -1,14 +1,14 @@
 
 class ReportedObject {
-	tagName: string;
-	id: string;
-	nodeName: string;
-	url: string;
-	xpath: string;
-	href: string;
-	text: string;
-	
-	constructor(tagName: string, id: string, nodeName: string, text: string) {
+	public tagName: string;
+	public id: string;
+	public nodeName: string;
+	public url: string;
+	public xpath: string;
+	public href: string;
+	public text: string;
+
+	public constructor(tagName: string, id: string, nodeName: string, text: string) {
 		this.tagName = tagName;
 		this.id = id;
 		this.nodeName = nodeName;
@@ -16,11 +16,11 @@ class ReportedObject {
 		this.url = window.location.href;
 	}
 
-	toString() {
+	public toString() {
 		return JSON.stringify(this);
 	}
 
-	toShortString() {
+	public toShortString() {
 		return JSON.stringify(this, function(k: string, v: string) {
 			if (k === "xpath") {
 				// Dont return the xpath value - it can change too often in many cases
@@ -33,55 +33,55 @@ class ReportedObject {
 
 class ReportedElement extends ReportedObject {
 
-	constructor(element: Element) {
+	public constructor(element: Element) {
 		super(element.tagName, element.id, element.nodeName, element.textContent);
 		if (element["href"]) {
 			this.href = element["href"];
 		}
 	}
-	
+
 }
 
 class ReportedEvent {
-	eventName: string;
-	url: string;
-	count: number;
-	
-	constructor(eventName: string) {
+	public eventName: string;
+	public url: string;
+	public count: number;
+
+	public constructor(eventName: string) {
 		this.eventName = eventName;
 		this.url = window.location.href;
 		this.count = 1;
 	}
 
-	toString() {
+	public toString() {
 		return JSON.stringify(this);
 	}
 }
 
-let reportedObjects = new Set<string>();
+const reportedObjects = new Set<string>();
 
-let reportedEvents: { [key: string]: ReportedEvent } = {};
+const reportedEvents: { [key: string]: ReportedEvent } = {};
 
 function reportPageLoaded() {
-	var url = window.location.href;
+	const url = window.location.href;
 	if (url.includes('/OTHER/client/other/hook/')) {
-		var json : JSON = JSON.parse(document.body.innerText);
+		const json: JSON = JSON.parse(document.body.innerText);
 		if ("url" in json && "apikey" in json) {
-			chrome.runtime.sendMessage({type: "zapDetails", zapurl: json["zapurl"], zapkey: json["apikey"]});
+			chrome.runtime.sendMessage({ type: "zapDetails", zapurl: json["zapurl"], zapkey: json["apikey"] });
 		}
 		// Lets get rid of the evidence ;)
 		if (chrome.history) {
-			let deletingUrl = chrome.history.deleteUrl({url: url});
-				deletingUrl.then(() => {
-					window.location.replace(json["url"]);
-				});
+			const deletingUrl = chrome.history.deleteUrl({ url });
+			deletingUrl.then(() => {
+				window.location.replace(json["url"]);
+			});
 		} else {
 			window.location.replace(json["url"]);
 		}
 		// Shouldnt get to here, but no harm in returning..
 		return;
 	}
-	
+
 	reportPageLinks();
 	reportPageForms();
 	reportElements(document.getElementsByTagName("input"));
@@ -90,7 +90,7 @@ function reportPageLoaded() {
 }
 
 function reportPageUnloaded() {
-	for (let value of Object.values(reportedEvents)) {
+	for (const value of Object.values(reportedEvents)) {
 		sendEventToZAP(value);
 	}
 	// TODO indicate it was created after page loaded..
@@ -98,26 +98,26 @@ function reportPageUnloaded() {
 }
 
 function reportStorage() {
-	for (let key of Object.keys(localStorage)) {
+	for (const key of Object.keys(localStorage)) {
 		reportObject(new ReportedObject('localStorage', key, '', localStorage.getItem(key)));
 	}
-	for (let key of Object.keys(sessionStorage)) {
+	for (const key of Object.keys(sessionStorage)) {
 		reportObject(new ReportedObject('sessionStorage', key, '', sessionStorage.getItem(key)));
 	}
 }
 
-async function sendEventToZAP (obj: ReportedEvent) {
-	chrome.runtime.sendMessage({type: "reportEvent", objectJson: obj.toString()});
+async function sendEventToZAP(obj: ReportedEvent) {
+	chrome.runtime.sendMessage({ type: "reportEvent", objectJson: obj.toString() });
 }
 
-async function sendObjectToZAP (obj: ReportedObject) {
-	chrome.runtime.sendMessage({type: "reportObject", objectJson: obj.toString()});
+async function sendObjectToZAP(obj: ReportedObject) {
+	chrome.runtime.sendMessage({ type: "reportObject", objectJson: obj.toString() });
 }
 
 function reportEvent(event: ReportedEvent) {
 	let existingEvent: ReportedEvent;
 	existingEvent = reportedEvents[event.eventName];
-	if (! existingEvent) {
+	if (!existingEvent) {
 		existingEvent = new ReportedEvent(event.eventName);
 		reportedEvents[event.eventName] = event;
 		sendEventToZAP(existingEvent);
@@ -133,8 +133,8 @@ function reportEvent(event: ReportedEvent) {
 }
 
 function reportObject(repObj: ReportedObject) {
-	//let repObj = new ReportedObject(element);
-	let repObjStr = repObj.toShortString();
+	// let repObj = new ReportedObject(element);
+	const repObjStr = repObj.toShortString();
 	if (!reportedObjects.has(repObjStr)) {
 		sendObjectToZAP(repObj);
 		reportedObjects.add(repObjStr);
@@ -142,23 +142,21 @@ function reportObject(repObj: ReportedObject) {
 }
 
 function reportPageForms() {
-	var forms = document.forms;
-	for (var i = 0; i < forms.length; i++) {
-		reportObject(new ReportedElement(forms[i]));
-	}
+	Array.prototype.forEach.call(document.forms, (form: HTMLFormElement) => {
+		reportObject(new ReportedElement(form))
+	});
 }
 
 function reportPageLinks() {
-	var links = document.links;
-	for (var i = 0; i < links.length; i++) {
-		reportObject(new ReportedElement(links[i]));
-	}
+	Array.prototype.forEach.call(document.links, (link: HTMLAnchorElement | HTMLAreaElement) => {
+		reportObject(new ReportedElement(link))
+	});
 }
 
 function reportElements(collection: HTMLCollection) {
-	for (var i = 0; i < collection.length; i++) {
-		reportObject(new ReportedElement(collection[i]));
-	}
+	Array.prototype.forEach.call(collection, (element: Element) => {
+		reportObject(new ReportedElement(element))
+	});
 }
 
 function reportNodeElements(node: Node, tagName: string) {
@@ -166,35 +164,6 @@ function reportNodeElements(node: Node, tagName: string) {
 		reportElements((node as Element).getElementsByTagName(tagName));
 	}
 }
-
-// Copied from https://medium.com/@a.k.h.i.l/javascript-to-generate-absolute-xpath-2ecae105ddbe
-// Have not worked out how to define the parameter type yet :/
-function createXPathFromElement(elm) {
-	var allNodes = document.getElementsByTagName('*');
-	for (var segs = []; elm && elm.nodeType == 1; elm = elm.parentNode) {
-		if (elm.hasAttribute('id')) {
-			var uniqueIdCount = 0;
-			for (var n = 0; n < allNodes.length; n++) {
-				if (allNodes[n].hasAttribute('id') && allNodes[n].id == elm.id) uniqueIdCount++;
-				if (uniqueIdCount > 1) break;
-			};
-			if (uniqueIdCount == 1) {
-				segs.unshift('id("' + elm.getAttribute('id') + '")');
-				return segs.join('/');
-			} else {
-				segs.unshift(elm.localName.toLowerCase() + '[@id="' + elm.getAttribute('id') + '"]');
-			}
-		} else if (elm.hasAttribute('class')) {
-			segs.unshift(elm.localName.toLowerCase() + '[@class="' + elm.getAttribute('class') + '"]');
-		} else {
-			for (var i = 1, sib = elm.previousSibling; sib; sib = sib.previousSibling) {
-				if (sib.localName == elm.localName) i++;
-			};
-			segs.unshift(elm.localName.toLowerCase() + '[' + i + ']');
-		};
-	};
-	return segs.length ? '/' + segs.join('/') : null;
-};
 
 const domMutated = function(mutationList: MutationRecord[], _obs: MutationObserver) {
 	reportEvent(new ReportedEvent('DOM Mutation'));

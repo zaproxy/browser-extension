@@ -8,11 +8,11 @@ const ZAP_KEY = 'zapkey';
 // Saves options to chrome.storage
 function save_options() {
 	console.log("Options save_options");
-	var zapurl = (document.getElementById(ZAP_URL) as HTMLInputElement).value;
-	var zapkey = (document.getElementById(ZAP_KEY) as HTMLInputElement).value;
+	const zapurl = (document.getElementById(ZAP_URL) as HTMLInputElement).value;
+	const zapkey = (document.getElementById(ZAP_KEY) as HTMLInputElement).value;
 	chrome.storage.sync.set({
-		zapurl: zapurl,
-		zapkey: zapkey
+		zapurl,
+		zapkey
 	});
 }
 
