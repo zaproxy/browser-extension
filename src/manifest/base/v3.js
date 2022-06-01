@@ -12,7 +12,6 @@ module.exports = {
   host_permissions: ["<all_urls>"],
   action: {
     default_title: name,
-    default_popup: "assets/html/popup.html",
     default_icon: "assets/images/logo.png"
   },
   content_scripts: [

@@ -30,14 +30,10 @@
   "dependencies": {
     "dexie": "^3.2.1",
     "lodash": "^4.17.21",
-    "rambda": "^7.0.3",
-    "react": "^18.1.0",
-    "react-dom": "^18.0.0",
-    "rxjs": "^7.5.5"
+    "rambda": "^7.0.3"
   },
   "devDependencies": {
     "@babel/core": "^7.17.9",
-    "@babel/plugin-transform-react-jsx": "^7.17.3",
     "@babel/preset-env": "^7.16.11",
     "@types/chrome": "^0.0.181",
     "@types/webextension-polyfill": "^0.8.3",

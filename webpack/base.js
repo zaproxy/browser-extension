@@ -27,7 +27,6 @@ const Dist = join(Root, 'dist');
 const Assets = join(Source, 'assets');
 const Background = join(Source, 'background');
 const Content = join(Source, 'content');
-const Popup = join(Source, 'popup');
 const Lib = join(Source, 'lib');
 const Option = join(Source, 'option');
 
@@ -37,9 +36,8 @@ const config = {
   devtool: isProd ? false : 'cheap-source-map',
   entry: {
     background: join(Background, 'index.ts'),
-    popup: join(Popup, 'index.tsx'),
-    content: join(Content, 'index.tsx'),
-    option: join(Option, 'index.tsx'),
+    content: join(Content, 'index.ts'),
+    option: join(Option, 'index.ts'),
   },
   output: {
     path: join(__dirname, '../', 'dist'),
@@ -145,7 +143,6 @@ const config = {
       lib: Lib,
       background: Background,
       content: Content,
-      popup: Popup,
       assets: Assets,
       option: Option,
     },
