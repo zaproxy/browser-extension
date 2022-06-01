@@ -28,7 +28,7 @@
   "author": "OWASP ZAP Team <psiinon@gmail.com>",
   "license": "ISC",
   "dependencies": {
-    "dexie": "^3.2.1",
+    "dexie": "^3.2.2",
     "lodash": "^4.17.21",
     "rambda": "^7.0.3"
   },
