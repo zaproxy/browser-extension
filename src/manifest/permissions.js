@@ -70,6 +70,6 @@ module.exports = [
   // "vpnProvider",
   // "wallpaper",
   // "webNavigation",
-  "webRequest",
+  // "webRequest",
   // "webRequestBlocking"
 ]
