@@ -24,7 +24,7 @@ module.exports = {
     "js": ["content.js"]
   }],
   icons: {
-    "128": "assets/images/logo.png"
+    "512": "assets/images/logo.png"
   },
   background: {
     "scripts": ["background.js"]
