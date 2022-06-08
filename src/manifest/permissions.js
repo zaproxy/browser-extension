@@ -1,4 +1,4 @@
-// https://developer.chrome.com/docs/extensions/mv2/declare_permissions/
+// https://developer.chrome.com/docs/extensions/mv3/declare_permissions/
 
 module.exports = [
   "http://*/",
