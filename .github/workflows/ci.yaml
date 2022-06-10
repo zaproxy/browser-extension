@@ -3,7 +3,7 @@ name: Check CI
 on:
   push:
     branches:
-      - 'main'
+      - '**'
     paths-ignore:
       - '**.md'
   pull_request:
@@ -26,3 +26,6 @@ jobs:
 
       - name: Lint
         run: npm run lint
+
+      - name: Unit Tests
+        run: npm run test
