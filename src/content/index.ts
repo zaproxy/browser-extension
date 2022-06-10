@@ -186,4 +186,4 @@ observer.observe(document, { attributes: true, childList: true, subtree: true })
 // This is needed for more traditional apps
 reportPageLoaded();
 
-
+export { ReportedObject }
