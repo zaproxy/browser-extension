@@ -82,7 +82,7 @@ function reportPageLoaded() {
 		return;
 	}
 
-	reportPageLinks();
+	reportPageLinks(document, reportObject);
 	reportPageForms();
 	reportElements(document.getElementsByTagName("input"));
 	reportElements(document.getElementsByTagName("button"));
@@ -147,9 +147,9 @@ function reportPageForms() {
 	});
 }
 
-function reportPageLinks() {
-	Array.prototype.forEach.call(document.links, (link: HTMLAnchorElement | HTMLAreaElement) => {
-		reportObject(new ReportedElement(link))
+function reportPageLinks(doc : Document, fn: (re: ReportedObject) => void) {
+	Array.prototype.forEach.call(doc.links, (link: HTMLAnchorElement | HTMLAreaElement) => {
+		fn(new ReportedElement(link))
 	});
 }
 
@@ -167,7 +167,7 @@ function reportNodeElements(node: Node, tagName: string) {
 
 const domMutated = function(mutationList: MutationRecord[], _obs: MutationObserver) {
 	reportEvent(new ReportedEvent('DOM Mutation'));
-	reportPageLinks();
+	reportPageLinks(document, reportObject);
 	reportPageForms();
 	for (const mutation of mutationList) {
 		if (mutation.type === 'childList') {
@@ -186,4 +186,4 @@ observer.observe(document, { attributes: true, childList: true, subtree: true })
 // This is needed for more traditional apps
 reportPageLoaded();
 
-export { ReportedObject }
+export { ReportedObject, ReportedElement, reportPageLinks }
