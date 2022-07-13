@@ -11,38 +11,38 @@ import { JSDOM } from "jsdom";
 
 test('ReportedObject toString as expected', () => {
 	// Given / When
-	let ro: src.ReportedObject = new src.ReportedObject("a", "b", "c", "d");
+	const ro: src.ReportedObject = new src.ReportedObject("a", "b", "c", "d");
 
 	// Then
-	expect(ro.toString()).toBe('{"tagName":"a","id":"b","nodeName":"c","text":"d","url":"http://localhost/"}');
+	expect(ro.toNonTimestampString()).toBe('{"tagName":"a","id":"b","nodeName":"c","text":"d","url":"http://localhost/"}');
 });
 
 test('ReportedElement P toString as expected', () => {
 	// Given / When
-	let el: Element = document.createElement("p");
-	let ro: src.ReportedElement = new src.ReportedElement(el);
+	const el: Element = document.createElement("p");
+	const ro: src.ReportedElement = new src.ReportedElement(el);
 
 	// Then
-	expect(ro.toString()).toBe('{"tagName":"P","id":"","nodeName":"P","text":"","url":"http://localhost/"}');
+	expect(ro.toNonTimestampString()).toBe('{"tagName":"P","id":"","nodeName":"P","text":"","url":"http://localhost/"}');
 });
 
 test('ReportedElement A toString as expected', () => {
 	// Given / When
-	let a: Element = document.createElement("a");
-	let linkText = document.createTextNode("Title");
+	const a: Element = document.createElement("a");
+	const linkText = document.createTextNode("Title");
 	a.appendChild(linkText);
 	a.setAttribute('href', 'https://example.com');
-	let ro: src.ReportedElement = new src.ReportedElement(a);
+	const ro: src.ReportedElement = new src.ReportedElement(a);
 
 	// Then
-	expect(ro.toString()).toBe(
+	expect(ro.toNonTimestampString()).toBe(
 		'{"tagName":"A","id":"","nodeName":"A","text":"Title","url":"http://localhost/","href":"https://example.com/"}');
 });
 
 test('Report no document links', () => {
 	// Given
-	let dom: JSDOM = new JSDOM('<!DOCTYPE html><body><p id="main">No links</p></body>');
-	let mockFn = jest.fn();
+	const dom: JSDOM = new JSDOM('<!DOCTYPE html><body><p id="main">No links</p></body>');
+	const mockFn = jest.fn();
 
 	// When
 	src.reportPageLinks(dom.window.document, mockFn);
@@ -53,42 +53,42 @@ test('Report no document links', () => {
 
 test('Report standard page links', () => {
 	// Given
-	let dom: JSDOM = new JSDOM(
+	const dom: JSDOM = new JSDOM(
 		'<!DOCTYPE html><body><a href="https://www.example.com/1">link1</a><a href="https://www.example.com/2">link2</a></body>');
-	let mockFn = jest.fn();
+	const mockFn = jest.fn();
 
 	// When
 	src.reportPageLinks(dom.window.document, mockFn);
 
 	// Then
 	expect(mockFn.mock.calls.length).toBe(2);
-	expect(mockFn.mock.calls[0][0].toString()).toBe(
+	expect(mockFn.mock.calls[0][0].toNonTimestampString()).toBe(
 		'{"tagName":"A","id":"","nodeName":"A","text":"link1","url":"http://localhost/","href":"https://www.example.com/1"}');
-	expect(mockFn.mock.calls[1][0].toString()).toBe(
+	expect(mockFn.mock.calls[1][0].toNonTimestampString()).toBe(
 		'{"tagName":"A","id":"","nodeName":"A","text":"link2","url":"http://localhost/","href":"https://www.example.com/2"}');
 });
 
 test('Report area page links', () => {
 	// Given
-	let dom: JSDOM = new JSDOM(
+	const dom: JSDOM = new JSDOM(
 		'<!DOCTYPE html><body><map><area href="https://www.example.com/1"><area href="https://www.example.com/2"></map></body>');
-	let mockFn = jest.fn();
+	const mockFn = jest.fn();
 
 	// When
 	src.reportPageLinks(dom.window.document, mockFn);
 
 	// Then
 	expect(mockFn.mock.calls.length).toBe(2);
-	expect(mockFn.mock.calls[0][0].toString()).toBe(
+	expect(mockFn.mock.calls[0][0].toNonTimestampString()).toBe(
 		'{"tagName":"AREA","id":"","nodeName":"AREA","text":"","url":"http://localhost/","href":"https://www.example.com/1"}');
-	expect(mockFn.mock.calls[1][0].toString()).toBe(
+	expect(mockFn.mock.calls[1][0].toNonTimestampString()).toBe(
 		'{"tagName":"AREA","id":"","nodeName":"AREA","text":"","url":"http://localhost/","href":"https://www.example.com/2"}');
 });
 
 test('Report no document forms', () => {
 	// Given
-	let dom: JSDOM = new JSDOM('<!DOCTYPE html><body><p id="main">No links</p></body>');
-	let mockFn = jest.fn();
+	const dom: JSDOM = new JSDOM('<!DOCTYPE html><body><p id="main">No links</p></body>');
+	const mockFn = jest.fn();
 
 	// When
 	src.reportPageForms(dom.window.document, mockFn);
@@ -99,47 +99,47 @@ test('Report no document forms', () => {
 
 test('Report page forms', () => {
 	// Given
-	let dom: JSDOM = new JSDOM(
+	const dom: JSDOM = new JSDOM(
 		'<!DOCTYPE html><body><form id="form1">Content1</form><form id="form2">Content2</form></body>');
-	let mockFn = jest.fn();
+	const mockFn = jest.fn();
 
 	// When
 	src.reportPageForms(dom.window.document, mockFn);
 
 	// Then
 	expect(mockFn.mock.calls.length).toBe(2);
-	expect(mockFn.mock.calls[0][0].toString()).toBe(
+	expect(mockFn.mock.calls[0][0].toNonTimestampString()).toBe(
 		'{"tagName":"FORM","id":"form1","nodeName":"FORM","text":"Content1","url":"http://localhost/"}');
-	expect(mockFn.mock.calls[1][0].toString()).toBe(
+	expect(mockFn.mock.calls[1][0].toNonTimestampString()).toBe(
 		'{"tagName":"FORM","id":"form2","nodeName":"FORM","text":"Content2","url":"http://localhost/"}');
 });
 
 test('Report node elements', () => {
 	// Given
-	let form: Element = document.createElement("form");
-	let i1: Element = document.createElement("input");
+	const form: Element = document.createElement("form");
+	const i1: Element = document.createElement("input");
 	i1.setAttribute('id', 'input1');
-	let i2: Element = document.createElement("input");
+	const i2: Element = document.createElement("input");
 	i2.setAttribute('id', 'input2');
 	// This should not be reported as we're just looking for input elements'
-	let b1: Element = document.createElement("button");
+	const b1: Element = document.createElement("button");
 	b1.setAttribute('id', 'button');
 	
 	form.appendChild(i1);
 	form.appendChild(b1);
 	form.appendChild(i2);
 	
-	//node.id = '';
-	let mockFn = jest.fn();
+	// node.id = '';
+	const mockFn = jest.fn();
 
 	// When
 	src.reportNodeElements(form, "input", mockFn);
 
 	// Then
 	expect(mockFn.mock.calls.length).toBe(2);
-	expect(mockFn.mock.calls[0][0].toString()).toBe(
+	expect(mockFn.mock.calls[0][0].toNonTimestampString()).toBe(
 		'{"tagName":"INPUT","id":"input1","nodeName":"INPUT","text":"","url":"http://localhost/"}');
-	expect(mockFn.mock.calls[1][0].toString()).toBe(
+	expect(mockFn.mock.calls[1][0].toNonTimestampString()).toBe(
 		'{"tagName":"INPUT","id":"input2","nodeName":"INPUT","text":"","url":"http://localhost/"}');
 });
 
@@ -149,18 +149,18 @@ test('Report storage', () => {
 	localStorage.setItem("item1", "value1");
 	localStorage.setItem("item2", "value2");
 	localStorage.setItem("item3", "value3");
-	let mockFn = jest.fn();
+	const mockFn = jest.fn();
 
 	// When
 	src.reportStorage("localStorage", localStorage, mockFn);
 
 	// Then
 	expect(mockFn.mock.calls.length).toBe(3);
-	expect(mockFn.mock.calls[0][0].toString()).toBe(
+	expect(mockFn.mock.calls[0][0].toNonTimestampString()).toBe(
 		'{"tagName":"localStorage","id":"item1","nodeName":"","text":"value1","url":"http://localhost/"}');
-	expect(mockFn.mock.calls[1][0].toString()).toBe(
+	expect(mockFn.mock.calls[1][0].toNonTimestampString()).toBe(
 		'{"tagName":"localStorage","id":"item2","nodeName":"","text":"value2","url":"http://localhost/"}');
-	expect(mockFn.mock.calls[2][0].toString()).toBe(
+	expect(mockFn.mock.calls[2][0].toNonTimestampString()).toBe(
 		'{"tagName":"localStorage","id":"item3","nodeName":"","text":"value3","url":"http://localhost/"}');
 		
 	// Tidy
@@ -171,7 +171,7 @@ test('Report storage', () => {
 
 test('Reported page loaded', () => {
 	// Given
-	let dom: JSDOM = new JSDOM(
+	const dom: JSDOM = new JSDOM(
 		'<!DOCTYPE html><body>' +
 		'<a href="https://www.example.com/1">link1</a>' +
 		'<form id="form1">FormContent</form>' +
@@ -179,7 +179,7 @@ test('Reported page loaded', () => {
 		'<input id="input1"></input>' +
 		'<area href="https://www.example.com/1">'
 		);
-	let mockFn = jest.fn();
+	const mockFn = jest.fn();
 	localStorage.setItem("lsKey", "value1");
 	sessionStorage.setItem("ssKey", "value2");
 
@@ -188,19 +188,19 @@ test('Reported page loaded', () => {
 
 	// Then
 	expect(mockFn.mock.calls.length).toBe(7);
-	expect(mockFn.mock.calls[0][0].toString()).toBe(
+	expect(mockFn.mock.calls[0][0].toNonTimestampString()).toBe(
 		'{"tagName":"A","id":"","nodeName":"A","text":"link1","url":"http://localhost/","href":"https://www.example.com/1"}');
-	expect(mockFn.mock.calls[1][0].toString()).toBe(
+	expect(mockFn.mock.calls[1][0].toNonTimestampString()).toBe(
 		'{"tagName":"AREA","id":"","nodeName":"AREA","text":"","url":"http://localhost/","href":"https://www.example.com/1"}');
-	expect(mockFn.mock.calls[2][0].toString()).toBe(
+	expect(mockFn.mock.calls[2][0].toNonTimestampString()).toBe(
 		'{"tagName":"FORM","id":"form1","nodeName":"FORM","text":"FormContent","url":"http://localhost/"}');
-	expect(mockFn.mock.calls[3][0].toString()).toBe(
+	expect(mockFn.mock.calls[3][0].toNonTimestampString()).toBe(
 		'{"tagName":"INPUT","id":"input1","nodeName":"INPUT","text":"","url":"http://localhost/"}');
-	expect(mockFn.mock.calls[4][0].toString()).toBe(
+	expect(mockFn.mock.calls[4][0].toNonTimestampString()).toBe(
 		'{"tagName":"BUTTON","id":"button1","nodeName":"BUTTON","text":"","url":"http://localhost/"}');
-	expect(mockFn.mock.calls[5][0].toString()).toBe(
+	expect(mockFn.mock.calls[5][0].toNonTimestampString()).toBe(
 		'{"tagName":"localStorage","id":"lsKey","nodeName":"","text":"value1","url":"http://localhost/"}');
-	expect(mockFn.mock.calls[6][0].toString()).toBe(
+	expect(mockFn.mock.calls[6][0].toNonTimestampString()).toBe(
 		'{"tagName":"sessionStorage","id":"ssKey","nodeName":"","text":"value2","url":"http://localhost/"}');
 		
 	// Tidy

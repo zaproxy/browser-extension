@@ -1,5 +1,6 @@
 
 class ReportedObject {
+	public timestamp: number;
 	public tagName: string;
 	public id: string;
 	public nodeName: string;
@@ -9,6 +10,7 @@ class ReportedObject {
 	public text: string;
 
 	public constructor(tagName: string, id: string, nodeName: string, text: string) {
+		this.timestamp = Date.now();
 		this.tagName = tagName;
 		this.id = id;
 		this.nodeName = nodeName;
@@ -29,6 +31,16 @@ class ReportedObject {
 			return v;
 		});
 	}
+
+	// Use this for tests
+	public toNonTimestampString() {
+		return JSON.stringify(this, function(k: string, v: string) {
+			if (k === "timestamp") {
+				return undefined;
+			}
+			return v;
+		});
+	}
 }
 
 class ReportedElement extends ReportedObject {
@@ -43,11 +55,13 @@ class ReportedElement extends ReportedObject {
 }
 
 class ReportedEvent {
+	public timestamp: number;
 	public eventName: string;
 	public url: string;
 	public count: number;
 
 	public constructor(eventName: string) {
+		this.timestamp = Date.now();
 		this.eventName = eventName;
 		this.url = window.location.href;
 		this.count = 1;
