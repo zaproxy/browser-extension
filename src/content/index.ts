@@ -62,10 +62,10 @@ const reportedObjects = new Set<string>();
 
 const reportedEvents: { [key: string]: ReportedEvent } = {};
 
-function reportPageLoaded() {
+function reportPageLoaded(doc: Document, fn: (re: ReportedObject) => void) {
 	const url = window.location.href;
 	if (url.includes('/OTHER/client/other/hook/')) {
-		const json: JSON = JSON.parse(document.body.innerText);
+		const json: JSON = JSON.parse(doc.body.innerText);
 		if ("url" in json && "apikey" in json) {
 			chrome.runtime.sendMessage({ type: "zapDetails", zapurl: json["zapurl"], zapkey: json["apikey"] });
 		}
@@ -82,11 +82,12 @@ function reportPageLoaded() {
 		return;
 	}
 
-	reportPageLinks(document, reportObject);
-	reportPageForms();
-	reportElements(document.getElementsByTagName("input"));
-	reportElements(document.getElementsByTagName("button"));
-	reportStorage();
+	reportPageLinks(doc, fn);
+	reportPageForms(doc, fn);
+	reportElements(doc.getElementsByTagName("input"), fn);
+	reportElements(doc.getElementsByTagName("button"), fn);
+	reportStorage("localStorage", localStorage, fn);
+	reportStorage("sessionStorage", sessionStorage, fn);
 }
 
 function reportPageUnloaded() {
@@ -94,15 +95,13 @@ function reportPageUnloaded() {
 		sendEventToZAP(value);
 	}
 	// TODO indicate it was created after page loaded..
-	reportStorage();
+	reportStorage("localStorage", localStorage, reportObject);
+	reportStorage("sessionStorage", sessionStorage, reportObject);
 }
 
-function reportStorage() {
-	for (const key of Object.keys(localStorage)) {
-		reportObject(new ReportedObject('localStorage', key, '', localStorage.getItem(key)));
-	}
-	for (const key of Object.keys(sessionStorage)) {
-		reportObject(new ReportedObject('sessionStorage', key, '', sessionStorage.getItem(key)));
+function reportStorage(name: string, storage: Storage, fn: (re: ReportedObject) => void) {
+	for (const key of Object.keys(storage)) {
+		fn(new ReportedObject(name, key, '', storage.getItem(key)));
 	}
 }
 
@@ -133,7 +132,6 @@ function reportEvent(event: ReportedEvent) {
 }
 
 function reportObject(repObj: ReportedObject) {
-	// let repObj = new ReportedObject(element);
 	const repObjStr = repObj.toShortString();
 	if (!reportedObjects.has(repObjStr)) {
 		sendObjectToZAP(repObj);
@@ -141,49 +139,53 @@ function reportObject(repObj: ReportedObject) {
 	}
 }
 
-function reportPageForms() {
-	Array.prototype.forEach.call(document.forms, (form: HTMLFormElement) => {
-		reportObject(new ReportedElement(form))
+function reportPageForms(doc: Document, fn: (re: ReportedObject) => void) {
+	Array.prototype.forEach.call(doc.forms, (form: HTMLFormElement) => {
+		fn(new ReportedElement(form))
 	});
 }
 
-function reportPageLinks(doc : Document, fn: (re: ReportedObject) => void) {
+function reportPageLinks(doc: Document, fn: (re: ReportedObject) => void) {
 	Array.prototype.forEach.call(doc.links, (link: HTMLAnchorElement | HTMLAreaElement) => {
 		fn(new ReportedElement(link))
 	});
 }
 
-function reportElements(collection: HTMLCollection) {
+function reportElements(collection: HTMLCollection, fn: (re: ReportedObject) => void) {
 	Array.prototype.forEach.call(collection, (element: Element) => {
-		reportObject(new ReportedElement(element))
+		fn(new ReportedElement(element))
 	});
 }
 
-function reportNodeElements(node: Node, tagName: string) {
+function reportNodeElements(node: Node, tagName: string, fn: (re: ReportedObject) => void) {
 	if (node.nodeType === Node.ELEMENT_NODE) {
-		reportElements((node as Element).getElementsByTagName(tagName));
+		reportElements((node as Element).getElementsByTagName(tagName), fn);
 	}
 }
 
 const domMutated = function(mutationList: MutationRecord[], _obs: MutationObserver) {
 	reportEvent(new ReportedEvent('DOM Mutation'));
 	reportPageLinks(document, reportObject);
-	reportPageForms();
+	reportPageForms(document, reportObject);
 	for (const mutation of mutationList) {
 		if (mutation.type === 'childList') {
-			reportNodeElements(mutation.target, "input");
-			reportNodeElements(mutation.target, "button");
+			reportNodeElements(mutation.target, "input", reportObject);
+			reportNodeElements(mutation.target, "button", reportObject);
 		}
 	}
 }
 
-window.addEventListener("load", reportPageLoaded, false);
+function onLoadEventListener() {
+	reportPageLoaded(document, reportObject);
+}
+
+window.addEventListener("load", onLoadEventListener, false);
 window.onbeforeunload = reportPageUnloaded;
 
 const observer = new MutationObserver(domMutated);
 observer.observe(document, { attributes: true, childList: true, subtree: true });
 
 // This is needed for more traditional apps
-reportPageLoaded();
+reportPageLoaded(document, reportObject);
 
-export { ReportedObject, ReportedElement, reportPageLinks }
+export { ReportedObject, ReportedElement, reportPageLinks, reportPageLoaded, reportPageForms, reportNodeElements, reportStorage }
