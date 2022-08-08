@@ -13,11 +13,23 @@ function onMessageHandler(request: any, _sender: chrome.runtime.MessageSender, _
 	return true;
 }
 
+/*
+  A callback URL will only be available if the browser has been launched from ZAP, otherwise call the individual endpoints
+*/
+function zapApiUrl(zapurl: string, action: string) {
+	if (zapurl.indexOf('/zapCallBackUrl/') > 0) {
+		return zapurl;
+	} else {
+		return zapurl + "JSON/client/action/" + action + "/";
+	}
+}
+
 function handleMessage(request: any, zapurl: string, zapkey: string): boolean {
 	if (request.type === "zapDetails") {
 		console.log("ZAP Service worker updating the ZAP details");
 		chrome.storage.sync.set({
 			zapurl: request.zapurl,
+			zapcallback: request.zapcallback,
 			zapkey: request.zapkey
 		});
 
@@ -28,7 +40,7 @@ function handleMessage(request: any, zapurl: string, zapkey: string): boolean {
 
 	if (request.type === "reportObject") {
 		console.log("body = " + "objectJson=" + encodeURIComponent(request.objectJson) + "&apikey=" + encodeURIComponent(zapkey));
-		fetch(zapurl + "JSON/client/action/reportObject/", {
+		fetch(zapApiUrl(zapurl, "reportObject"), {
 			method: "POST",
 			body: "objectJson=" + encodeURIComponent(request.objectJson) + "&apikey=" + encodeURIComponent(zapkey),
 			headers: {
@@ -36,7 +48,7 @@ function handleMessage(request: any, zapurl: string, zapkey: string): boolean {
 			}
 		})
 	} else if (request.type === "reportEvent") {
-		fetch(zapurl + "JSON/client/action/reportEvent/", {
+		fetch(zapApiUrl(zapurl, "reportEvent"), {
 			method: "POST",
 			body: "eventJson=" + encodeURIComponent(request.objectJson) + "&apikey=" + encodeURIComponent(zapkey),
 			headers: {
@@ -53,3 +65,5 @@ function onToolbarButtonClick(_tab: any) {
 
 chrome.browserAction.onClicked.addListener(onToolbarButtonClick);
 chrome.runtime.onMessage.addListener(onMessageHandler);
+
+export { handleMessage }

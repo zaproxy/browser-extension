@@ -78,22 +78,9 @@ const reportedEvents: { [key: string]: ReportedEvent } = {};
 
 function reportPageLoaded(doc: Document, fn: (re: ReportedObject) => void) {
 	const url = window.location.href;
-	if (url.includes('/OTHER/client/other/hook/')) {
-		const json: JSON = JSON.parse(doc.body.innerText);
-		if ("url" in json && "apikey" in json) {
-			chrome.runtime.sendMessage({ type: "zapDetails", zapurl: json["zapurl"], zapkey: json["apikey"] });
-		}
-		// Lets get rid of the evidence ;)
-		if (chrome.history) {
-			const deletingUrl = chrome.history.deleteUrl({ url });
-			deletingUrl.then(() => {
-				window.location.replace(json["url"]);
-			});
-		} else {
-			window.location.replace(json["url"]);
-		}
-		// Shouldnt get to here, but no harm in returning..
-		return;
+	if (url.indexOf('/zapCallBackUrl/') > 0) {
+		// The browser has been launched from ZAP - use this URL for comms
+		chrome.runtime.sendMessage({ type: "zapDetails", zapurl: url, zapkey: "" });
 	}
 
 	reportPageLinks(doc, fn);
