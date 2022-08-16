@@ -2,6 +2,10 @@
  * @jest-environment jsdom
  */
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const chrome = require('sinon-chrome');
+window.chrome = chrome;
+
 import * as src from "../../src/content/index";
 // These lines must appear before the JSDOM import
 import { TextEncoder, TextDecoder } from 'util'
