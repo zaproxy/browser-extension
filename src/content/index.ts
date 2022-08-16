@@ -81,7 +81,10 @@ function reportPageLoaded(doc: Document, fn: (re: ReportedObject) => void) {
 	if (url.indexOf('/zapCallBackUrl/') > 0) {
 		// The browser has been launched from ZAP - use this URL for comms
 		chrome.runtime.sendMessage({ type: "zapDetails", zapurl: url, zapkey: "" });
+		return;
 	}
+
+	chrome.runtime.sendMessage({ type: "reportEvent", objectJson: new ReportedEvent("load").toString() });
 
 	reportPageLinks(doc, fn);
 	reportPageForms(doc, fn);
@@ -92,10 +95,10 @@ function reportPageLoaded(doc: Document, fn: (re: ReportedObject) => void) {
 }
 
 function reportPageUnloaded() {
+	chrome.runtime.sendMessage({ type: "reportEvent", objectJson: new ReportedEvent("unload").toString() });
 	for (const value of Object.values(reportedEvents)) {
 		sendEventToZAP(value);
 	}
-	// TODO indicate it was created after page loaded..
 	reportStorage("localStorage", localStorage, reportObject);
 	reportStorage("sessionStorage", sessionStorage, reportObject);
 }
