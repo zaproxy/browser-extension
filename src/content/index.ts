@@ -84,7 +84,7 @@ function reportPageLoaded(doc: Document, fn: (re: ReportedObject) => void) {
 		return;
 	}
 
-	chrome.runtime.sendMessage({ type: "reportEvent", objectJson: new ReportedEvent("load").toString() });
+	chrome.runtime.sendMessage({ type: "reportEvent", objectJson: new ReportedEvent("pageLoad").toString() });
 
 	reportPageLinks(doc, fn);
 	reportPageForms(doc, fn);
@@ -95,7 +95,7 @@ function reportPageLoaded(doc: Document, fn: (re: ReportedObject) => void) {
 }
 
 function reportPageUnloaded() {
-	chrome.runtime.sendMessage({ type: "reportEvent", objectJson: new ReportedEvent("unload").toString() });
+	chrome.runtime.sendMessage({ type: "reportEvent", objectJson: new ReportedEvent("pageUnload").toString() });
 	for (const value of Object.values(reportedEvents)) {
 		sendEventToZAP(value);
 	}
@@ -168,7 +168,7 @@ function reportNodeElements(node: Node, tagName: string, fn: (re: ReportedObject
 }
 
 const domMutated = function(mutationList: MutationRecord[], _obs: MutationObserver) {
-	reportEvent(new ReportedEvent('DOM Mutation'));
+	reportEvent(new ReportedEvent('domMutation'));
 	reportPageLinks(document, reportObject);
 	reportPageForms(document, reportObject);
 	for (const mutation of mutationList) {
