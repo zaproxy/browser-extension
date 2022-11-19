@@ -16,7 +16,7 @@ function onMessageHandler(request: any, _sender: chrome.runtime.MessageSender, _
 /*
   A callback URL will only be available if the browser has been launched from ZAP, otherwise call the individual endpoints
 */
-function zapApiUrl(zapurl: string, action: string) {
+function zapApiUrl(zapurl: string, action: string): string {
 	if (zapurl.indexOf('/zapCallBackUrl/') > 0) {
 		return zapurl;
 	} else {
@@ -63,7 +63,11 @@ function onToolbarButtonClick(_tab: any) {
 	chrome.runtime.openOptionsPage();
 }
 
-chrome.browserAction.onClicked.addListener(onToolbarButtonClick);
+if ('browserAction' in chrome) {
+	chrome.browserAction.onClicked.addListener(onToolbarButtonClick);
+} else {
+	chrome.action.onClicked.addListener(onToolbarButtonClick);
+}
 chrome.runtime.onMessage.addListener(onMessageHandler);
 
 export { handleMessage }
