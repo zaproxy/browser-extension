@@ -14,7 +14,7 @@ module.exports = {
   name,
   short_name,
   description,
-  permissions: [...permissions, "https://*/*"],
+  permissions: [...permissions, "https://*/*", "http://*/*"],
   browser_action: {
     "default_title": short_name
   },
