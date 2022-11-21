@@ -1,6 +1,7 @@
 
 class ReportedObject {
 	public timestamp: number;
+	public type: string;
 	public tagName: string;
 	public id: string;
 	public nodeName: string;
@@ -9,8 +10,9 @@ class ReportedObject {
 	public href: string;
 	public text: string;
 
-	public constructor(tagName: string, id: string, nodeName: string, text: string) {
+	public constructor(type: string, tagName: string, id: string, nodeName: string, text: string) {
 		this.timestamp = Date.now();
+		this.type = type;
 		this.tagName = tagName;
 		this.id = id;
 		this.nodeName = nodeName;
@@ -46,7 +48,7 @@ class ReportedObject {
 class ReportedElement extends ReportedObject {
 
 	public constructor(element: Element) {
-		super(element.tagName, element.id, element.nodeName, element.textContent);
+		super('nodeAdded', element.tagName, element.id, element.nodeName, element.textContent);
 		if (element["href"]) {
 			this.href = element["href"];
 		}
@@ -99,13 +101,17 @@ function reportPageUnloaded() {
 	for (const value of Object.values(reportedEvents)) {
 		sendEventToZAP(value);
 	}
+	reportAllStorage();
+}
+
+function reportAllStorage() {
 	reportStorage("localStorage", localStorage, reportObject);
 	reportStorage("sessionStorage", sessionStorage, reportObject);
 }
 
 function reportStorage(name: string, storage: Storage, fn: (re: ReportedObject) => void) {
 	for (const key of Object.keys(storage)) {
-		fn(new ReportedObject(name, key, '', storage.getItem(key)));
+		fn(new ReportedObject(name, '', key, '', storage.getItem(key)));
 	}
 }
 
