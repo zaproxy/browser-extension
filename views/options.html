@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8"/>
+  </head>
+
+  <body>
+    <h1>OWASP ZAP Browser Extension</h1>
+    This extension gives ZAP access to the browser.
+    <form>
+      These options should be set correctly if the browser is launched from ZAP but may need to be set manually if you
+      install this add-on in a browser not launched by ZAP.
+      <table>
+      <tr>
+        <td><label>ZAP API URL</label></td>
+        <td><input type="text" id="zapurl"/></td>
+        <td>For example <code>http://zap/</code> or <code>http://localhost:8080/</code></td>
+      </tr>
+      <tr>
+        <td><label>ZAP API Key</label></td>
+        <td><input type="text" id="zapkey"/></td>
+        <td>As set in the ZAP API options</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td><button type="submit" id="save">Save</button></td>
+      </tr>
+      </table>
+    </form>
+    <script src="../../option.js"></script>
+    For more info see <a href="https://github.com/zaproxy/browser-extension/">https://github.com/zaproxy/browser-extension/</a>
+  </body>
+</html>
