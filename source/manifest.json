@@ -1,0 +1,76 @@
+{
+  "manifest_version": 2,
+  "name": "OWASP ZAP Browser Extension",
+  "version": "0.0.3",
+
+  "icons": {
+    "16": "assets/icons/zap16x16.png",
+    "32": "assets/icons/zap32x32.png",
+    "48": "assets/icons/zap48x48.png",
+    "128": "assets/icons/zap128x128.png",
+    "512": "assets/icons/zap512x512.png"
+  },
+  "description": "A browser extension which allows OWASP ZAP to access the client side of a web app.",
+  "homepage_url": "https://github.com/zaproxy/browser-extension/",
+  "short_name": "OWASP ZAP",
+
+  "permissions": [
+    "activeTab",
+    "storage",
+    "http://*/*",
+    "https://*/*"
+  ],
+
+  "content_security_policy": "script-src 'self'; object-src 'self'",
+
+  "__chrome|firefox__author": "OWASP ZAP Core Team",
+  "__opera__developer": {
+    "name": "OWASP ZAP Core Team"
+  },
+
+  "__firefox__applications": {
+    "gecko": {
+      "id": "{754FB1AD-CC3B-4856-B6A0-7786F8CA9D17}"
+    }
+  },
+
+  "__chrome__minimum_chrome_version": "49",
+  "__opera__minimum_opera_version": "36",
+
+  "browser_action": {
+    "default_icon": {
+      "16": "assets/icons/zap16x16.png",
+      "32": "assets/icons/zap32x32.png",
+      "48": "assets/icons/zap48x48.png",
+      "128": "assets/icons/zap128x128.png",
+      "512": "assets/icons/zap512x512.png"
+    },
+    "default_title": "OWASP ZAP",
+    "__chrome|opera__chrome_style": false,
+    "__firefox__browser_style": false
+  },
+
+  "__chrome|opera__options_page": "options.html",
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true,
+    "__chrome__chrome_style": false
+  },
+
+  "background": {
+    "scripts": [
+      "js/background.bundle.js"
+    ],
+    "__chrome|opera__persistent": false
+  },
+
+  "content_scripts": [{
+    "matches": [
+      "http://*/*",
+      "https://*/*"
+    ],
+    "js": [
+      "js/contentScript.bundle.js"
+    ]
+  }]
+}

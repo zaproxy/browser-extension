@@ -4,61 +4,75 @@ A browser extension which allows [OWASP ZAP](https://www.zaproxy.org) to interac
 
 Works in both Firefox and Chrome but does not provide any useful functionality unless it is used with ZAP.
 
-Initially generated from https://github.com/abhijithvijayan/web-extension-starter 
+Initially generated from https://github.com/abhijithvijayan/web-extension-starter/tree/react-typescript
 
-## Start Commands
+Only Firefox and Chrome have been tested - Opera may or may not work :wink:
 
-```sh
-npm install
-npm run prebuild
-npm run init:profile
-npm run build:<browser_name> # brave | chrome | firefox
-npm run start:<browser_name> # brave | chrome | firefox
-```
+## Quick Start
 
-After first run, you can just do `npm run start:<browser_name>`
+Ensure you have
 
-## Commands
+- [Node.js](https://nodejs.org) 10 or later installed
+- [Yarn](https://yarnpkg.com) v1 or v2 installed
 
-```sh
-# Initial Setup
-# Install packages
-npm install
+Then run the following:
 
-# Prebuild
-npm run prebuild
+- `yarn install` to install dependencies.
+- `yarn run dev:chrome` to start the development server for chrome extension
+- `yarn run dev:firefox` to start the development server for firefox addon
+- `yarn run dev:opera` to start the development server for opera extension
+- `yarn run build:chrome` to build chrome extension
+- `yarn run build:firefox` to build firefox addon
+- `yarn run build:opera` to build opera extension
+- `yarn run build` builds and packs extensions all at once to extension/ directory
 
-# Init dirs for browser profiles
-npm run init:profile
+### Development
 
-# Live Build for specific browser
-# browser_name: chrome | firefox
-npm run watch:<browser_name>
+- `yarn install` to install dependencies.
+- To watch file changes in development
 
-# Live Build for chrome
-npm run watch:chrome
+  - Chrome
+    - `yarn run dev:chrome`
+  - Firefox
+    - `yarn run dev:firefox`
+  - Opera
+    - `yarn run dev:opera`
 
-# Live Build and Reload for specific browser
-# browser_name: chrome | firefox
-npm run start:<browser_name>
+- **Load extension in browser**
 
-# Live Build and Reload for chrome
-npm run start:chrome
+- ### Chrome
 
-# Build for all Browsers
-npm run build
+  - Go to the browser address bar and type `chrome://extensions`
+  - Check the `Developer Mode` button to enable it.
+  - Click on the `Load Unpacked Extension…` button.
+  - Select your browsers folder in `extension/`.
 
-# Build for specific browser
-# browser_name: chrome | firefox
-npm run build:<browser_name>
+- ### Firefox
 
-# Build for chrome
-npm run build:chrome
+  - Load the Add-on via `about:debugging` as temporary Add-on.
+  - Choose the `manifest.json` file in the extracted directory
 
-# Run Tests with Mocha
-npm run test
+- ### Opera
 
-# Clean Builds
-npm run clean
-```
+  - Load the extension via `opera:extensions`
+  - Check the `Developer Mode` and load as unpacked from extension’s extracted directory.
 
+### Production
+
+- `yarn run build` builds the extension for all the browsers to `extension/BROWSER` directory respectively.
+
+
+### Linting & TypeScript Config
+
+- Shared Eslint & Prettier Configuration - [`@abhijithvijayan/eslint-config`](https://www.npmjs.com/package/@abhijithvijayan/eslint-config)
+- Shared TypeScript Configuration - [`@abhijithvijayan/tsconfig`](https://www.npmjs.com/package/@abhijithvijayan/tsconfig)
+
+## Licenses
+
+### ZAP Code
+
+All of the ZAP specific code is licensed under ApacheV2 © The ZAP Core Team
+
+### Web Extension Starter
+
+The Web Extension Starter is licensed under MIT © [Abhijith Vijayan](https://abhijithvijayan.in)

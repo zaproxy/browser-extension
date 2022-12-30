@@ -1,21 +1,20 @@
 {
-  "compileOnSave": false,
-  "compilerOptions": {
-    "target": "es5",
-    "module": "commonjs",
-    "sourceMap": false,
-    "types": ["@types/chrome", "node", "jest"],
-    "typeRoots": ["node_modules/@types"],
-    "moduleResolution": "node",
-    "lib": ["es2019", "dom"],
-    "esModuleInterop": true,
-    "jsx": "react-jsx",
-    "resolveJsonModule": true,
-    "downlevelIteration": true,
-    "baseUrl": "./src",
-    "outDir": "./build",
-    "skipLibCheck": true
-  },
-  "include": ["src", "typings.d.ts"],
-  "exclude": ["node_modules", "src/**/*.spec.ts"]
+	"extends": "@abhijithvijayan/tsconfig",
+	"compilerOptions": {
+		"target": "es5",
+		"module": "esnext",
+		"lib": [
+			"dom",
+			"dom.iterable",
+			"esnext"
+		],
+		"declaration": false,
+		"isolatedModules": true,
+		"useDefineForClassFields": true,
+		"skipLibCheck": true
+	},
+	"include": [
+		"source",
+		"webpack.config.js"
+	]
 }
