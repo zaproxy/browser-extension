@@ -82,8 +82,8 @@ class ReportedObject {
 class ReportedStorage extends ReportedObject {
   public toShortString(): string {
     return JSON.stringify(this, function replacer(k: string, v: string) {
-      if (k === 'xpath' || k === 'url' || k === 'href') {
-        // Storage events are not URL specific
+      if (k === 'xpath' || k === 'url' || k === 'href' || k === 'timestamp') {
+        // Storage events are not time or URL specific
         return undefined;
       }
       return v;
@@ -303,8 +303,9 @@ observer.observe(document, {
 reportPageLoaded(document, reportObject);
 
 export {
-  ReportedObject,
   ReportedElement,
+  ReportedObject,
+  ReportedStorage,
   reportPageLinks,
   reportPageLoaded,
   reportPageForms,

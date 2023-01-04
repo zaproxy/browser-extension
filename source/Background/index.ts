@@ -19,8 +19,14 @@
  */
 import 'emoji-log';
 import {browser, Runtime} from 'webextension-polyfill-ts';
+import {ReportedStorage} from '../ContentScript/index';
 
 console.log('ZAP Service Worker 👋');
+
+/*
+  We check the storage on every page, so need to record which storage events we have reported to ZAP here so that we dont keep sending the same events.
+*/
+const reportedStorage = new Set<string>();
 
 /*
   A callback URL will only be available if the browser has been launched from ZAP, otherwise call the individual endpoints
@@ -53,7 +59,20 @@ function handleMessage(
   console.log(encodeURIComponent(zapkey));
   console.log(`Type: ${request.type}`);
   console.log(`Data: ${request.data}`);
+
   if (request.type === 'reportObject') {
+    const repObj = JSON.parse(request.data);
+    if (repObj.type === 'localStorage' || repObj.type === 'sessionStorage') {
+      // Check to see if we have already reported this storage object
+      const repStorage = new ReportedStorage('', '', '', '', '');
+      Object.assign(repStorage, repObj);
+      const repStorStr: string = repStorage.toShortString();
+      if (reportedStorage.has(repStorStr)) {
+        // Already reported
+        return true;
+      }
+      reportedStorage.add(repStorStr);
+    }
     const body = `objectJson=${encodeURIComponent(
       request.data
     )}&apikey=${encodeURIComponent(zapkey)}`;
