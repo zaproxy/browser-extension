@@ -58,15 +58,14 @@
   "__chrome|opera__options_page": "options.html",
   "options_ui": {
     "page": "options.html",
-    "open_in_tab": true,
-    "__chrome__chrome_style": false
+    "open_in_tab": true
   },
 
   "background": {
-    "scripts": [
+    "__chrome__service_worker": "js/background.bundle.js",
+    "__firefox|opera__scripts": [
       "js/background.bundle.js"
-    ],
-    "__chrome|opera__persistent": false
+    ]
   },
 
   "content_scripts": [{
