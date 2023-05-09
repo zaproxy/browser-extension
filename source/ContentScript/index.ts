@@ -18,7 +18,12 @@
  * limitations under the License.
  */
 import Browser from 'webextension-polyfill';
-import { ReportedElement, ReportedObject, ReportedStorage , ReportedEvent} from '../models/ReportedModel';
+import {
+  ReportedElement,
+  ReportedObject,
+  ReportedStorage,
+  ReportedEvent,
+} from '../models/ReportedModel';
 
 const reportedObjects = new Set<string>();
 

@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 import 'emoji-log';
-import Browser, { Runtime } from 'webextension-polyfill';
+import Browser, {Runtime} from 'webextension-polyfill';
 import {ReportedStorage} from '../models/ReportedModel';
 
 console.log('ZAP Service Worker 👋');
