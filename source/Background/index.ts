@@ -117,7 +117,7 @@ function onMessageHandler(
   return Promise.resolve(2);
 }
 
-Browser.action.onClicked.addListener((_tab) => {
+Browser.action.onClicked.addListener((_tab: Browser.Tabs.Tab) => {
   Browser.runtime.openOptionsPage();
 });
 
