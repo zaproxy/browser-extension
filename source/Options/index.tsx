@@ -17,7 +17,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {browser} from 'webextension-polyfill-ts';
+import Browser from 'webextension-polyfill';
 
 console.log('Options loading');
 
@@ -29,7 +29,7 @@ function saveOptions(): void {
   console.log('Options save_options');
   const zapurl = (document.getElementById(ZAP_URL) as HTMLInputElement).value;
   const zapkey = (document.getElementById(ZAP_KEY) as HTMLInputElement).value;
-  browser.storage.sync.set({
+  Browser.storage.sync.set({
     zapurl,
     zapkey,
   });
@@ -39,7 +39,7 @@ function saveOptions(): void {
 function restoreOptions(): void {
   console.log('Options restore_options');
 
-  browser.storage.sync
+  Browser.storage.sync
     .get({
       zapurl: 'http://zap/',
       zapkey: 'not set',
