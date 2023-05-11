@@ -6,7 +6,8 @@
 	],
 	"parserOptions": {
 		"project": [
-			"./tsconfig.json"
+			"./tsconfig.json",
+			"./test/ContentScript/tsconfig.json"
 		],
 		"sourceType": "module"
 	},
@@ -30,5 +31,8 @@
 		"node": {
 			"tryExtensions": [".tsx"]
 		}
+	},
+	"globals": {
+		"NodeJS": true
 	}
 }

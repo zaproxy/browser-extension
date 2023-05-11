@@ -67,7 +67,7 @@
       "js/background.bundle.js"
     ]
   },
-
+  
   "content_scripts": [{
     "matches": [
       "http://*/*",
