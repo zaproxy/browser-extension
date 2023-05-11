@@ -1,5 +1,5 @@
 {
-  "manifest_version": 2,
+  "manifest_version": 3,
   "name": "OWASP ZAP Browser Extension",
   "version": "0.0.3",
 
@@ -16,19 +16,24 @@
 
   "permissions": [
     "activeTab",
-    "storage",
+    "storage"
+  ],
+
+  "host_permissions": [
     "http://*/*",
     "https://*/*"
   ],
 
-  "content_security_policy": "script-src 'self'; object-src 'self'",
+  "content_security_policy": {
+    "extension_pages" : "script-src 'self'; object-src 'self'"
+  },
 
   "__chrome|firefox__author": "OWASP ZAP Core Team",
   "__opera__developer": {
     "name": "OWASP ZAP Core Team"
   },
 
-  "__firefox__applications": {
+  "__firefox__browser_specific_settings": {
     "gecko": {
       "id": "{754FB1AD-CC3B-4856-B6A0-7786F8CA9D17}"
     }
@@ -37,7 +42,7 @@
   "__chrome__minimum_chrome_version": "49",
   "__opera__minimum_opera_version": "36",
 
-  "browser_action": {
+  "action": {
     "default_icon": {
       "16": "assets/icons/zap16x16.png",
       "32": "assets/icons/zap32x32.png",
@@ -53,17 +58,16 @@
   "__chrome|opera__options_page": "options.html",
   "options_ui": {
     "page": "options.html",
-    "open_in_tab": true,
-    "__chrome__chrome_style": false
+    "open_in_tab": true
   },
 
   "background": {
-    "scripts": [
+    "__chrome__service_worker": "js/background.bundle.js",
+    "__firefox|opera__scripts": [
       "js/background.bundle.js"
-    ],
-    "__chrome|opera__persistent": false
+    ]
   },
-
+  
   "content_scripts": [{
     "matches": [
       "http://*/*",

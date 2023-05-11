@@ -18,8 +18,8 @@
  * limitations under the License.
  */
 import 'emoji-log';
-import {browser, Runtime} from 'webextension-polyfill-ts';
-import {ReportedStorage} from '../ContentScript/index';
+import Browser, {Runtime} from 'webextension-polyfill';
+import {ReportedStorage} from '../models/ReportedModel';
 
 console.log('ZAP Service Worker 👋');
 
@@ -45,7 +45,7 @@ function handleMessage(
 ): boolean {
   if (request.type === 'zapDetails') {
     console.log('ZAP Service worker updating the ZAP details');
-    browser.storage.sync.set({
+    Browser.storage.sync.set({
       zapurl: request.data.zapurl,
       zapcallback: request.data.zapcallback,
       zapkey: request.data.zapkey,
@@ -104,7 +104,7 @@ function onMessageHandler(
   message: MessageEvent,
   _sender: Runtime.MessageSender
 ): Promise<number> {
-  browser.storage.sync
+  Browser.storage.sync
     .get({
       zapurl: 'http://zap/',
       zapkey: 'not set',
@@ -117,12 +117,12 @@ function onMessageHandler(
   return Promise.resolve(2);
 }
 
-browser.browserAction.onClicked.addListener((_tab) => {
-  browser.runtime.openOptionsPage();
+Browser.action.onClicked.addListener((_tab: Browser.Tabs.Tab) => {
+  Browser.runtime.openOptionsPage();
 });
 
-browser.runtime.onMessage.addListener(onMessageHandler);
+Browser.runtime.onMessage.addListener(onMessageHandler);
 
-browser.runtime.onInstalled.addListener((): void => {
+Browser.runtime.onInstalled.addListener((): void => {
   console.emoji('🦄', 'extension installed');
 });
