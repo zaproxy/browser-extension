@@ -1,30 +1,28 @@
-import {BrowserContext, Page, chromium} from 'playwright';
+import {Browser, BrowserContext, firefox} from 'playwright';
+import {withExtension} from 'playwright-webextext';
 import path from 'path';
 import {Request, Response} from 'express';
 import JsonServer from 'json-server';
 import * as http from 'http';
 import fs from 'fs';
 
-describe('Chrome Integration Test', () => {
+describe('Firefox Integration Test', () => {
   let server: http.Server;
   let httpServer: http.Server;
   let actualData: string[];
   let context: BrowserContext;
+  let browser: Browser;
   const HTTPPORT = 1801;
   const JSONPORT = 8080;
-  let backgroundPage: Page;
 
   function getFakeZapServer(): http.Server {
     const app = JsonServer.create();
 
     app.use(JsonServer.bodyParser);
     app.post('/JSON/client/action/:action', (req: Request, res: Response) => {
-      const action = req.params;
-      const {body} = req;
-      const msg = JSON.stringify({action, body});
-      actualData.push(
-        msg.replace(/\\"timestamp\\":\d+/g, 'TIMESTAMP').replace(/[\\]/g, '')
-      );
+      const {action} = req.params;
+      console.log(action);
+      actualData.push(action);
       res.sendStatus(200);
     });
 
@@ -61,32 +59,19 @@ describe('Chrome Integration Test', () => {
     });
   }
 
-  async function getExtensionId(): Promise<string> {
-    let [background] = context.serviceWorkers();
-    if (!background) background = await context.waitForEvent('serviceworker');
-    return background.url().split('/')[2];
-  }
-
   beforeAll(async () => {
+    actualData = [];
     const extensionPath = path.join(
       __dirname,
       '..',
       '..',
       'extension',
-      'chrome'
+      'firefox.xpi'
     );
-    context = await chromium.launchPersistentContext('', {
-      args: [
-        `--headless=new`,
-        `--disable-extensions-except=${extensionPath}`,
-        `--load-extension=${extensionPath}`,
-      ],
+    browser = await withExtension(firefox, `${extensionPath}`).launch({
+      // headless: false,
     });
-    const extensionId = await getExtensionId();
-    backgroundPage = await context.newPage();
-    await backgroundPage.goto(`chrome-extension://${extensionId}/options.html`);
-    await backgroundPage.fill('#zapurl', `http://localhost:${JSONPORT}/`);
-    await backgroundPage.click('#save');
+    context = await browser.newContext();
     server = getFakeZapServer();
     httpServer = getStaticHttpServer();
     httpServer.listen(HTTPPORT, () => {
@@ -94,27 +79,12 @@ describe('Chrome Integration Test', () => {
     });
   });
 
-  test('Integration Test', async () => {
-    // Given / When
-    const page = await context.newPage();
-    actualData = [];
-    await page.goto(
-      `http://localhost:${HTTPPORT}/webpages/integrationTest.html`
-    );
-    await page.waitForLoadState('networkidle');
-    await page.close();
-    // Then
-    expect(JSON.stringify(actualData)).toBe(
-      '["{\\"action\\":{\\"action\\":\\"reportEvent\\"},\\"body\\":{\\"eventJson\\":\\"{TIMESTAMP,\\"eventName\\":\\"pageLoad\\",\\"url\\":\\"http://localhost:1801/webpages/integrationTest.html\\",\\"count\\":1}\\",\\"apikey\\":\\"not set\\"}}","{\\"action\\":{\\"action\\":\\"reportObject\\"},\\"body\\":{\\"objectJson\\":\\"{TIMESTAMP,\\"type\\":\\"nodeAdded\\",\\"tagName\\":\\"A\\",\\"id\\":\\"\\",\\"nodeName\\":\\"A\\",\\"url\\":\\"http://localhost:1801/webpages/integrationTest.html\\",\\"href\\":\\"http://localhost:1801/webpages/integrationTest.html#test\\",\\"text\\":\\"Link\\"}\\",\\"apikey\\":\\"not set\\"}}","{\\"action\\":{\\"action\\":\\"reportEvent\\"},\\"body\\":{\\"eventJson\\":\\"{TIMESTAMP,\\"eventName\\":\\"pageLoad\\",\\"url\\":\\"http://localhost:1801/webpages/integrationTest.html\\",\\"count\\":1}\\",\\"apikey\\":\\"not set\\"}}","{\\"action\\":{\\"action\\":\\"reportObject\\"},\\"body\\":{\\"objectJson\\":\\"{TIMESTAMP,\\"type\\":\\"nodeAdded\\",\\"tagName\\":\\"A\\",\\"id\\":\\"\\",\\"nodeName\\":\\"A\\",\\"url\\":\\"http://localhost:1801/webpages/integrationTest.html\\",\\"href\\":\\"http://localhost:1801/webpages/integrationTest.html#test\\",\\"text\\":\\"Link\\"}\\",\\"apikey\\":\\"not set\\"}}"]'
-    );
-  });
-
   afterAll(async () => {
-    if (backgroundPage) {
-      backgroundPage.close();
-    }
     if (context) {
       await context.close();
+    }
+    if (browser) {
+      await browser.close();
     }
     if (server) {
       await closeServer(server);
@@ -122,5 +92,20 @@ describe('Chrome Integration Test', () => {
     if (httpServer) {
       await closeServer(httpServer);
     }
+  });
+
+  test('Integration Test', async () => {
+    // Given / When
+    const page = await context.newPage();
+    await page.goto(
+      `http://localhost:${HTTPPORT}/webpages/integrationTest.html`
+    );
+    // await page.click('#click');
+    await page.waitForLoadState('networkidle');
+    await page.close();
+    // Then
+    expect(JSON.stringify(actualData)).toBe(
+      '["{\\"action\\":{\\"action\\":\\"reportEvent\\"},\\"body\\":{\\"eventJson\\":\\"{TIMESTAMP,\\"eventName\\":\\"pageLoad\\",\\"url\\":\\"http://localhost:1801/webpages/integrationTest.html\\",\\"count\\":1}\\",\\"apikey\\":\\"not set\\"}}","{\\"action\\":{\\"action\\":\\"reportObject\\"},\\"body\\":{\\"objectJson\\":\\"{TIMESTAMP,\\"type\\":\\"nodeAdded\\",\\"tagName\\":\\"A\\",\\"id\\":\\"\\",\\"nodeName\\":\\"A\\",\\"url\\":\\"http://localhost:1801/webpages/integrationTest.html\\",\\"href\\":\\"http://localhost:1801/webpages/integrationTest.html#test\\",\\"text\\":\\"Link\\"}\\",\\"apikey\\":\\"not set\\"}}","{\\"action\\":{\\"action\\":\\"reportEvent\\"},\\"body\\":{\\"eventJson\\":\\"{TIMESTAMP,\\"eventName\\":\\"pageLoad\\",\\"url\\":\\"http://localhost:1801/webpages/integrationTest.html\\",\\"count\\":1}\\",\\"apikey\\":\\"not set\\"}}","{\\"action\\":{\\"action\\":\\"reportObject\\"},\\"body\\":{\\"objectJson\\":\\"{TIMESTAMP,\\"type\\":\\"nodeAdded\\",\\"tagName\\":\\"A\\",\\"id\\":\\"\\",\\"nodeName\\":\\"A\\",\\"url\\":\\"http://localhost:1801/webpages/integrationTest.html\\",\\"href\\":\\"http://localhost:1801/webpages/integrationTest.html#test\\",\\"text\\":\\"Link\\"}\\",\\"apikey\\":\\"not set\\"}}"]'
+    );
   });
 });
