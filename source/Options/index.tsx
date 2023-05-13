@@ -41,7 +41,7 @@ function restoreOptions(): void {
 
   Browser.storage.sync
     .get({
-      zapurl: 'http://zap/',
+      zapurl: 'http://localhost:8080/',
       zapkey: 'not set',
     })
     .then((items) => {

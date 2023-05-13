@@ -125,4 +125,8 @@ Browser.runtime.onMessage.addListener(onMessageHandler);
 
 Browser.runtime.onInstalled.addListener((): void => {
   console.emoji('🦄', 'extension installed');
+  Browser.storage.sync.set({
+    zapurl: 'http://localhost:8080/',
+    zapkey: 'not set',
+  });
 });

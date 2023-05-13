@@ -1,4 +1,5 @@
-import {BrowserContext, Page, chromium} from 'playwright';
+import {Builder, WebDriver} from 'selenium-webdriver';
+import * as chrome from 'selenium-webdriver/chrome';
 import path from 'path';
 import {Request, Response} from 'express';
 import JsonServer from 'json-server';
@@ -8,11 +9,10 @@ import fs from 'fs';
 describe('Chrome Integration Test', () => {
   let server: http.Server;
   let httpServer: http.Server;
-  let actualData: string[];
-  let context: BrowserContext;
+  const actualData = new Set<string>();
   const HTTPPORT = 1801;
-  const JSONPORT = 3001;
-  let backgroundPage: Page;
+  const JSONPORT = 8080;
+  let driver: WebDriver;
 
   function getFakeZapServer(): http.Server {
     const app = JsonServer.create();
@@ -22,7 +22,7 @@ describe('Chrome Integration Test', () => {
       const action = req.params;
       const {body} = req;
       const msg = JSON.stringify({action, body});
-      actualData.push(
+      actualData.add(
         msg.replace(/\\"timestamp\\":\d+/g, 'TIMESTAMP').replace(/[\\]/g, '')
       );
       res.sendStatus(200);
@@ -61,32 +61,27 @@ describe('Chrome Integration Test', () => {
     });
   }
 
-  async function getExtensionId(): Promise<string> {
-    let [background] = context.serviceWorkers();
-    if (!background) background = await context.waitForEvent('serviceworker');
-    return background.url().split('/')[2];
-  }
+  const waitForNetworkIdle = (timeout: number): Promise<string> =>
+    new Promise((resolve) => {
+      setTimeout(() => {
+        resolve('');
+      }, timeout);
+    });
 
   beforeAll(async () => {
+    actualData.clear();
     const extensionPath = path.join(
       __dirname,
       '..',
       '..',
       'extension',
-      'chrome'
+      'chrome.zip'
     );
-    context = await chromium.launchPersistentContext('', {
-      args: [
-        `--headless=new`,
-        `--disable-extensions-except=${extensionPath}`,
-        `--load-extension=${extensionPath}`,
-      ],
-    });
-    const extensionId = await getExtensionId();
-    backgroundPage = await context.newPage();
-    await backgroundPage.goto(`chrome-extension://${extensionId}/options.html`);
-    await backgroundPage.fill('#zapurl', `http://localhost:${JSONPORT}/`);
-    await backgroundPage.click('#save');
+    const chromeOptions = new chrome.Options();
+    chromeOptions.addExtensions([extensionPath]);
+    chromeOptions.addArguments('--headless=new');
+
+    driver = new Builder().withCapabilities(chromeOptions).build();
     server = getFakeZapServer();
     httpServer = getStaticHttpServer();
     httpServer.listen(HTTPPORT, () => {
@@ -96,25 +91,19 @@ describe('Chrome Integration Test', () => {
 
   test('Integration Test', async () => {
     // Given / When
-    const page = await context.newPage();
-    actualData = [];
-    await page.goto(
+    await driver.get(
       `http://localhost:${HTTPPORT}/webpages/integrationTest.html`
     );
-    await page.waitForLoadState('networkidle');
-    await page.close();
+    await waitForNetworkIdle(500);
     // Then
-    expect(JSON.stringify(actualData)).toBe(
-      '["{\\"action\\":{\\"action\\":\\"reportEvent\\"},\\"body\\":{\\"eventJson\\":\\"{TIMESTAMP,\\"eventName\\":\\"pageLoad\\",\\"url\\":\\"http://localhost:1801/webpages/integrationTest.html\\",\\"count\\":1}\\",\\"apikey\\":\\"not set\\"}}","{\\"action\\":{\\"action\\":\\"reportObject\\"},\\"body\\":{\\"objectJson\\":\\"{TIMESTAMP,\\"type\\":\\"nodeAdded\\",\\"tagName\\":\\"A\\",\\"id\\":\\"\\",\\"nodeName\\":\\"A\\",\\"url\\":\\"http://localhost:1801/webpages/integrationTest.html\\",\\"href\\":\\"http://localhost:1801/webpages/integrationTest.html#test\\",\\"text\\":\\"Link\\"}\\",\\"apikey\\":\\"not set\\"}}","{\\"action\\":{\\"action\\":\\"reportEvent\\"},\\"body\\":{\\"eventJson\\":\\"{TIMESTAMP,\\"eventName\\":\\"pageLoad\\",\\"url\\":\\"http://localhost:1801/webpages/integrationTest.html\\",\\"count\\":1}\\",\\"apikey\\":\\"not set\\"}}","{\\"action\\":{\\"action\\":\\"reportObject\\"},\\"body\\":{\\"objectJson\\":\\"{TIMESTAMP,\\"type\\":\\"nodeAdded\\",\\"tagName\\":\\"A\\",\\"id\\":\\"\\",\\"nodeName\\":\\"A\\",\\"url\\":\\"http://localhost:1801/webpages/integrationTest.html\\",\\"href\\":\\"http://localhost:1801/webpages/integrationTest.html#test\\",\\"text\\":\\"Link\\"}\\",\\"apikey\\":\\"not set\\"}}"]'
+    expect(JSON.stringify(Array.from(actualData))).toBe(
+      '["{\\"action\\":{\\"action\\":\\"reportEvent\\"},\\"body\\":{\\"eventJson\\":\\"{TIMESTAMP,\\"eventName\\":\\"pageLoad\\",\\"url\\":\\"http://localhost:1801/webpages/integrationTest.html\\",\\"count\\":1}\\",\\"apikey\\":\\"not set\\"}}","{\\"action\\":{\\"action\\":\\"reportObject\\"},\\"body\\":{\\"objectJson\\":\\"{TIMESTAMP,\\"type\\":\\"nodeAdded\\",\\"tagName\\":\\"A\\",\\"id\\":\\"\\",\\"nodeName\\":\\"A\\",\\"url\\":\\"http://localhost:1801/webpages/integrationTest.html\\",\\"href\\":\\"http://localhost:1801/webpages/integrationTest.html#test\\",\\"text\\":\\"Link\\"}\\",\\"apikey\\":\\"not set\\"}}"]'
     );
-  });
+  }, 10000);
 
   afterAll(async () => {
-    if (backgroundPage) {
-      backgroundPage.close();
-    }
-    if (context) {
-      await context.close();
+    if (driver) {
+      driver.quit();
     }
     if (server) {
       await closeServer(server);
