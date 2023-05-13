@@ -19,7 +19,7 @@
  */
 import 'emoji-log';
 import Browser, {Runtime} from 'webextension-polyfill';
-import {ReportedStorage} from '../models/ReportedModel';
+import {ReportedStorage} from '../types/ReportedModel';
 
 console.log('ZAP Service Worker 👋');
 

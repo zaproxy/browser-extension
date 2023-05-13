@@ -31,5 +31,5 @@ jobs:
         run: yarn run build
 
       - name: Test
-        run: yarn test
+        run: xvfb-run yarn test
   
