@@ -23,7 +23,7 @@ import {
   ReportedObject,
   ReportedStorage,
   ReportedEvent,
-} from '../models/ReportedModel';
+} from '../types/ReportedModel';
 
 const reportedObjects = new Set<string>();
 

@@ -19,7 +19,7 @@
  */
 import 'emoji-log';
 import Browser, {Runtime} from 'webextension-polyfill';
-import {ReportedStorage} from '../models/ReportedModel';
+import {ReportedStorage} from '../types/ReportedModel';
 
 console.log('ZAP Service Worker 👋');
 
@@ -125,4 +125,8 @@ Browser.runtime.onMessage.addListener(onMessageHandler);
 
 Browser.runtime.onInstalled.addListener((): void => {
   console.emoji('🦄', 'extension installed');
+  Browser.storage.sync.set({
+    zapurl: 'http://localhost:8080/',
+    zapkey: 'not set',
+  });
 });
