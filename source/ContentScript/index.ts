@@ -202,4 +202,8 @@ export {
   reportPageForms,
   reportNodeElements,
   reportStorage,
+  ReportedElement,
+  ReportedObject,
+  ReportedStorage,
+  ReportedEvent,
 };
