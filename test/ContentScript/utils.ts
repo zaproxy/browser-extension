@@ -20,11 +20,8 @@
 import http from 'http';
 import fs from 'fs';
 import path from 'path';
-import {BrowserContext, chromium, firefox, Browser} from 'playwright';
 import {Request, Response} from 'express';
 import JsonServer from 'json-server';
-import {withExtension} from 'playwright-webextext';
-import {extensionPath} from './constants';
 
 export function getStaticHttpServer(): http.Server {
   return http.createServer((request, response) => {
@@ -43,33 +40,6 @@ export function getStaticHttpServer(): http.Server {
         response.end(`Error : ${err}`);
       });
   });
-}
-
-export async function getChromeExtensionId(
-  _context: BrowserContext
-): Promise<string> {
-  let [background] = _context.serviceWorkers();
-  if (!background) background = await _context.waitForEvent('serviceworker');
-  return background.url().split('/')[2];
-}
-
-export async function getContextForChrome(
-  JSONPORT: number
-): Promise<BrowserContext> {
-  const context = await chromium.launchPersistentContext('', {
-    args: [
-      `--headless=new`,
-      `--disable-extensions-except=${extensionPath.CHROME}`,
-      `--load-extension=${extensionPath.CHROME}`,
-    ],
-  });
-  const extensionId = await getChromeExtensionId(context);
-  const backgroundPage = await context.newPage();
-  await backgroundPage.goto(`chrome-extension://${extensionId}/options.html`);
-  await backgroundPage.fill('#zapurl', `http://localhost:${JSONPORT}/`);
-  await backgroundPage.click('#save');
-  await backgroundPage.close();
-  return context;
 }
 
 export function getFakeZapServer(
@@ -101,38 +71,4 @@ export async function closeServer(_server: http.Server): Promise<void> {
       resolve();
     });
   });
-}
-
-export async function getFirefoxBrowser(): Promise<Browser> {
-  return withExtension(firefox, `${extensionPath.FIREFOX}`).launch({
-    headless: false,
-  });
-}
-
-export async function grantPermissionFirefox(
-  _context: BrowserContext
-): Promise<void> {
-  const page = await _context.newPage();
-  await page.goto('about:addons');
-  await page.keyboard.press('Tab');
-  await page.keyboard.press('ArrowDown');
-
-  for (let i = 0; i < 7; i += 1) {
-    await page.keyboard.press('Tab');
-  }
-
-  await page.keyboard.press('Enter');
-
-  for (let i = 0; i < 4; i += 1) {
-    await page.keyboard.press('ArrowDown');
-    await page.waitForTimeout(50);
-  }
-
-  await page.keyboard.press('Enter');
-  await page.keyboard.press('Tab');
-  await page.keyboard.press('ArrowRight');
-  await page.keyboard.press('Enter');
-  await page.keyboard.press('Tab');
-  await page.keyboard.press('Enter');
-  await page.close();
 }

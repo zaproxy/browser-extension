@@ -1600,11 +1600,6 @@
   dependencies:
     "@types/node" "*"
 
-"@types/har-format@^1.2.10":
-  version "1.2.10"
-  resolved "https://registry.yarnpkg.com/@types/har-format/-/har-format-1.2.10.tgz#7b4e1e0ada4d17684ac3b05d601a4871cfab11fc"
-  integrity sha512-o0J30wqycjF5miWDKYKKzzOU1ZTLuA42HZ4HE7/zqTOc/jTLdQ5NhYWvsRQo45Nfi1KHoRdNhteSI4BAxTF1Pg==
-
 "@types/html-minifier-terser@^6.0.0":
   version "6.1.0"
   resolved "https://registry.yarnpkg.com/@types/html-minifier-terser/-/html-minifier-terser-6.1.0.tgz#4fc33a00c1d0c16987b1a20cf92d20614c55ac35"
@@ -4531,13 +4526,6 @@ grapheme-splitter@^1.0.4:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/grapheme-splitter/-/grapheme-splitter-1.0.4.tgz#9cf3a665c6247479896834af35cf1dbb4400767e"
   integrity sha512-bzh50DW9kTPM00T8y4o8vQg89Di9oLJVLW/KaOGIXJWP/iqCN6WKYkbNOF04vFLJhwcpYUh9ydh/+5vpOqV4YQ==
-
-har-parser@^0.0.1:
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/har-parser/-/har-parser-0.0.1.tgz#d6de69a254d8255ad7e2fd037b9e5a1f7e02655a"
-  integrity sha512-l7mVsLBKeMv5r5MV/Q6CM0q0jDH3DwUyuaypT01jcfd+k7vxuVc9mHtBcODwPDOGZM2ZgsCFOEFtqwDaDi92SQ==
-  dependencies:
-    minimist "^1.2.0"
 
 has-bigints@^1.0.1, has-bigints@^1.0.2:
   version "1.0.2"

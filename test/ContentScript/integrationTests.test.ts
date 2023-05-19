@@ -17,17 +17,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Browser, BrowserContext} from 'playwright';
 import * as http from 'http';
 import {HTTPPORT, JSONPORT, BROWSERNAME} from './constants';
-import {
-  getFakeZapServer,
-  getStaticHttpServer,
-  closeServer,
-  getContextForChrome,
-  getFirefoxBrowser,
-  grantPermissionFirefox,
-} from './utils';
+import {ChromeDriver} from '../drivers/ChromeDriver';
+import {FirefoxDriver} from '../drivers/FirefoxDriver';
+import {getFakeZapServer, getStaticHttpServer, closeServer} from './utils';
 
 function integrationTests(
   browserName: string,
@@ -37,17 +31,14 @@ function integrationTests(
   let server: http.Server;
   let httpServer: http.Server;
   const actualData = new Set<string>();
-  let context: BrowserContext;
-  let browser: Browser;
+  let driver: ChromeDriver | FirefoxDriver;
 
   beforeAll(async () => {
     actualData.clear();
     if (browserName === BROWSERNAME.FIREFOX) {
-      browser = await getFirefoxBrowser();
-      context = await browser.newContext();
-      await grantPermissionFirefox(context);
+      driver = new FirefoxDriver();
     } else {
-      context = await getContextForChrome(_JSONPORT);
+      driver = new ChromeDriver();
     }
     server = getFakeZapServer(actualData, _JSONPORT);
     httpServer = getStaticHttpServer();
@@ -57,14 +48,14 @@ function integrationTests(
   });
 
   afterAll(async () => {
-    await context?.close();
-    await browser?.close();
+    await driver?.close();
     await closeServer(server);
     await closeServer(httpServer);
   });
 
   test('Should load extension into browser', async () => {
     // Given / When
+    const context = await driver.getContext(JSONPORT);
     const page = await context.newPage();
     await page.goto(
       `http://localhost:${_HTTPPORT}/webpages/integrationTest.html`
