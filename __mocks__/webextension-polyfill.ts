@@ -17,16 +17,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import path from 'path';
-
-export const extensionPath = {
-  CHROME: path.join(__dirname, '..', '..', 'extension', 'chrome'),
-  FIREFOX: path.join(__dirname, '..', '..', 'extension', 'firefox.xpi'),
+const browser = {
+  runtime: {
+    sendMessage: jest.fn(),
+  },
 };
 
-export const HTTPPORT = 1801;
-export const JSONPORT = 8080;
-export const BROWSERNAME = {
-  CHROME: 'chrome',
-  FIREFOX: 'firefox',
-};
+export default browser;
