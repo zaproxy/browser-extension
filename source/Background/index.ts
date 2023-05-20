@@ -117,8 +117,67 @@ function onMessageHandler(
   return Promise.resolve(2);
 }
 
+// let popupId :
+let clickEnabled = true;
+let popupId: number | undefined;
+
+function openPopupWindow(): void {
+  Browser.windows
+    .create({
+      url: Browser.runtime.getURL('popup.html'),
+      type: 'popup',
+      width: 800,
+      height: 600,
+    })
+    .then((panelWindowInfo) => {
+      let count = 0;
+      const interval = setInterval(() => {
+        if (count > 100) {
+          clearInterval(interval);
+        }
+        Browser.tabs
+          .query({
+            active: true,
+            windowId: panelWindowInfo.id,
+            status: 'complete',
+          })
+          .then((tabs) => {
+            if (tabs.length !== 1) {
+              count += 1;
+            } else {
+              popupId = panelWindowInfo.id;
+              clearInterval(interval);
+            }
+          });
+      }, 500);
+    })
+    .catch((e) => {
+      console.log(e);
+    });
+}
+
 Browser.action.onClicked.addListener((_tab: Browser.Tabs.Tab) => {
-  Browser.runtime.openOptionsPage();
+  if (!clickEnabled) {
+    return;
+  }
+  clickEnabled = false;
+  setTimeout(() => {
+    clickEnabled = true;
+  }, 1000);
+
+  if (popupId) {
+    Browser.windows
+      .update(popupId, {
+        focused: true,
+      })
+      .catch((e) => {
+        popupId = undefined;
+        openPopupWindow();
+        console.log(e);
+      });
+  } else {
+    openPopupWindow();
+  }
 });
 
 Browser.runtime.onMessage.addListener(onMessageHandler);

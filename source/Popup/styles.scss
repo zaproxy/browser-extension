@@ -1,0 +1,122 @@
+@import "../styles/fonts";
+@import "../styles/reset";
+@import "../styles/variables";
+
+@import "~webext-base-css/webext-base.css";
+
+/* Reset default styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Set background color and font family for the whole document */
+body {
+  background-color: #f4f4f4;
+}
+
+/* Style the container for the page */
+.container {
+  max-width: 600px; /* set maximum width for the container */
+  margin: 0 auto; /* center the container */
+  padding: 20px; /* add padding */
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Style the page heading */
+h1 {
+  font-size: 36px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+/* Style the input field for the URL */
+.url-input {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  border-radius: 5px;
+  border: none;
+  margin-bottom: 20px;
+  font-size: 18px;
+}
+
+/* Style the record button */
+#record-btn {
+  background-color: #4CAF50;
+  border: none;
+  color: #ffffff;
+  padding: 12px 24px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 18px;
+  margin-right: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+/* Style the save button */
+#save-btn {
+  background-color: #f44336;
+  border: none;
+  color: #ffffff;
+  padding: 12px 24px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 18px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+/* Style the save button on hover */
+#save-btn:hover {
+  background-color: #d32f2f;
+}
+
+/* Style the configuration section */
+h2 {
+  font-size: 24px;
+  font-weight: bold;
+  margin-top: 40px;
+  margin-bottom: 20px;
+}
+
+p {
+  font-size: 18px;
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+table {
+  width: 100%;
+  margin-bottom: 20px;
+  border-collapse: collapse;
+}
+
+td {
+  padding: 10px;
+  border: 1px solid #cccccc;
+}
+
+td:first-child {
+  font-weight: bold;
+  width: 120px;
+}
+
+/* Style the info section */
+.info {
+  font-size: 16px;
+  color: #666666;
+  margin-top: 40px;
+}
+
+.info a {
+  color: #333333;
+}

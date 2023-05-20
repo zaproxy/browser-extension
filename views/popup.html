@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recording Tool</title>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>OWASP ZAP Browser Extension</h1>
+      </header>
+      <main>
+        <div class="form-group">
+          <label for="url">Enter a URL:</label>
+          <input type="text" id="url" class="form-input" placeholder="https://example.com">
+          <button id="record-btn" class="button button-primary"><i class="fa fa-circle"></i> Record</button>
+        </div>
+        <div class="form-group">
+          <button id="save-btn" class="button button-secondary"><i class="fa fa-save"></i> Save Script</button>
+        </div>
+        <div class="form-group">
+          <button id="configure-btn" class="button button-secondary"><i class="fa fa-save"></i>Configure</button>
+        </div>
+      </main>
+    </div>
+    <script src="../../popup.js"></script>
+  </body>
+</html>
