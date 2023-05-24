@@ -18,8 +18,8 @@
  * limitations under the License.
  */
 import 'emoji-log';
-import Browser, { Cookies, Runtime } from 'webextension-polyfill';
-import { ReportedStorage } from '../types/ReportedModel';
+import Browser, {Cookies, Runtime} from 'webextension-polyfill';
+import {ReportedStorage} from '../types/ReportedModel';
 
 console.log('ZAP Service Worker 👋');
 
@@ -38,6 +38,12 @@ function zapApiUrl(zapurl: string, action: string): string {
   return `${zapurl}JSON/client/action/${action}/`;
 }
 
+function getUrlFromCookieDomain(domain: string): string {
+  return domain.startsWith('.')
+    ? `http://${domain.substring(1)}`
+    : `http://${domain}`;
+}
+
 function getCookieTabUrl(
   changeInfo: Cookies.OnChangedChangeInfoType
 ): Promise<string> {
@@ -48,35 +54,30 @@ function getCookieTabUrl(
     getAllTabs
       .then((allTabs) => {
         for (const tab of allTabs) {
-          if (!tab.url) {
-            continue;
-          }
-          const getAllCookiesForTab = Browser.cookies.getAll({ url: tab.url });
-          getAllCookiesForTab.then((cookies) => {
-            for (const cookie of cookies) {
-              if (
-                cookie.name === changeInfo.cookie.name &&
-                cookie.value === changeInfo.cookie.value &&
-                cookie.domain === changeInfo.cookie.domain &&
-                cookie.storeId === changeInfo.cookie.storeId
-              ) {
-                resolve(tab.url ? tab.url : (changeInfo.cookie.domain.startsWith('.')
-                  ? `http://${changeInfo.cookie.domain.substring(1)}`
-                  : `http://${changeInfo.cookie.domain}`));
+          if (tab.url) {
+            const getAllCookiesForTab = Browser.cookies.getAll({url: tab.url});
+            getAllCookiesForTab.then((cookies) => {
+              for (const cookie of cookies) {
+                if (
+                  cookie.name === changeInfo.cookie.name &&
+                  cookie.value === changeInfo.cookie.value &&
+                  cookie.domain === changeInfo.cookie.domain &&
+                  cookie.storeId === changeInfo.cookie.storeId
+                ) {
+                  resolve(
+                    tab.url
+                      ? tab.url
+                      : getUrlFromCookieDomain(changeInfo.cookie.domain)
+                  );
+                }
               }
-            }
-          });
+            });
+          }
         }
       })
-      .catch(() => {
-        console.log(
-          'Could not fetch the correct tab which invoked cookie change.'
-        );
-        reject(
-          changeInfo.cookie.domain.startsWith('.')
-            ? `http://${changeInfo.cookie.domain.substring(1)}`
-            : `http://${changeInfo.cookie.domain}`
-        );
+      .catch((error) => {
+        console.error(`Could not fetch tabs: ${error.message}`);
+        reject(getUrlFromCookieDomain(changeInfo.cookie.domain));
       });
   });
 }
@@ -86,7 +87,7 @@ function reportCookies(
   zapurl: string,
   zapkey: string
 ): void {
-  const { cookie } = changeInfo;
+  const {cookie} = changeInfo;
   let cookieString = `${cookie.name}=${cookie.value}; path=${cookie.path}; domain=${cookie.domain}`;
   if (cookie.expirationDate) {
     cookieString = cookieString.concat(
@@ -129,7 +130,6 @@ function reportCookies(
       reportedStorage.add(repStorStr);
     }
   });
-
 }
 
 function handleMessage(
