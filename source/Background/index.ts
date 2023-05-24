@@ -38,7 +38,7 @@ function zapApiUrl(zapurl: string, action: string): string {
   return `${zapurl}JSON/client/action/${action}/`;
 }
 
-async function getCookieTabUrl(
+function getCookieTabUrl(
   changeInfo: Cookies.OnChangedChangeInfoType
 ): Promise<string> {
   const getAllTabs = Browser.tabs.query({
@@ -81,11 +81,11 @@ async function getCookieTabUrl(
   });
 }
 
-async function reportCookies(
+function reportCookies(
   changeInfo: Cookies.OnChangedChangeInfoType,
   zapurl: string,
   zapkey: string
-): Promise<string> {
+): void {
   const { cookie } = changeInfo;
   let cookieString = `${cookie.name}=${cookie.value}; path=${cookie.path}; domain=${cookie.domain}`;
   if (cookie.expirationDate) {
@@ -103,33 +103,33 @@ async function reportCookies(
     cookieString = cookieString.concat(`; HttpOnly`);
   }
 
-  const cookieUrl = await getCookieTabUrl(changeInfo).then((url) => url);
-  const repStorage = new ReportedStorage(
-    'Cookies',
-    '',
-    cookie.name,
-    '',
-    cookieString,
-    cookieUrl
-  );
-  const repStorStr: string = repStorage.toShortString();
-  if (!reportedStorage.has(repStorStr) && repStorage.url.startsWith('http')) {
-    const body = `objectJson=${encodeURIComponent(
-      repStorage.toString()
-    )}&apikey=${encodeURIComponent(zapkey)}`;
+  getCookieTabUrl(changeInfo).then((cookieUrl) => {
+    const repStorage = new ReportedStorage(
+      'Cookies',
+      '',
+      cookie.name,
+      '',
+      cookieString,
+      cookieUrl
+    );
+    const repStorStr: string = repStorage.toShortString();
+    if (!reportedStorage.has(repStorStr) && repStorage.url.startsWith('http')) {
+      const body = `objectJson=${encodeURIComponent(
+        repStorage.toString()
+      )}&apikey=${encodeURIComponent(zapkey)}`;
 
-    fetch(zapApiUrl(zapurl, 'reportObject'), {
-      method: 'POST',
-      body,
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-    });
+      fetch(zapApiUrl(zapurl, 'reportObject'), {
+        method: 'POST',
+        body,
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      });
 
-    reportedStorage.add(repStorStr);
-  }
+      reportedStorage.add(repStorStr);
+    }
+  });
 
-  return new Promise(() => "");
 }
 
 function handleMessage(
