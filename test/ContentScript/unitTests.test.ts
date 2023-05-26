@@ -266,3 +266,10 @@ test('Reported page loaded', () => {
   localStorage.removeItem('lsKey');
   sessionStorage.removeItem('ssKey');
 });
+
+test('Should Disable The Extension', async () => {
+  // Given / When
+  const actualOutcome = await src.injectScript();
+  // Then
+  expect(actualOutcome).toBe(false);
+});

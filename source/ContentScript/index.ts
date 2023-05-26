@@ -198,16 +198,19 @@ function enableExtension(): void {
   reportPageLoaded(document, reportObject);
 }
 
-Browser.storage.sync
-  .get({
-    zapenable: true,
-  })
-  .then((items) => {
-    if (items.zapenable === true) {
-      enableExtension();
-    }
-    return Promise.resolve(1);
+async function injectScript(): Promise<boolean> {
+  return new Promise<boolean>((resolve) => {
+    Browser.storage.sync.get({zapenable: true}).then((items) => {
+      const {zapenable} = items;
+      if (zapenable === true) {
+        enableExtension();
+      }
+      resolve(zapenable);
+    });
   });
+}
+
+injectScript();
 
 export {
   reportPageLinks,
@@ -219,4 +222,6 @@ export {
   ReportedObject,
   ReportedStorage,
   ReportedEvent,
+  injectScript,
+  enableExtension,
 };
