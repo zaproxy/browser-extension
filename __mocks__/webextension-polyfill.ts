@@ -20,6 +20,9 @@
 const browser = {
   runtime: {
     sendMessage: jest.fn(),
+    onMessage: {
+      addListener: jest.fn(),
+    },
   },
 };
 

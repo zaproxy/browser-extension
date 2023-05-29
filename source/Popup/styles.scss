@@ -1,0 +1,17 @@
+@import "../styles/fonts";
+@import "../styles/reset";
+@import "../styles/variables";
+
+@import "~webext-base-css/webext-base.css";
+
+/* Reset default styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Set background color and font family for the whole document */
+body {
+  background-color: #f4f4f4;
+}

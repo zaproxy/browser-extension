@@ -17,14 +17,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import Browser,{Runtime} from 'webextension-polyfill';
+import Browser, {Runtime} from 'webextension-polyfill';
 import {
   ReportedElement,
   ReportedObject,
   ReportedStorage,
   ReportedEvent,
 } from '../types/ReportedModel';
-import { recordUserInteractions,stopRecordingUserInteractions } from './userInteractions';
+import {
+  recordUserInteractions,
+  stopRecordingUserInteractions,
+} from './userInteractions';
 
 const reportedObjects = new Set<string>();
 
@@ -197,15 +200,15 @@ observer.observe(document, {
 // This is needed for more traditional apps
 reportPageLoaded(document, reportObject);
 
-Browser.runtime.onMessage.addListener((message: MessageEvent,
-  _sender: Runtime.MessageSender)=>{
-    if(message.type === 'zapStartRecording'){
-      recordUserInteractions(); 
-    } else if(message.type === 'zapStopRecording'){
-      stopRecordingUserInteractions(); 
+Browser.runtime.onMessage.addListener(
+  (message: MessageEvent, _sender: Runtime.MessageSender) => {
+    if (message.type === 'zapStartRecording') {
+      recordUserInteractions();
+    } else if (message.type === 'zapStopRecording') {
+      stopRecordingUserInteractions();
     }
-})
-
+  }
+);
 
 export {
   reportPageLinks,
