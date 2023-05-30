@@ -21,6 +21,8 @@ import Browser from 'webextension-polyfill';
 import './styles.scss';
 
 let recordingActive = false;
+const RECORD = 'Record';
+const STOP = 'Stop';
 
 // Restores State from chrome.storage.
 function sendMessagetoContentScript(message: string): void {
@@ -41,14 +43,13 @@ function restoreState(): void {
     })
     .then((items) => {
       recordingActive = items.zaprecordingactive;
+      if (recordingActive) {
+        const recordButton = document.getElementById(
+          'record-btn'
+        ) as HTMLButtonElement;
+        recordButton.textContent = STOP;
+      }
     });
-
-  if (recordingActive) {
-    const recordButton = document.getElementById(
-      'record-btn'
-    ) as HTMLButtonElement;
-    recordButton.textContent = 'Stop';
-  }
 }
 
 function stopRecording(): void {
@@ -60,7 +61,8 @@ function stopRecording(): void {
   const recordButton = document.getElementById(
     'record-btn'
   ) as HTMLButtonElement;
-  recordButton.textContent = 'Record';
+  recordButton.textContent = RECORD;
+  recordingActive = false;
 }
 
 function startRecording(): void {
@@ -73,7 +75,8 @@ function startRecording(): void {
   const recordButton = document.getElementById(
     'record-btn'
   ) as HTMLButtonElement;
-  recordButton.textContent = 'Stop';
+  recordButton.textContent = STOP;
+  recordingActive = true;
 }
 
 function toggleRecording(): void {
@@ -82,7 +85,6 @@ function toggleRecording(): void {
   } else {
     startRecording();
   }
-  recordingActive = !recordingActive;
 }
 
 function openOptionsPage(): void {
@@ -95,5 +97,7 @@ const recordButton = document.getElementById('record-btn');
 const configureButton = document.getElementById('configure-btn');
 
 document.addEventListener('DOMContentLoaded', restoreState);
+document.addEventListener('load', restoreState);
+
 recordButton?.addEventListener('click', toggleRecording);
 configureButton?.addEventListener('click', openOptionsPage);

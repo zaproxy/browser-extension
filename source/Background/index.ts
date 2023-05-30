@@ -96,8 +96,6 @@ function handleMessage(
         'Content-Type': 'application/x-www-form-urlencoded',
       },
     });
-  } else if (request.type === 'zapStartRecording') {
-    Browser.runtime.sendMessage({type: request.type});
   }
   return true;
 }

@@ -184,6 +184,7 @@ const domMutated = function domMutation(
 };
 
 function onLoadEventListener(): void {
+  Browser.storage.sync.set({zaprecordingactive: false});
   reportPageLoaded(document, reportObject);
 }
 
@@ -194,7 +195,7 @@ const observer = new MutationObserver(domMutated);
 observer.observe(document, {
   attributes: true,
   childList: true,
-  subtree: true,
+  // subtree: true,
 });
 
 // This is needed for more traditional apps
@@ -209,6 +210,10 @@ Browser.runtime.onMessage.addListener(
     }
   }
 );
+
+window.addEventListener('beforeunload', () => {
+  Browser.storage.sync.set({zaprecordingactive: false});
+});
 
 export {
   reportPageLinks,

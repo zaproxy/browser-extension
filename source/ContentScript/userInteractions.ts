@@ -17,33 +17,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import debounce from 'lodash/debounce';
+
 let previousDOMState: string;
 let curLevel = -1;
 let curFrame = 0;
+let active = true;
 
 function handleFrameSwitches(level: number, frame: number): void {
   if (curLevel === level && curFrame === frame) {
     // do nothing
   } else if (curLevel > level) {
     while (curLevel > level) {
-      // switch to parent frame
-      console.log('Switch to parent Frame', 'Frame:', frame, 'level:', level);
       curLevel -= 1;
+      console.log('Switched to level: ', curLevel, 'Frame:', curFrame);
+      // switch to parent frame
     }
     curFrame = frame;
-    console.log('Frame switches', 'Frame:', frame, 'level:', level);
+    console.log('Switched to level: ', curLevel, 'Frame:', curFrame);
+    // switch to frame
   } else {
-    // switch to frame number 'frame'
     curLevel += 1;
     curFrame = frame;
-    console.log('Frame switches', 'Frame:', frame, 'level:', level);
+    console.log('Switched to level: ', curLevel, 'Frame:', curFrame);
+    // switch to frame number 'frame'
   }
 }
 
 function handleClick(this: {level: number; frame: number}, event: Event): void {
+  if (!active) return;
   const {level, frame} = this;
   handleFrameSwitches(level, frame);
-  console.log(event);
+  console.log(event, 'clicked');
   // click on target element
 }
 
@@ -51,18 +56,20 @@ function handleScroll(
   this: {level: number; frame: number},
   event: Event
 ): void {
+  if (!active) return;
   const {level, frame} = this;
   handleFrameSwitches(level, frame);
-  console.log(event, 'scrolling..');
+  console.log(event, 'scrolling.. ');
   // scroll the nearest ancestor with scrolling ability
 }
 
 function handleMouseOver(
-  this: {level: number; frame: number},
+  this: {level: number; frame: number; element: Document},
   event: Event
 ): void {
-  const {level, frame} = this;
-  const currentDOMState = document.documentElement.outerHTML;
+  if (!active) return;
+  const {level, frame, element} = this;
+  const currentDOMState = element.documentElement.outerHTML;
   if (currentDOMState === previousDOMState) {
     return;
   }
@@ -77,6 +84,7 @@ function handleChange(
   event: Event
 ): void {
   const {level, frame} = this;
+  if (!active) return;
   handleFrameSwitches(level, frame);
   console.log(event, 'change', (event.target as HTMLInputElement).value);
   // send keys to the element
@@ -88,8 +96,14 @@ function addListenersToDocument(
   frame: number
 ): void {
   element.addEventListener('click', handleClick.bind({level, frame}));
-  element.addEventListener('scroll', handleScroll.bind({level, frame}));
-  element.addEventListener('mouseover', handleMouseOver.bind({level, frame}));
+  element.addEventListener(
+    'scroll',
+    debounce(handleScroll.bind({level, frame}), 100)
+  );
+  element.addEventListener(
+    'mouseover',
+    handleMouseOver.bind({level, frame, element})
+  );
   element.addEventListener('change', handleChange.bind({level, frame}));
 
   // Add listeners to all the frames
@@ -105,32 +119,16 @@ function addListenersToDocument(
   });
 }
 
-function removeListenersFromDocument(element: Document): void {
-  element.removeEventListener('click', handleClick);
-  element.removeEventListener('scroll', handleScroll);
-  element.removeEventListener('mouseover', handleMouseOver);
-  element.removeEventListener('change', handleChange);
-
-  const frames = element.querySelectorAll('frame, iframe');
-  frames.forEach((frame) => {
-    const frameDocument = (frame as HTMLIFrameElement | HTMLObjectElement)
-      .contentWindow?.document;
-    if (frameDocument != null) {
-      removeListenersFromDocument(frameDocument);
-    }
-  });
-}
-
 function recordUserInteractions(): void {
   console.log('user interactions');
+  active = true;
   previousDOMState = document.documentElement.outerHTML;
   addListenersToDocument(document, -1, 0);
 }
 
 function stopRecordingUserInteractions(): void {
-  console.log('Stopping recording user interactions ...');
-  previousDOMState = document.documentElement.outerHTML;
-  removeListenersFromDocument(document);
+  console.log('Stopping Recording User Interactions ...');
+  active = false;
 }
 
 export {recordUserInteractions, stopRecordingUserInteractions};
