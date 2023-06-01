@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 import debounce from 'lodash/debounce';
-import { getPath } from './util';
+import {getPath} from './util';
 
 let previousDOMState: string;
 let curLevel = -1;
@@ -45,7 +45,10 @@ function handleFrameSwitches(level: number, frame: number): void {
   }
 }
 
-function handleClick(this: {level: number; frame: number; element: Document}, event: Event): void {
+function handleClick(
+  this: {level: number; frame: number; element: Document},
+  event: Event
+): void {
   if (!active) return;
   const {level, frame, element} = this;
   handleFrameSwitches(level, frame);
@@ -54,13 +57,14 @@ function handleClick(this: {level: number; frame: number; element: Document}, ev
 }
 
 function handleScroll(
-  this: {level: number; frame: number; element: Document},
+  this: {level: number; frame: number},
   event: Event
 ): void {
   if (!active) return;
-  const {level, frame, element} = this;
+  const {level, frame} = this;
   handleFrameSwitches(level, frame);
-  console.log(event, 'scrolling.. ', getPath(event.target as HTMLElement, element));
+  console.log(event, 'scrolling.. ');
+  // TODO: Find a way to get path of the scrolled element
   // scroll the nearest ancestor with scrolling ability
 }
 
@@ -76,7 +80,11 @@ function handleMouseOver(
   }
   previousDOMState = currentDOMState;
   handleFrameSwitches(level, frame);
-  console.log(event, 'MouseOver', getPath(event.target as HTMLElement, element));
+  console.log(
+    event,
+    'MouseOver',
+    getPath(event.target as HTMLElement, element)
+  );
   // send mouseover event
 }
 
@@ -87,7 +95,12 @@ function handleChange(
   const {level, frame, element} = this;
   if (!active) return;
   handleFrameSwitches(level, frame);
-  console.log(event, 'change', (event.target as HTMLInputElement).value, getPath(event.target as HTMLElement, element));
+  console.log(
+    event,
+    'change',
+    (event.target as HTMLInputElement).value,
+    getPath(event.target as HTMLElement, element)
+  );
   // send keys to the element
 }
 
@@ -99,13 +112,16 @@ function addListenersToDocument(
   element.addEventListener('click', handleClick.bind({level, frame, element}));
   element.addEventListener(
     'scroll',
-    debounce(handleScroll.bind({level, frame, element}), 100)
+    debounce(handleScroll.bind({level, frame}), 100)
   );
   element.addEventListener(
     'mouseover',
     handleMouseOver.bind({level, frame, element})
   );
-  element.addEventListener('change', handleChange.bind({level, frame, element}));
+  element.addEventListener(
+    'change',
+    handleChange.bind({level, frame, element})
+  );
 
   // Add listeners to all the frames
   const frames = element.querySelectorAll('frame, iframe');
