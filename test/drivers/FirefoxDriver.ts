@@ -26,11 +26,11 @@ class FirefoxDriver {
 
   context: BrowserContext;
 
-  public async getExtensionId(): Promise<string> {
-    let [background] = this.context.serviceWorkers();
-    if (!background)
-      background = await this.context.waitForEvent('serviceworker');
-    return background.url().split('/')[2];
+  extensionId: string;
+
+  public getExtensionId(): string {
+    // TODO: Find a way to get the extension ID
+    return this.extensionId;
   }
 
   public async getBrowser(): Promise<Browser> {
@@ -62,6 +62,18 @@ class FirefoxDriver {
     await page.keyboard.press('Enter');
     await page.keyboard.press('Tab');
     await page.keyboard.press('Enter');
+
+    await page.keyboard.down('ShiftLeft');
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('Tab');
+    await page.keyboard.up('ShiftLeft');
+
+    await page.keyboard.press('Enter');
+    for (let i = 0; i < 2; i += 1) {
+      await page.keyboard.press('ArrowDown');
+      await page.waitForTimeout(50);
+    }
+    await page.keyboard.press('Enter');
     await page.close();
   }
 
@@ -77,6 +89,11 @@ class FirefoxDriver {
   public async close(): Promise<void> {
     await this.context?.close();
     await this.browser?.close();
+  }
+
+  public async getOptionsURL(): Promise<string> {
+    const extensionId = this.getExtensionId();
+    return `moz-extension://${extensionId}/options.html`;
   }
 }
 

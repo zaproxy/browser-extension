@@ -17,10 +17,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const browser = {
+const mockStorageSyncGet = jest.fn().mockImplementation(() => {
+  return Promise.resolve({zapenable: false});
+});
+
+const Browser = {
   runtime: {
     sendMessage: jest.fn(),
   },
+  storage: {
+    sync: {
+      get: mockStorageSyncGet,
+    },
+  },
 };
 
-export default browser;
+export default Browser;

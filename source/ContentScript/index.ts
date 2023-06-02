@@ -183,18 +183,34 @@ function onLoadEventListener(): void {
   reportPageLoaded(document, reportObject);
 }
 
-window.addEventListener('load', onLoadEventListener, false);
-window.onbeforeunload = reportPageUnloaded;
+function enableExtension(): void {
+  window.addEventListener('load', onLoadEventListener, false);
+  window.onbeforeunload = reportPageUnloaded;
 
-const observer = new MutationObserver(domMutated);
-observer.observe(document, {
-  attributes: true,
-  childList: true,
-  subtree: true,
-});
+  const observer = new MutationObserver(domMutated);
+  observer.observe(document, {
+    attributes: true,
+    childList: true,
+    subtree: true,
+  });
 
-// This is needed for more traditional apps
-reportPageLoaded(document, reportObject);
+  // This is needed for more traditional apps
+  reportPageLoaded(document, reportObject);
+}
+
+async function injectScript(): Promise<boolean> {
+  return new Promise<boolean>((resolve) => {
+    Browser.storage.sync.get({zapenable: true}).then((items) => {
+      const {zapenable} = items;
+      if (zapenable === true) {
+        enableExtension();
+      }
+      resolve(zapenable);
+    });
+  });
+}
+
+injectScript();
 
 export {
   reportPageLinks,
@@ -206,4 +222,6 @@ export {
   ReportedObject,
   ReportedStorage,
   ReportedEvent,
+  injectScript,
+  enableExtension,
 };
