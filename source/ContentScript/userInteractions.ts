@@ -18,10 +18,28 @@
  * limitations under the License.
  */
 import debounce from 'lodash/debounce';
+import Browser from 'webextension-polyfill';
+import {
+  ZestStatement,
+  ZestStatementElementClick,
+  ZestStatementElementSendKeys,
+  ZestStatementLaunchBrowser,
+} from '../types/zestScript/ZestStatement';
+import {getPath} from './util';
 
 let previousDOMState: string;
 let curLevel = -1;
 let curFrame = 0;
+let active = true;
+
+async function sendZestScriptToZAP(
+  zestStatement: ZestStatement
+): Promise<number> {
+  return Browser.runtime.sendMessage({
+    type: 'zestScript',
+    data: zestStatement.toJSON(),
+  });
+}
 
 function handleFrameSwitches(level: number, frame: number): void {
   if (curLevel === level && curFrame === frame) {
@@ -43,10 +61,16 @@ function handleFrameSwitches(level: number, frame: number): void {
   }
 }
 
-function handleClick(this: {level: number; frame: number}, event: Event): void {
-  const {level, frame} = this;
+function handleClick(
+  this: {level: number; frame: number; element: Document},
+  event: Event
+): void {
+  if (!active) return;
+  const {level, frame, element} = this;
   handleFrameSwitches(level, frame);
   console.log(event, 'clicked');
+  const elementLocator = getPath(event.target as HTMLElement, element);
+  sendZestScriptToZAP(new ZestStatementElementClick(elementLocator));
   // click on target element
 }
 
@@ -54,6 +78,7 @@ function handleScroll(
   this: {level: number; frame: number},
   event: Event
 ): void {
+  if (!active) return;
   const {level, frame} = this;
   handleFrameSwitches(level, frame);
   console.log(event, 'scrolling.. ');
@@ -64,6 +89,7 @@ function handleMouseOver(
   this: {level: number; frame: number; element: Document},
   event: Event
 ): void {
+  if (!active) return;
   const {level, frame, element} = this;
   const currentDOMState = element.documentElement.outerHTML;
   if (currentDOMState === previousDOMState) {
@@ -76,16 +102,25 @@ function handleMouseOver(
 }
 
 function handleChange(
-  this: {level: number; frame: number},
+  this: {level: number; frame: number; element: Document},
   event: Event
 ): void {
-  const {level, frame} = this;
+  if (!active) return;
+  const {level, frame, element} = this;
   handleFrameSwitches(level, frame);
   console.log(event, 'change', (event.target as HTMLInputElement).value);
+  const elementLocator = getPath(event.target as HTMLElement, element);
+  sendZestScriptToZAP(
+    new ZestStatementElementSendKeys(
+      elementLocator,
+      (event.target as HTMLInputElement).value
+    )
+  );
   // send keys to the element
 }
 
 function handleResize(): void {
+  if (!active) return;
   const width =
     window.innerWidth ||
     document.documentElement.clientWidth ||
@@ -94,7 +129,6 @@ function handleResize(): void {
     window.innerHeight ||
     document.documentElement.clientHeight ||
     document.body.clientHeight;
-
   // send window resize event
   console.log('Window Resize : ', width, height);
 }
@@ -104,7 +138,7 @@ function addListenersToDocument(
   level: number,
   frame: number
 ): void {
-  element.addEventListener('click', handleClick.bind({level, frame}));
+  element.addEventListener('click', handleClick.bind({level, frame, element}));
   element.addEventListener(
     'scroll',
     debounce(handleScroll.bind({level, frame, element}), 1000)
@@ -113,7 +147,10 @@ function addListenersToDocument(
     'mouseover',
     handleMouseOver.bind({level, frame, element})
   );
-  element.addEventListener('change', handleChange.bind({level, frame}));
+  element.addEventListener(
+    'change',
+    handleChange.bind({level, frame, element})
+  );
 
   // Add listeners to all the frames
   const frames = element.querySelectorAll('frame, iframe');
@@ -128,19 +165,42 @@ function addListenersToDocument(
   });
 }
 
+function getBrowserName(): string {
+  let browserName: string;
+  const {userAgent} = navigator;
+  if (userAgent.includes('Chrome')) {
+    browserName = 'chrome';
+  } else {
+    browserName = 'firefox';
+  }
+  return browserName;
+}
+
 function initializationScript(): void {
   // send window resize event to ensure same size
+  const browserType = getBrowserName();
+  const url = window.location.href;
+  console.log(browserType, url);
+  sendZestScriptToZAP(new ZestStatementLaunchBrowser(browserType, url));
   handleResize();
-
   // TODO: goto URL specified
 }
 
 function recordUserInteractions(): void {
   console.log('user interactions');
+  active = true;
   previousDOMState = document.documentElement.outerHTML;
-  initializationScript();
   window.addEventListener('resize', debounce(handleResize, 100));
   addListenersToDocument(document, -1, 0);
 }
 
-export {recordUserInteractions};
+function stopRecordingUserInteractions(): void {
+  console.log('Stopping Recording User Interactions ...');
+  active = false;
+}
+
+export {
+  recordUserInteractions,
+  stopRecordingUserInteractions,
+  initializationScript,
+};

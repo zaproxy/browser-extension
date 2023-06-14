@@ -20,6 +20,7 @@
 import 'emoji-log';
 import Browser, {Runtime} from 'webextension-polyfill';
 import {ReportedStorage} from '../types/ReportedModel';
+import {ZestScript} from '../types/zestScript/ZestScript';
 
 console.log('ZAP Service Worker 👋');
 
@@ -27,7 +28,7 @@ console.log('ZAP Service Worker 👋');
   We check the storage on every page, so need to record which storage events we have reported to ZAP here so that we dont keep sending the same events.
 */
 const reportedStorage = new Set<string>();
-
+const zestScript = new ZestScript('recordedScript');
 /*
   A callback URL will only be available if the browser has been launched from ZAP, otherwise call the individual endpoints
 */
@@ -96,6 +97,24 @@ function handleMessage(
         'Content-Type': 'application/x-www-form-urlencoded',
       },
     });
+  } else if (request.type === 'zestScript') {
+    const zestStatement = JSON.parse(request.data as string);
+    zestScript.addStatement(request.data);
+    const body = `Json=${encodeURIComponent(
+      zestStatement
+    )}&apikey=${encodeURIComponent(zapkey)}`;
+    console.log(`body = ${body}`);
+    fetch(zapApiUrl(zapurl, 'reportScript'), {
+      method: 'POST',
+      body,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    });
+  } else if (request.type === 'saveZestScript') {
+    zestScript.downloadZestScript();
+  } else if (request.type === 'resetZestScript') {
+    zestScript.reset();
   }
   return true;
 }
