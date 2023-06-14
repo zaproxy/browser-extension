@@ -24,6 +24,7 @@ import {
   ReportedStorage,
   ReportedEvent,
 } from '../types/ReportedModel';
+import {recordUserInteractions} from './userInteractions';
 
 const reportedObjects = new Set<string>();
 
@@ -66,15 +67,33 @@ function reportAllStorage(): void {
   reportStorage('sessionStorage', sessionStorage, reportObject);
 }
 
-function reportPageUnloaded(): void {
-  Browser.runtime.sendMessage({
-    type: 'reportEvent',
-    data: new ReportedEvent('pageUnload').toString(),
+function withZapEnableSetting(fn: () => void): void {
+  Browser.storage.sync.get({zapenable: true}).then((items) => {
+    if (items.zapenable) {
+      fn();
+    }
   });
-  for (const value of Object.values(reportedEvents)) {
-    sendEventToZAP(value);
-  }
-  reportAllStorage();
+}
+
+function withZapRecordingActive(fn: () => void): void {
+  Browser.storage.sync.get({zaprecordingactive: false}).then((items) => {
+    if (items.zaprecordingactive) {
+      fn();
+    }
+  });
+}
+
+function reportPageUnloaded(): void {
+  withZapEnableSetting(() => {
+    Browser.runtime.sendMessage({
+      type: 'reportEvent',
+      data: new ReportedEvent('pageUnload').toString(),
+    });
+    for (const value of Object.values(reportedEvents)) {
+      sendEventToZAP(value);
+    }
+    reportAllStorage();
+  });
 }
 
 function reportEvent(event: ReportedEvent): void {
@@ -168,19 +187,24 @@ const domMutated = function domMutation(
   mutationList: MutationRecord[],
   _obs: MutationObserver
 ): void {
-  reportEvent(new ReportedEvent('domMutation'));
-  reportPageLinks(document, reportObject);
-  reportPageForms(document, reportObject);
-  for (const mutation of mutationList) {
-    if (mutation.type === 'childList') {
-      reportNodeElements(mutation.target, 'input', reportObject);
-      reportNodeElements(mutation.target, 'button', reportObject);
+  withZapEnableSetting(() => {
+    reportEvent(new ReportedEvent('domMutation'));
+    reportPageLinks(document, reportObject);
+    reportPageForms(document, reportObject);
+    for (const mutation of mutationList) {
+      if (mutation.type === 'childList') {
+        reportNodeElements(mutation.target, 'input', reportObject);
+        reportNodeElements(mutation.target, 'button', reportObject);
+      }
     }
-  }
+  });
 };
 
 function onLoadEventListener(): void {
-  reportPageLoaded(document, reportObject);
+  Browser.storage.sync.set({zaprecordingactive: false});
+  withZapEnableSetting(() => {
+    reportPageLoaded(document, reportObject);
+  });
 }
 
 function enableExtension(): void {
@@ -198,15 +222,16 @@ function enableExtension(): void {
   reportPageLoaded(document, reportObject);
 }
 
-async function injectScript(): Promise<boolean> {
-  return new Promise<boolean>((resolve) => {
-    Browser.storage.sync.get({zapenable: true}).then((items) => {
-      const {zapenable} = items;
-      if (zapenable === true) {
-        enableExtension();
-      }
-      resolve(zapenable);
+function injectScript(): Promise<boolean> {
+  return new Promise((resolve) => {
+    withZapRecordingActive(() => {
+      recordUserInteractions();
     });
+    withZapEnableSetting(() => {
+      enableExtension();
+      resolve(true);
+    });
+    resolve(false);
   });
 }
 

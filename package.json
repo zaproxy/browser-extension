@@ -35,6 +35,7 @@
     "@babel/runtime": "^7.14.0",
     "advanced-css-reset": "^1.2.2",
     "emoji-log": "^1.0.2",
+    "lodash": "^4.17.21",
     "webext-base-css": "^1.3.1",
     "webextension-polyfill": "0.10.0"
   },
@@ -56,6 +57,7 @@
     "@playwright/test": "^1.33.0",
     "@types/jest": "^29.4.0",
     "@types/json-server": "^0.14.4",
+    "@types/lodash": "^4.14.195",
     "@types/node": "^20.1.0",
     "@types/text-encoding": "^0.0.36",
     "@types/webextension-polyfill": "^0.10.0",

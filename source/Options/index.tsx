@@ -24,6 +24,7 @@ console.log('Options loading');
 const ZAP_URL = 'zapurl';
 const ZAP_KEY = 'zapkey';
 const ZAP_ENABLE = 'zapenable';
+const ZAP_RECORDING_ACTIVE = 'zaprecordingactive';
 
 // Saves options to chrome.storage
 function saveOptions(): void {
@@ -32,10 +33,14 @@ function saveOptions(): void {
   const zapkey = (document.getElementById(ZAP_KEY) as HTMLInputElement).value;
   const zapenable = (document.getElementById(ZAP_ENABLE) as HTMLInputElement)
     .checked;
+  const zaprecordingactive = (
+    document.getElementById(ZAP_RECORDING_ACTIVE) as HTMLInputElement
+  ).checked;
   Browser.storage.sync.set({
     zapurl,
     zapkey,
     zapenable,
+    zaprecordingactive,
   });
 }
 
@@ -48,6 +53,7 @@ function restoreOptions(): void {
       zapurl: 'http://localhost:8080/',
       zapkey: 'not set',
       zapenable: true,
+      zaprecordingactive: false,
     })
     .then((items) => {
       (document.getElementById(ZAP_URL) as HTMLInputElement).value =
@@ -56,6 +62,9 @@ function restoreOptions(): void {
         items.zapkey;
       (document.getElementById(ZAP_ENABLE) as HTMLInputElement).checked =
         items.zapenable;
+      (
+        document.getElementById(ZAP_RECORDING_ACTIVE) as HTMLInputElement
+      ).checked = items.zaprecordingactive;
     });
 }
 document.addEventListener('DOMContentLoaded', restoreOptions);

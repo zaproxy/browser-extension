@@ -24,6 +24,9 @@ const mockStorageSyncGet = jest.fn().mockImplementation(() => {
 const Browser = {
   runtime: {
     sendMessage: jest.fn(),
+    onMessage: {
+      addListener: jest.fn(),
+    },
   },
   storage: {
     sync: {
