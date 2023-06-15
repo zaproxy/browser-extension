@@ -6,6 +6,6 @@
       "outDir": "../dist"
     },
     "include": [
-      "./webextension-polyfill.ts"
+      "./*.ts"
     ]
 }

@@ -39,7 +39,10 @@ class ChromeDriver {
     await backgroundPage.close();
   }
 
-  public async getContext(JSONPORT: number): Promise<BrowserContext> {
+  public async getContext(
+    JSONPORT: number,
+    startRecording = false
+  ): Promise<BrowserContext> {
     if (this.context) return this.context;
     this.context = await chromium.launchPersistentContext('', {
       args: [
@@ -49,7 +52,17 @@ class ChromeDriver {
       ],
     });
     await this.configureExtension(JSONPORT);
+    if (startRecording) {
+      await this.toggleRecording();
+    }
     return this.context;
+  }
+
+  public async toggleRecording(): Promise<void> {
+    const page = await this.context.newPage();
+    await page.goto(await this.getPopupURL());
+    await page.click('#record-btn');
+    await page.close();
   }
 
   public async close(): Promise<void> {
@@ -59,6 +72,11 @@ class ChromeDriver {
   public async getOptionsURL(): Promise<string> {
     const extensionId = await this.getExtensionId();
     return `chrome-extension://${extensionId}/options.html`;
+  }
+
+  public async getPopupURL(): Promise<string> {
+    const extensionId = await this.getExtensionId();
+    return `chrome-extension://${extensionId}/popup.html`;
   }
 }
 

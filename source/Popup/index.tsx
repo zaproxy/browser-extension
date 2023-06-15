@@ -93,8 +93,27 @@ function openOptionsPage(): void {
   });
 }
 
+function downloadZestScript(zestScriptJSON: string, title: string): void {
+  const blob = new Blob([zestScriptJSON], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `${title}.zst`;
+  link.style.display = 'none';
+
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  URL.revokeObjectURL(url);
+}
+
 function handleSaveScript(): void {
-  Browser.runtime.sendMessage({type: 'saveZestScript'});
+  Browser.runtime.sendMessage({type: 'saveZestScript'}).then((items) => {
+    console.log(items);
+    downloadZestScript(items.script, items.title);
+  });
 }
 
 const recordButton = document.getElementById('record-btn');

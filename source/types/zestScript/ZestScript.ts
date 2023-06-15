@@ -1,4 +1,7 @@
-import Browser from 'webextension-polyfill';
+interface ZestScriptMessage {
+  script: string;
+  title: string;
+}
 
 class ZestScript {
   zestStatements: string[] = [];
@@ -11,10 +14,11 @@ class ZestScript {
     this.title = title;
   }
 
-  addStatement(statement: string): void {
+  addStatement(statement: string): string {
     const zestStatement = JSON.parse(statement);
     zestStatement.index = this.getNextIndex();
     this.zestStatements.push(JSON.stringify(zestStatement));
+    return JSON.stringify(zestStatement);
   }
 
   getNextIndex(): number {
@@ -56,17 +60,10 @@ class ZestScript {
     );
   }
 
-  downloadZestScript(): void {
-    Browser.tabs.query({active: true, currentWindow: true}).then((tabs) => {
-      const activeTab = tabs[0];
-      if (activeTab?.id) {
-        Browser.tabs.sendMessage(activeTab.id, {
-          type: 'saveZestScript',
-          data: {script: this.toJSON(), title: this.title},
-        });
-      }
-    });
+  getZestScript(): ZestScriptMessage {
+    return {script: this.toJSON(), title: this.title};
   }
 }
 
 export {ZestScript};
+export type {ZestScriptMessage};

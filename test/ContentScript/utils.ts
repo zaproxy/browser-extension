@@ -44,7 +44,8 @@ export function getStaticHttpServer(): http.Server {
 
 export function getFakeZapServer(
   actualData: Set<string>,
-  JSONPORT: number
+  JSONPORT: number,
+  filterZestStatement = false
 ): http.Server {
   const app = JsonServer.create();
 
@@ -53,6 +54,9 @@ export function getFakeZapServer(
     const action = req.params;
     const {body} = req;
     const msg = JSON.stringify({action, body});
+    if (filterZestStatement && !msg.includes('reportZestScript')) {
+      return;
+    }
     actualData.add(
       msg.replace(/\\"timestamp\\":\d+/g, 'TIMESTAMP').replace(/[\\]/g, '')
     );

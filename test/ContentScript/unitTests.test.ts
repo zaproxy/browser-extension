@@ -22,6 +22,12 @@
  */
 import {TextEncoder, TextDecoder} from 'util';
 import * as src from '../../source/ContentScript/index';
+import {ZestScript} from '../../source/types/zestScript/ZestScript';
+import {
+  ElementLocator,
+  ZestStatementElementClick,
+  ZestStatementElementSendKeys,
+} from '../../source/types/zestScript/ZestStatement';
 
 jest.mock('webextension-polyfill');
 
@@ -272,4 +278,119 @@ test('Should Disable The Extension', async () => {
   const actualOutcome = await src.injectScript();
   // Then
   expect(actualOutcome).toBe(false);
+});
+
+test('should generate valid script', () => {
+  const script = new ZestScript();
+  const expectedOutcome = `{
+  "about": "This is a Zest script. For more details about Zest visit https://github.com/zaproxy/zest/",
+  "zestVersion": "0.3",
+  "title": "recordedScript",
+  "description": "",
+  "prefix": "",
+  "type": "StandAlone",
+  "parameters": {
+    "tokenStart": "{{",
+    "tokenEnd": "}}",
+    "tokens": {},
+    "elementType": "ZestVariables"
+  },
+  "statements": [],
+  "authentication": [],
+  "index": 0,
+  "enabled": true,
+  "elementType": "ZestScript"
+}`;
+  expect(script.toJSON()).toBe(expectedOutcome);
+});
+
+test('should generate valid click statement', () => {
+  const elementLocator = new ElementLocator('id', 'test');
+  const zestStatementElementClick = new ZestStatementElementClick(
+    elementLocator
+  );
+
+  expect(zestStatementElementClick.toJSON()).toBe(
+    '{"windowHandle":"windowHandle1","type":"id","element":"test","index":-1,"enabled":true,"elementType":"ZestClientElementClick"}'
+  );
+});
+
+test('should generate valid send keys statement', () => {
+  const elementLocator = new ElementLocator('id', 'test');
+  const zestStatementElementSendKeys = new ZestStatementElementSendKeys(
+    elementLocator,
+    'testvalue'
+  );
+
+  expect(zestStatementElementSendKeys.toJSON()).toBe(
+    '{"value":"testvalue","windowHandle":"windowHandle1","type":"id","element":"test","index":-1,"enabled":true,"elementType":"ZestClientElementSendKeys"}'
+  );
+});
+
+test('should add zest statement to zest script', () => {
+  const script = new ZestScript();
+  const elementLocator = new ElementLocator('id', 'test');
+  const zestStatementElementClick = new ZestStatementElementClick(
+    elementLocator
+  );
+  script.addStatement(zestStatementElementClick.toJSON());
+  const expectedOutcome = `{
+  "about": "This is a Zest script. For more details about Zest visit https://github.com/zaproxy/zest/",
+  "zestVersion": "0.3",
+  "title": "recordedScript",
+  "description": "",
+  "prefix": "",
+  "type": "StandAlone",
+  "parameters": {
+    "tokenStart": "{{",
+    "tokenEnd": "}}",
+    "tokens": {},
+    "elementType": "ZestVariables"
+  },
+  "statements": [
+    {
+      "windowHandle": "windowHandle1",
+      "type": "id",
+      "element": "test",
+      "index": 1,
+      "enabled": true,
+      "elementType": "ZestClientElementClick"
+    }
+  ],
+  "authentication": [],
+  "index": 0,
+  "enabled": true,
+  "elementType": "ZestScript"
+}`;
+  expect(script.toJSON()).toBe(expectedOutcome);
+});
+
+test('should reset zest script', () => {
+  const script = new ZestScript();
+  const elementLocator = new ElementLocator('id', 'test');
+  const zestStatementElementClick = new ZestStatementElementClick(
+    elementLocator
+  );
+  script.addStatement(zestStatementElementClick.toJSON());
+  script.reset();
+  const expectedOutcome = `{
+  "about": "This is a Zest script. For more details about Zest visit https://github.com/zaproxy/zest/",
+  "zestVersion": "0.3",
+  "title": "recordedScript",
+  "description": "",
+  "prefix": "",
+  "type": "StandAlone",
+  "parameters": {
+    "tokenStart": "{{",
+    "tokenEnd": "}}",
+    "tokens": {},
+    "elementType": "ZestVariables"
+  },
+  "statements": [],
+  "authentication": [],
+  "index": 0,
+  "enabled": true,
+  "elementType": "ZestScript"
+}`;
+  expect(script.toJSON()).toBe(expectedOutcome);
 });

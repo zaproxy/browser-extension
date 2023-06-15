@@ -40,7 +40,6 @@ function integrationTests(
     } else {
       driver = new ChromeDriver();
     }
-    server = getFakeZapServer(actualData, _JSONPORT);
     httpServer = getStaticHttpServer();
     httpServer.listen(_HTTPPORT, () => {
       console.log(`Server listening on port ${_HTTPPORT}`);
@@ -55,12 +54,14 @@ function integrationTests(
 
   test('Should load extension into browser', async () => {
     // Given / When
+    server = getFakeZapServer(actualData, _JSONPORT);
     const context = await driver.getContext(_JSONPORT);
     const page = await context.newPage();
     await page.goto(
       `http://localhost:${_HTTPPORT}/webpages/integrationTest.html`
     );
     await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1000);
     await page.close();
     // Then
     expect(JSON.stringify(Array.from(actualData))).toBe(
@@ -70,6 +71,7 @@ function integrationTests(
 
   if (browserName !== BROWSERNAME.FIREFOX) {
     test('Should Disable Extension', async () => {
+      server = getFakeZapServer(actualData, _JSONPORT);
       const context = await driver.getContext(_JSONPORT);
       let page = await context.newPage();
       await page.goto(await driver.getOptionsURL());
@@ -82,9 +84,85 @@ function integrationTests(
         `http://localhost:${_HTTPPORT}/webpages/integrationTest.html`
       );
       await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(1000);
       await page.close();
       // Then
       expect(JSON.stringify(Array.from(actualData))).toBe('[]');
+    });
+
+    test('Should record click', async () => {
+      // Given / When
+      server = getFakeZapServer(actualData, _JSONPORT, true);
+      const context = await driver.getContext(_JSONPORT, true);
+      const page = await context.newPage();
+      await page.goto(
+        `http://localhost:${_HTTPPORT}/webpages/interactions.html`
+      );
+      await page.click('#click');
+      await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(1000);
+      await page.close();
+      // Then
+      expect(JSON.stringify(Array.from(actualData))).toBe(
+        '["{\\"action\\":{\\"action\\":\\"reportZestScript\\"},\\"body\\":{\\"eventJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"click\\",\\"index\\":1,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementClick\\"}\\",\\"apikey\\":\\"not set\\"}}"]'
+      );
+    });
+
+    test('Should record send keys', async () => {
+      // Given / When
+      server = getFakeZapServer(actualData, _JSONPORT, true);
+      const context = await driver.getContext(_JSONPORT, true);
+      const page = await context.newPage();
+      await page.goto(
+        `http://localhost:${_HTTPPORT}/webpages/interactions.html`
+      );
+      await page.fill('#input-1', 'testinput');
+      await page.fill('#input-2', '2023-06-15');
+      await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(1000);
+      await page.close();
+      // Then
+      expect(JSON.stringify(Array.from(actualData))).toBe(
+        '["{\\"action\\":{\\"action\\":\\"reportZestScript\\"},\\"body\\":{\\"eventJson\\":\\"{\\"value\\":\\"testinput\\",\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"input-1\\",\\"index\\":1,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementSendKeys\\"}\\",\\"apikey\\":\\"not set\\"}}","{\\"action\\":{\\"action\\":\\"reportZestScript\\"},\\"body\\":{\\"eventJson\\":\\"{\\"value\\":\\"2023-06-15\\",\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"input-2\\",\\"index\\":2,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementSendKeys\\"}\\",\\"apikey\\":\\"not set\\"}}"]'
+      );
+    });
+
+    test('Should stop recording', async () => {
+      // Given / When
+      server = getFakeZapServer(actualData, _JSONPORT, true);
+      const context = await driver.getContext(_JSONPORT, true);
+      await driver.toggleRecording();
+      const page = await context.newPage();
+      await page.goto(
+        `http://localhost:${_HTTPPORT}/webpages/interactions.html`
+      );
+      await page.fill('#input-1', 'testinput');
+      await page.fill('#input-2', '2023-06-15');
+      await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(1000);
+      await page.close();
+      // Then
+      expect(JSON.stringify(Array.from(actualData))).toBe('[]');
+    });
+
+    test('Should download the script', async () => {
+      // Given
+      server = getFakeZapServer(actualData, _JSONPORT, true);
+      const context = await driver.getContext(_JSONPORT, true);
+      const page = await context.newPage();
+      await page.goto(await driver.getPopupURL());
+      let actualOutcome = '';
+      page.on('download', async (download) => {
+        actualOutcome = download.suggestedFilename();
+        download.delete();
+      });
+      // When
+      await page.click('#save-script');
+      await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(1000);
+      await page.close();
+      // Then
+      expect(actualOutcome).toBe('recordedScript.zst');
     });
   }
 }

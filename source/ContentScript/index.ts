@@ -241,22 +241,6 @@ function injectScript(): Promise<boolean> {
 
 injectScript();
 
-function downloadZestScript(zestScriptJSON: string, title: string): void {
-  const blob = new Blob([zestScriptJSON], {type: 'application/json'});
-  const url = URL.createObjectURL(blob);
-
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `${title}.zst`;
-  link.style.display = 'none';
-
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-
-  URL.revokeObjectURL(url);
-}
-
 Browser.runtime.onMessage.addListener(
   (message: MessageEvent, _sender: Runtime.MessageSender) => {
     if (message.type === 'zapStartRecording') {
@@ -264,8 +248,6 @@ Browser.runtime.onMessage.addListener(
       recordUserInteractions();
     } else if (message.type === 'zapStopRecording') {
       stopRecordingUserInteractions();
-    } else if (message.type === 'saveZestScript') {
-      downloadZestScript(message.data.script, message.data.title);
     }
   }
 );

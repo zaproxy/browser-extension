@@ -95,6 +95,15 @@ class FirefoxDriver {
     const extensionId = this.getExtensionId();
     return `moz-extension://${extensionId}/options.html`;
   }
+
+  public async getPopupURL(): Promise<string> {
+    const extensionId = this.getExtensionId();
+    return `moz-extension://${extensionId}/popup.html`;
+  }
+
+  public async toggleRecording(): Promise<void> {
+    // TODO: to be implemented
+  }
 }
 
 export {FirefoxDriver};
