@@ -39,7 +39,7 @@ function getCSSSelector(
 }
 
 function getXPath(element: HTMLElement, documentElement: Document): string {
-  if (!(element instanceof Element)) {
+  if (!element.tagName) {
     return '';
   }
 
@@ -96,25 +96,17 @@ function getPath(
   documentElement: Document
 ): ElementLocator {
   const path: ElementLocator = new ElementLocator('', '');
-  console.log('inside getPath', element);
-  // Try to identify the element using ID
   if (element.id) {
     path.type = 'id';
     path.element = element.id;
-  }
-
-  // If ID is not present, try to identify the element using class
-  else if (
+  } else if (
     element.classList.length === 1 &&
     element.classList.item(0) != null &&
     isElementPathUnique(`.${element.classList.item(0)}`, documentElement)
   ) {
     path.type = 'className';
     path.element = `${element.classList.item(0)}`;
-  }
-
-  // If class is not present, try to identify the element using CSS selector
-  else {
+  } else {
     const selector = getCSSSelector(element, documentElement);
     if (selector && isElementPathUnique(selector, documentElement)) {
       path.type = 'cssSelector';

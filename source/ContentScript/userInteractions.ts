@@ -180,7 +180,6 @@ function initializationScript(): void {
   // send window resize event to ensure same size
   const browserType = getBrowserName();
   const url = window.location.href;
-  console.log(browserType, url);
   sendZestScriptToZAP(new ZestStatementLaunchBrowser(browserType, url));
   handleResize();
   // TODO: goto URL specified

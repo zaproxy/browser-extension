@@ -99,8 +99,7 @@ function handleMessage(
     });
   } else if (request.type === 'zestScript') {
     const data = zestScript.addStatement(request.data);
-
-    const body = `eventJson=${encodeURIComponent(
+    const body = `scriptJson=${encodeURIComponent(
       data
     )}&apikey=${encodeURIComponent(zapkey)}`;
     console.log(`body = ${body}`);
@@ -129,9 +128,7 @@ async function onMessageHandler(
     zapkey: 'not set',
   });
   const msg = handleMessage(message, items.zapurl, items.zapkey);
-  console.log(msg);
   if (!(typeof msg === 'boolean')) {
-    console.log(msg);
     val = msg;
   }
   return Promise.resolve(val);

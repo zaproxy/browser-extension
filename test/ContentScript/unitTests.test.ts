@@ -23,6 +23,7 @@
 import {TextEncoder, TextDecoder} from 'util';
 import * as src from '../../source/ContentScript/index';
 import {ZestScript} from '../../source/types/zestScript/ZestScript';
+import {getPath} from '../../source/ContentScript/util';
 import {
   ElementLocator,
   ZestStatementElementClick,
@@ -393,4 +394,67 @@ test('should reset zest script', () => {
   "elementType": "ZestScript"
 }`;
   expect(script.toJSON()).toBe(expectedOutcome);
+});
+
+test('should return correct path for element with id', () => {
+  // Given
+  const dom: JSDOM = new JSDOM(
+    '<!DOCTYPE html><body><div id="myElement"></div></body>'
+  );
+  const element = dom.window.document.getElementById('myElement');
+
+  // When
+  const path = getPath(element as HTMLElement, dom.window.document);
+
+  // Then
+  expect(path.type).toBe('id');
+  expect(path.element).toBe('myElement');
+});
+
+test('should return correct path for element with unique class', () => {
+  // Given
+  const dom: JSDOM = new JSDOM(
+    '<!DOCTYPE html><body><div class="myClass"></div></body>'
+  );
+  const element = dom.window.document.querySelector('.myClass');
+
+  // When
+  const path = getPath(element as HTMLElement, dom.window.document);
+
+  // Then
+  expect(path.type).toBe('className');
+  expect(path.element).toBe('myClass');
+});
+
+test('should return correct path for element with CSS selector', () => {
+  // Given
+  const dom: JSDOM = new JSDOM(
+    '<!DOCTYPE html><body><div><span><button></button></span></div></body>'
+  );
+  const element = dom.window.document.getElementsByTagName('button')[0];
+
+  // When
+  const path = getPath(element as HTMLElement, dom.window.document);
+
+  // Then
+  expect(path.type).toBe('cssSelector');
+  expect(path.element).toBe('body > div > span > button');
+});
+
+test('should return correct path for element with XPath', () => {
+  // Given
+  const dom = new JSDOM(
+    '<!DOCTYPE html><html><body><div><button class="btn">Test</button><button class="btn">Another Test</button></div></body></html>'
+  );
+  const element = dom.window.document.getElementsByClassName('btn');
+
+  // When
+  const path1 = getPath(element[0] as HTMLElement, dom.window.document);
+  const path2 = getPath(element[1] as HTMLElement, dom.window.document);
+
+  // Then
+  expect(path1.type).toBe('xpath');
+  expect(path1.element).toBe('/html/body/div/button[1]');
+  expect(path2.type).toBe('xpath');
+  expect(path2.element).toBe('/html/body/div/button[2]');
 });

@@ -42,8 +42,11 @@ class FirefoxDriver {
   public async grantPermission(): Promise<void> {
     const page = await this.context.newPage();
     await page.goto('about:addons');
+    await page.waitForTimeout(50);
     await page.keyboard.press('Tab');
+    await page.waitForTimeout(50);
     await page.keyboard.press('ArrowDown');
+    await page.waitForTimeout(50);
 
     for (let i = 0; i < 7; i += 1) {
       await page.keyboard.press('Tab');
@@ -57,16 +60,26 @@ class FirefoxDriver {
     }
 
     await page.keyboard.press('Enter');
+    await page.waitForTimeout(50);
     await page.keyboard.press('Tab');
+    await page.waitForTimeout(50);
     await page.keyboard.press('ArrowRight');
+    await page.waitForTimeout(50);
     await page.keyboard.press('Enter');
+    await page.waitForTimeout(50);
     await page.keyboard.press('Tab');
+    await page.waitForTimeout(50);
     await page.keyboard.press('Enter');
+    await page.waitForTimeout(50);
 
     await page.keyboard.down('ShiftLeft');
+    await page.waitForTimeout(50);
     await page.keyboard.press('Tab');
+    await page.waitForTimeout(50);
     await page.keyboard.press('Tab');
+    await page.waitForTimeout(50);
     await page.keyboard.up('ShiftLeft');
+    await page.waitForTimeout(50);
 
     await page.keyboard.press('Enter');
     for (let i = 0; i < 2; i += 1) {
@@ -74,6 +87,7 @@ class FirefoxDriver {
       await page.waitForTimeout(50);
     }
     await page.keyboard.press('Enter');
+    await page.waitForTimeout(50);
     await page.close();
   }
 

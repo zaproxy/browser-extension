@@ -111,7 +111,6 @@ function downloadZestScript(zestScriptJSON: string, title: string): void {
 
 function handleSaveScript(): void {
   Browser.runtime.sendMessage({type: 'saveZestScript'}).then((items) => {
-    console.log(items);
     downloadZestScript(items.script, items.title);
   });
 }
