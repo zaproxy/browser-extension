@@ -55,6 +55,11 @@ class ChromeDriver {
   public async close(): Promise<void> {
     await this.context?.close();
   }
+
+  public async getOptionsURL(): Promise<string> {
+    const extensionId = await this.getExtensionId();
+    return `chrome-extension://${extensionId}/options.html`;
+  }
 }
 
 export {ChromeDriver};
