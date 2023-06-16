@@ -45,7 +45,7 @@ function getUrlFromCookieDomain(domain: string): string {
 }
 
 function getCookieTabUrl(
-  changeInfo: Cookies.OnChangedChangeInfoType
+  cookie: Cookies.Cookie
 ): Promise<string> {
   const getAllTabs = Browser.tabs.query({
     currentWindow: true,
@@ -59,15 +59,15 @@ function getCookieTabUrl(
             getAllCookiesForTab.then((cookies) => {
               for (const cookie of cookies) {
                 if (
-                  cookie.name === changeInfo.cookie.name &&
-                  cookie.value === changeInfo.cookie.value &&
-                  cookie.domain === changeInfo.cookie.domain &&
-                  cookie.storeId === changeInfo.cookie.storeId
+                  cookie.name === cookie.name &&
+                  cookie.value === cookie.value &&
+                  cookie.domain === cookie.domain &&
+                  cookie.storeId === cookie.storeId
                 ) {
                   resolve(
                     tab.url
                       ? tab.url
-                      : getUrlFromCookieDomain(changeInfo.cookie.domain)
+                      : getUrlFromCookieDomain(cookie.domain)
                   );
                 }
               }
@@ -77,17 +77,16 @@ function getCookieTabUrl(
       })
       .catch((error) => {
         console.error(`Could not fetch tabs: ${error.message}`);
-        reject(getUrlFromCookieDomain(changeInfo.cookie.domain));
+        reject(getUrlFromCookieDomain(cookie.domain));
       });
   });
 }
 
 function reportCookies(
-  changeInfo: Cookies.OnChangedChangeInfoType,
+  cookie: Cookies.Cookie,
   zapurl: string,
   zapkey: string
-): void {
-  const {cookie} = changeInfo;
+): Boolean {
   let cookieString = `${cookie.name}=${cookie.value}; path=${cookie.path}; domain=${cookie.domain}`;
   if (cookie.expirationDate) {
     cookieString = cookieString.concat(
@@ -104,7 +103,7 @@ function reportCookies(
     cookieString = cookieString.concat(`; HttpOnly`);
   }
 
-  getCookieTabUrl(changeInfo).then((cookieUrl) => {
+  getCookieTabUrl(cookie).then((cookieUrl) => {
     const repStorage = new ReportedStorage(
       'Cookies',
       '',
@@ -129,7 +128,12 @@ function reportCookies(
 
       reportedStorage.add(repStorStr);
     }
+  }).catch((error) => {
+    console.log(error);
+    return false;
   });
+
+  return true;
 }
 
 function handleMessage(
@@ -220,7 +224,7 @@ function cookieChangeHandler(
       zapkey: 'not set',
     })
     .then((items) => {
-      reportCookies(changeInfo, items.zapurl, items.zapkey);
+      reportCookies(changeInfo.cookie, items.zapurl, items.zapkey);
     });
 }
 
@@ -238,3 +242,7 @@ Browser.runtime.onInstalled.addListener((): void => {
     zapkey: 'not set',
   });
 });
+
+export {
+  reportCookies
+};

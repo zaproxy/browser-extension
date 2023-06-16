@@ -15,7 +15,7 @@
   "short_name": "OWASP ZAP",
 
   "permissions": [
-    "activeTab",
+    "tabs",
     "cookies",
     "storage"
   ],

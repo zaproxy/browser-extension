@@ -17,30 +17,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const browser = {
-  runtime: {
-    sendMessage: jest.fn(),
-    onMessage: {
-      addListener: jest.fn()
-    },
-    onInstalled: {
-      addListener: jest.fn()
-    }
-  },
-  cookies: {
-    onChanged: {
-      addListener: jest.fn()
-    },
-    set: jest.fn().mockImplementation(() => Promise.resolve({name: 'ZAP', value: 'Proxy', path: '/', domain: 'example.com'}))
-  },
-  action: {
-    onClicked: {
-      addListener: jest.fn()
-    }
-  },
-  tabs: {
-    query: jest.fn()
-  }
+import path from 'path';
+
+export const extensionPath = {
+  CHROME: path.join(__dirname, '..', '..', 'extension', 'chrome'),
+  FIREFOX: path.join(__dirname, '..', '..', 'extension', 'firefox.xpi'),
 };
 
-export default browser;
+export const HTTPPORT = 1801;
+export const JSONPORT = 8080;
+export const BROWSERNAME = {
+  CHROME: 'chrome',
+  FIREFOX: 'firefox',
+};
