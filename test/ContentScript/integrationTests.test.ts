@@ -73,13 +73,8 @@ function integrationTests(
     test('Should Disable Extension', async () => {
       server = getFakeZapServer(actualData, _JSONPORT);
       const context = await driver.getContext(_JSONPORT);
-      let page = await context.newPage();
-      await page.goto(await driver.getOptionsURL());
-      await page.uncheck('#zapenable');
-      await page.click('#save');
-      await page.close();
-
-      page = await context.newPage();
+      await driver.setEnable(false);
+      const page = await context.newPage();
       await page.goto(
         `http://localhost:${_HTTPPORT}/webpages/integrationTest.html`
       );
@@ -92,8 +87,9 @@ function integrationTests(
 
     test('Should record click', async () => {
       // Given / When
-      server = getFakeZapServer(actualData, _JSONPORT, true);
+      server = getFakeZapServer(actualData, _JSONPORT);
       const context = await driver.getContext(_JSONPORT, true);
+      await driver.setEnable(false);
       const page = await context.newPage();
       await page.goto(
         `http://localhost:${_HTTPPORT}/webpages/interactions.html`
@@ -110,8 +106,9 @@ function integrationTests(
 
     test('Should record send keys', async () => {
       // Given / When
-      server = getFakeZapServer(actualData, _JSONPORT, true);
+      server = getFakeZapServer(actualData, _JSONPORT);
       const context = await driver.getContext(_JSONPORT, true);
+      await driver.setEnable(false);
       const page = await context.newPage();
       await page.goto(
         `http://localhost:${_HTTPPORT}/webpages/interactions.html`
@@ -129,8 +126,9 @@ function integrationTests(
 
     test('Should stop recording', async () => {
       // Given / When
-      server = getFakeZapServer(actualData, _JSONPORT, true);
+      server = getFakeZapServer(actualData, _JSONPORT);
       const context = await driver.getContext(_JSONPORT, true);
+      await driver.setEnable(false);
       await driver.toggleRecording();
       const page = await context.newPage();
       await page.goto(
@@ -147,14 +145,15 @@ function integrationTests(
 
     test('Should download the script', async () => {
       // Given
-      server = getFakeZapServer(actualData, _JSONPORT, true);
+      server = getFakeZapServer(actualData, _JSONPORT);
       const context = await driver.getContext(_JSONPORT, true);
+      await driver.setEnable(false);
       const page = await context.newPage();
       await page.goto(await driver.getPopupURL());
       let actualOutcome = '';
       page.on('download', async (download) => {
         actualOutcome = download.suggestedFilename();
-        download.delete();
+        await download.delete();
       });
       // When
       await page.click('#save-script');

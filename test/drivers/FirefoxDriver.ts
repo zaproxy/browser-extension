@@ -101,6 +101,10 @@ class FirefoxDriver {
     return `moz-extension://${extensionId}/popup.html`;
   }
 
+  public async setEnable(): Promise<void> {
+    // TODO: to be implemented
+  }
+
   public async toggleRecording(): Promise<void> {
     // TODO: to be implemented
   }

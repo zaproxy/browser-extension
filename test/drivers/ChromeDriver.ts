@@ -58,6 +58,18 @@ class ChromeDriver {
     return this.context;
   }
 
+  public async setEnable(value: boolean): Promise<void> {
+    const page = await this.context.newPage();
+    await page.goto(await this.getOptionsURL());
+    if (value) {
+      await page.check('#zapenable');
+    } else {
+      await page.uncheck('#zapenable');
+    }
+    await page.click('#save');
+    await page.close();
+  }
+
   public async toggleRecording(): Promise<void> {
     const page = await this.context.newPage();
     await page.goto(await this.getPopupURL());
