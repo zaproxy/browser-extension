@@ -64,9 +64,9 @@ function integrationTests(
     await page.waitForTimeout(1000);
     await page.close();
     // Then
-    expect(JSON.stringify(Array.from(actualData))).toBe(
-      '["{\\"action\\":{\\"action\\":\\"reportEvent\\"},\\"body\\":{\\"eventJson\\":\\"{TIMESTAMP,\\"eventName\\":\\"pageLoad\\",\\"url\\":\\"http://localhost:1801/webpages/integrationTest.html\\",\\"count\\":1}\\",\\"apikey\\":\\"not set\\"}}","{\\"action\\":{\\"action\\":\\"reportObject\\"},\\"body\\":{\\"objectJson\\":\\"{TIMESTAMP,\\"type\\":\\"nodeAdded\\",\\"tagName\\":\\"A\\",\\"id\\":\\"\\",\\"nodeName\\":\\"A\\",\\"url\\":\\"http://localhost:1801/webpages/integrationTest.html\\",\\"href\\":\\"http://localhost:1801/webpages/integrationTest.html#test\\",\\"text\\":\\"Link\\"}\\",\\"apikey\\":\\"not set\\"}}"]'
-    );
+    const expectedData =
+      '["{\\"action\\":{\\"action\\":\\"reportEvent\\"},\\"body\\":{\\"eventJson\\":\\"{TIMESTAMP,\\"eventName\\":\\"pageLoad\\",\\"url\\":\\"http://localhost:1801/webpages/integrationTest.html\\",\\"count\\":1}\\",\\"apikey\\":\\"not set\\"}}","{\\"action\\":{\\"action\\":\\"reportObject\\"},\\"body\\":{\\"objectJson\\":\\"{TIMESTAMP,\\"type\\":\\"nodeAdded\\",\\"tagName\\":\\"A\\",\\"id\\":\\"\\",\\"nodeName\\":\\"A\\",\\"url\\":\\"http://localhost:1801/webpages/integrationTest.html\\",\\"href\\":\\"http://localhost:1801/webpages/integrationTest.html#test\\",\\"text\\":\\"Link\\"}\\",\\"apikey\\":\\"not set\\"}}"]';
+    expect(JSON.stringify(Array.from(actualData))).toBe(expectedData);
   });
 
   if (browserName !== BROWSERNAME.FIREFOX) {
@@ -99,9 +99,9 @@ function integrationTests(
       await page.waitForTimeout(1000);
       await page.close();
       // Then
-      expect(JSON.stringify(Array.from(actualData))).toBe(
-        '["{\\"action\\":{\\"action\\":\\"reportZestScript\\"},\\"body\\":{\\"scriptJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"click\\",\\"index\\":1,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementClick\\"}\\",\\"apikey\\":\\"not set\\"}}"]'
-      );
+      const expectedData =
+        '["{\\"action\\":{\\"action\\":\\"reportZestScript\\"},\\"body\\":{\\"scriptJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"click\\",\\"index\\":1,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementClick\\"}\\",\\"apikey\\":\\"not set\\"}}"]';
+      expect(JSON.stringify(Array.from(actualData))).toBe(expectedData);
     });
 
     test('Should record send keys', async () => {
@@ -119,9 +119,9 @@ function integrationTests(
       await page.waitForTimeout(1000);
       await page.close();
       // Then
-      expect(JSON.stringify(Array.from(actualData))).toBe(
-        '["{\\"action\\":{\\"action\\":\\"reportZestScript\\"},\\"body\\":{\\"scriptJson\\":\\"{\\"value\\":\\"testinput\\",\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"input-1\\",\\"index\\":1,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementSendKeys\\"}\\",\\"apikey\\":\\"not set\\"}}","{\\"action\\":{\\"action\\":\\"reportZestScript\\"},\\"body\\":{\\"scriptJson\\":\\"{\\"value\\":\\"2023-06-15\\",\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"input-2\\",\\"index\\":2,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementSendKeys\\"}\\",\\"apikey\\":\\"not set\\"}}"]'
-      );
+      const expectedData =
+        '["{\\"action\\":{\\"action\\":\\"reportZestScript\\"},\\"body\\":{\\"scriptJson\\":\\"{\\"value\\":\\"testinput\\",\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"input-1\\",\\"index\\":1,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementSendKeys\\"}\\",\\"apikey\\":\\"not set\\"}}","{\\"action\\":{\\"action\\":\\"reportZestScript\\"},\\"body\\":{\\"scriptJson\\":\\"{\\"value\\":\\"2023-06-15\\",\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"input-2\\",\\"index\\":2,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementSendKeys\\"}\\",\\"apikey\\":\\"not set\\"}}"]';
+      expect(JSON.stringify(Array.from(actualData))).toBe(expectedData);
     });
 
     test('Should stop recording', async () => {

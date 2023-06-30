@@ -19,10 +19,11 @@
  */
 import Browser from 'webextension-polyfill';
 import './styles.scss';
+import i18n from './i18n';
 
 let recordingActive = false;
-const RECORD = 'Record';
-const STOP = 'Stop';
+const RECORD = i18n.t('Record');
+const STOP = i18n.t('Stop');
 
 function sendMessageToContentScript(message: string): void {
   Browser.tabs.query({active: true, currentWindow: true}).then((tabs) => {
@@ -49,6 +50,12 @@ function restoreState(): void {
         recordButton.textContent = STOP;
       }
     });
+}
+
+function closePopup(): void {
+  setTimeout(() => {
+    window.close();
+  }, 500);
 }
 
 function stopRecording(): void {
@@ -83,6 +90,7 @@ function toggleRecording(): void {
   if (recordingActive) {
     stopRecording();
   } else {
+    closePopup();
     startRecording();
   }
 }
@@ -91,6 +99,7 @@ function openOptionsPage(): void {
   Browser.tabs.create({url: 'options.html'}).then((tab) => {
     Browser.tabs.update(tab.id, {active: true});
   });
+  closePopup();
 }
 
 function downloadZestScript(zestScriptJSON: string, title: string): void {
@@ -107,6 +116,8 @@ function downloadZestScript(zestScriptJSON: string, title: string): void {
   document.body.removeChild(link);
 
   URL.revokeObjectURL(url);
+
+  closePopup();
 }
 
 function handleSaveScript(): void {

@@ -3,7 +3,19 @@
 @import "../styles/variables";
 
 @import "~webext-base-css/webext-base.css";
-@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap");
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 400;
+  src: url('../assets/fonts/Roboto-Regular.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 700;
+  src: url('../assets/fonts/Roboto-Bold.ttf') format('truetype');
+}
 
 body {
   font-family: "Roboto", sans-serif;
