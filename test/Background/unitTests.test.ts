@@ -20,7 +20,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { TextEncoder, TextDecoder } from 'util';
+import {TextEncoder, TextDecoder} from 'util';
 import * as src from '../../source/Background/index';
 
 console.log(src);
@@ -38,21 +38,24 @@ import Browser from 'webextension-polyfill';
 
 test('Report storage', () => {
   // Given
-  
-  let setCookie = Browser.cookies.set({
+
+  const setCookie = Browser.cookies.set({
     url: 'https://www.example.com/',
     name: 'ZAP',
     value: 'Proxy',
     domain: 'example.com',
-    path: '/'
-
+    path: '/',
   });
 
   setCookie.then((newCookie) => {
     console.log(newCookie);
     // When
-    let success = src.reportCookies(newCookie, 'http://localhost:8080/', 'secretKey')
+    const success = src.reportCookies(
+      newCookie,
+      'http://localhost:8080/',
+      'secretKey'
+    );
     // Then
     expect(success).toBe(true);
-  })
+  });
 });

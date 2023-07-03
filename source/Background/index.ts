@@ -44,9 +44,7 @@ function getUrlFromCookieDomain(domain: string): string {
     : `http://${domain}`;
 }
 
-function getCookieTabUrl(
-  cookie: Cookies.Cookie
-): Promise<string> {
+function getCookieTabUrl(cookie: Cookies.Cookie): Promise<string> {
   const getAllTabs = Browser.tabs.query({
     currentWindow: true,
   });
@@ -57,17 +55,15 @@ function getCookieTabUrl(
           if (tab.url) {
             const getAllCookiesForTab = Browser.cookies.getAll({url: tab.url});
             getAllCookiesForTab.then((cookies) => {
-              for (const cookie of cookies) {
+              for (const c of cookies) {
                 if (
-                  cookie.name === cookie.name &&
-                  cookie.value === cookie.value &&
-                  cookie.domain === cookie.domain &&
-                  cookie.storeId === cookie.storeId
+                  c.name === cookie.name &&
+                  c.value === cookie.value &&
+                  c.domain === cookie.domain &&
+                  c.storeId === cookie.storeId
                 ) {
                   resolve(
-                    tab.url
-                      ? tab.url
-                      : getUrlFromCookieDomain(cookie.domain)
+                    tab.url ? tab.url : getUrlFromCookieDomain(cookie.domain)
                   );
                 }
               }
@@ -86,7 +82,7 @@ function reportCookies(
   cookie: Cookies.Cookie,
   zapurl: string,
   zapkey: string
-): Boolean {
+): boolean {
   let cookieString = `${cookie.name}=${cookie.value}; path=${cookie.path}; domain=${cookie.domain}`;
   if (cookie.expirationDate) {
     cookieString = cookieString.concat(
@@ -103,35 +99,40 @@ function reportCookies(
     cookieString = cookieString.concat(`; HttpOnly`);
   }
 
-  getCookieTabUrl(cookie).then((cookieUrl) => {
-    const repStorage = new ReportedStorage(
-      'Cookies',
-      '',
-      cookie.name,
-      '',
-      cookieString,
-      cookieUrl
-    );
-    const repStorStr: string = repStorage.toShortString();
-    if (!reportedStorage.has(repStorStr) && repStorage.url.startsWith('http')) {
-      const body = `objectJson=${encodeURIComponent(
-        repStorage.toString()
-      )}&apikey=${encodeURIComponent(zapkey)}`;
+  getCookieTabUrl(cookie)
+    .then((cookieUrl) => {
+      const repStorage = new ReportedStorage(
+        'Cookies',
+        '',
+        cookie.name,
+        '',
+        cookieString,
+        cookieUrl
+      );
+      const repStorStr: string = repStorage.toShortString();
+      if (
+        !reportedStorage.has(repStorStr) &&
+        repStorage.url.startsWith('http')
+      ) {
+        const body = `objectJson=${encodeURIComponent(
+          repStorage.toString()
+        )}&apikey=${encodeURIComponent(zapkey)}`;
 
-      fetch(zapApiUrl(zapurl, 'reportObject'), {
-        method: 'POST',
-        body,
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-      });
+        fetch(zapApiUrl(zapurl, 'reportObject'), {
+          method: 'POST',
+          body,
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+        });
 
-      reportedStorage.add(repStorStr);
-    }
-  }).catch((error) => {
-    console.log(error);
-    return false;
-  });
+        reportedStorage.add(repStorStr);
+      }
+    })
+    .catch((error) => {
+      console.log(error);
+      return false;
+    });
 
   return true;
 }
@@ -243,6 +244,4 @@ Browser.runtime.onInstalled.addListener((): void => {
   });
 });
 
-export {
-  reportCookies
-};
+export {reportCookies};

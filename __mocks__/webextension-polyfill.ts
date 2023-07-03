@@ -25,11 +25,11 @@ const Browser = {
   runtime: {
     sendMessage: jest.fn(),
     onMessage: {
-      addListener: jest.fn()
+      addListener: jest.fn(),
     },
     onInstalled: {
-      addListener: jest.fn()
-    }
+      addListener: jest.fn(),
+    },
   },
   storage: {
     sync: {
@@ -38,18 +38,25 @@ const Browser = {
   },
   cookies: {
     onChanged: {
-      addListener: jest.fn()
+      addListener: jest.fn(),
     },
-    set: jest.fn().mockImplementation(() => Promise.resolve({name: 'ZAP', value: 'Proxy', path: '/', domain: 'example.com'}))
+    set: jest.fn().mockImplementation(() =>
+      Promise.resolve({
+        name: 'ZAP',
+        value: 'Proxy',
+        path: '/',
+        domain: 'example.com',
+      })
+    ),
   },
   action: {
     onClicked: {
-      addListener: jest.fn()
-    }
+      addListener: jest.fn(),
+    },
   },
   tabs: {
-    query: jest.fn()
-  }
+    query: jest.fn(),
+  },
 };
 
 export default Browser;

@@ -8,6 +8,7 @@
 		"project": [
 			"./tsconfig.json",
 			"./test/ContentScript/tsconfig.json",
+			"./test/Background/tsconfig.json",
 			"./__mocks__/tsconfig.json"
 		],
 		"sourceType": "module"
