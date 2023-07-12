@@ -22,6 +22,13 @@
  */
 import {TextEncoder, TextDecoder} from 'util';
 import * as src from '../../source/ContentScript/index';
+import {ZestScript} from '../../source/types/zestScript/ZestScript';
+import {getPath} from '../../source/ContentScript/util';
+import {
+  ElementLocator,
+  ZestStatementElementClick,
+  ZestStatementElementSendKeys,
+} from '../../source/types/zestScript/ZestStatement';
 
 jest.mock('webextension-polyfill');
 
@@ -272,4 +279,182 @@ test('Should Disable The Extension', async () => {
   const actualOutcome = await src.injectScript();
   // Then
   expect(actualOutcome).toBe(false);
+});
+
+test('should generate valid script', () => {
+  const script = new ZestScript();
+  const expectedOutcome = `{
+  "about": "This is a Zest script. For more details about Zest visit https://github.com/zaproxy/zest/",
+  "zestVersion": "0.3",
+  "title": "recordedScript",
+  "description": "",
+  "prefix": "",
+  "type": "StandAlone",
+  "parameters": {
+    "tokenStart": "{{",
+    "tokenEnd": "}}",
+    "tokens": {},
+    "elementType": "ZestVariables"
+  },
+  "statements": [],
+  "authentication": [],
+  "index": 0,
+  "enabled": true,
+  "elementType": "ZestScript"
+}`;
+  expect(script.toJSON()).toBe(expectedOutcome);
+});
+
+test('should generate valid click statement', () => {
+  const elementLocator = new ElementLocator('id', 'test');
+  const zestStatementElementClick = new ZestStatementElementClick(
+    elementLocator
+  );
+
+  expect(zestStatementElementClick.toJSON()).toBe(
+    '{"windowHandle":"windowHandle1","type":"id","element":"test","index":-1,"enabled":true,"elementType":"ZestClientElementClick"}'
+  );
+});
+
+test('should generate valid send keys statement', () => {
+  const elementLocator = new ElementLocator('id', 'test');
+  const zestStatementElementSendKeys = new ZestStatementElementSendKeys(
+    elementLocator,
+    'testvalue'
+  );
+
+  expect(zestStatementElementSendKeys.toJSON()).toBe(
+    '{"value":"testvalue","windowHandle":"windowHandle1","type":"id","element":"test","index":-1,"enabled":true,"elementType":"ZestClientElementSendKeys"}'
+  );
+});
+
+test('should add zest statement to zest script', () => {
+  const script = new ZestScript();
+  const elementLocator = new ElementLocator('id', 'test');
+  const zestStatementElementClick = new ZestStatementElementClick(
+    elementLocator
+  );
+  script.addStatement(zestStatementElementClick.toJSON());
+  const expectedOutcome = `{
+  "about": "This is a Zest script. For more details about Zest visit https://github.com/zaproxy/zest/",
+  "zestVersion": "0.3",
+  "title": "recordedScript",
+  "description": "",
+  "prefix": "",
+  "type": "StandAlone",
+  "parameters": {
+    "tokenStart": "{{",
+    "tokenEnd": "}}",
+    "tokens": {},
+    "elementType": "ZestVariables"
+  },
+  "statements": [
+    {
+      "windowHandle": "windowHandle1",
+      "type": "id",
+      "element": "test",
+      "index": 1,
+      "enabled": true,
+      "elementType": "ZestClientElementClick"
+    }
+  ],
+  "authentication": [],
+  "index": 0,
+  "enabled": true,
+  "elementType": "ZestScript"
+}`;
+  expect(script.toJSON()).toBe(expectedOutcome);
+});
+
+test('should reset zest script', () => {
+  const script = new ZestScript();
+  const elementLocator = new ElementLocator('id', 'test');
+  const zestStatementElementClick = new ZestStatementElementClick(
+    elementLocator
+  );
+  script.addStatement(zestStatementElementClick.toJSON());
+  script.reset();
+  const expectedOutcome = `{
+  "about": "This is a Zest script. For more details about Zest visit https://github.com/zaproxy/zest/",
+  "zestVersion": "0.3",
+  "title": "recordedScript",
+  "description": "",
+  "prefix": "",
+  "type": "StandAlone",
+  "parameters": {
+    "tokenStart": "{{",
+    "tokenEnd": "}}",
+    "tokens": {},
+    "elementType": "ZestVariables"
+  },
+  "statements": [],
+  "authentication": [],
+  "index": 0,
+  "enabled": true,
+  "elementType": "ZestScript"
+}`;
+  expect(script.toJSON()).toBe(expectedOutcome);
+});
+
+test('should return correct path for element with id', () => {
+  // Given
+  const dom: JSDOM = new JSDOM(
+    '<!DOCTYPE html><body><div id="myElement"></div></body>'
+  );
+  const element = dom.window.document.getElementById('myElement');
+
+  // When
+  const path = getPath(element as HTMLElement, dom.window.document);
+
+  // Then
+  expect(path.type).toBe('id');
+  expect(path.element).toBe('myElement');
+});
+
+test('should return correct path for element with unique class', () => {
+  // Given
+  const dom: JSDOM = new JSDOM(
+    '<!DOCTYPE html><body><div class="myClass"></div></body>'
+  );
+  const element = dom.window.document.querySelector('.myClass');
+
+  // When
+  const path = getPath(element as HTMLElement, dom.window.document);
+
+  // Then
+  expect(path.type).toBe('className');
+  expect(path.element).toBe('myClass');
+});
+
+test('should return correct path for element with CSS selector', () => {
+  // Given
+  const dom: JSDOM = new JSDOM(
+    '<!DOCTYPE html><body><div><span><button></button></span></div></body>'
+  );
+  const element = dom.window.document.getElementsByTagName('button')[0];
+
+  // When
+  const path = getPath(element as HTMLElement, dom.window.document);
+
+  // Then
+  expect(path.type).toBe('cssSelector');
+  expect(path.element).toBe('body > div > span > button');
+});
+
+test('should return correct path for element with XPath', () => {
+  // Given
+  const dom = new JSDOM(
+    '<!DOCTYPE html><html><body><div><button class="btn">Test</button><button class="btn">Another Test</button></div></body></html>'
+  );
+  const element = dom.window.document.getElementsByClassName('btn');
+
+  // When
+  const path1 = getPath(element[0] as HTMLElement, dom.window.document);
+  const path2 = getPath(element[1] as HTMLElement, dom.window.document);
+
+  // Then
+  expect(path1.type).toBe('xpath');
+  expect(path1.element).toBe('/html/body/div/button[1]');
+  expect(path2.type).toBe('xpath');
+  expect(path2.element).toBe('/html/body/div/button[2]');
 });

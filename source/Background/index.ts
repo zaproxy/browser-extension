@@ -20,6 +20,7 @@
 import 'emoji-log';
 import Browser, {Runtime} from 'webextension-polyfill';
 import {ReportedStorage} from '../types/ReportedModel';
+import {ZestScript, ZestScriptMessage} from '../types/zestScript/ZestScript';
 
 console.log('ZAP Service Worker 👋');
 
@@ -27,7 +28,7 @@ console.log('ZAP Service Worker 👋');
   We check the storage on every page, so need to record which storage events we have reported to ZAP here so that we dont keep sending the same events.
 */
 const reportedStorage = new Set<string>();
-
+const zestScript = new ZestScript('recordedScript');
 /*
   A callback URL will only be available if the browser has been launched from ZAP, otherwise call the individual endpoints
 */
@@ -42,7 +43,7 @@ function handleMessage(
   request: MessageEvent,
   zapurl: string,
   zapkey: string
-): boolean {
+): boolean | ZestScriptMessage {
   if (request.type === 'zapDetails') {
     console.log('ZAP Service worker updating the ZAP details');
     Browser.storage.sync.set({
@@ -96,25 +97,41 @@ function handleMessage(
         'Content-Type': 'application/x-www-form-urlencoded',
       },
     });
+  } else if (request.type === 'zestScript') {
+    const data = zestScript.addStatement(request.data);
+    const body = `scriptJson=${encodeURIComponent(
+      data
+    )}&apikey=${encodeURIComponent(zapkey)}`;
+    console.log(`body = ${body}`);
+    fetch(zapApiUrl(zapurl, 'reportZestScript'), {
+      method: 'POST',
+      body,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    });
+  } else if (request.type === 'saveZestScript') {
+    return zestScript.getZestScript();
+  } else if (request.type === 'resetZestScript') {
+    zestScript.reset();
   }
   return true;
 }
 
-function onMessageHandler(
+async function onMessageHandler(
   message: MessageEvent,
   _sender: Runtime.MessageSender
-): Promise<number> {
-  Browser.storage.sync
-    .get({
-      zapurl: 'http://zap/',
-      zapkey: 'not set',
-    })
-    .then((items) => {
-      handleMessage(message, items.zapurl, items.zapkey);
-      return Promise.resolve(1);
-    });
-  // No point failing - theres nothing we can do if this doesnt work
-  return Promise.resolve(2);
+): Promise<number | ZestScriptMessage> {
+  let val: number | ZestScriptMessage = 2;
+  const items = await Browser.storage.sync.get({
+    zapurl: 'http://zap/',
+    zapkey: 'not set',
+  });
+  const msg = handleMessage(message, items.zapurl, items.zapkey);
+  if (!(typeof msg === 'boolean')) {
+    val = msg;
+  }
+  return Promise.resolve(val);
 }
 
 Browser.action.onClicked.addListener((_tab: Browser.Tabs.Tab) => {

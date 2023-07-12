@@ -51,6 +51,7 @@
       "512": "assets/icons/zap512x512.png"
     },
     "default_title": "OWASP ZAP",
+    "default_popup": "popup.html",
     "__chrome|opera__chrome_style": false,
     "__firefox__browser_style": false
   },
