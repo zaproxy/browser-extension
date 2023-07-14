@@ -27,11 +27,35 @@ const Browser = {
     onMessage: {
       addListener: jest.fn(),
     },
+    onInstalled: {
+      addListener: jest.fn(),
+    },
   },
   storage: {
     sync: {
       get: mockStorageSyncGet,
     },
+  },
+  cookies: {
+    onChanged: {
+      addListener: jest.fn(),
+    },
+    set: jest.fn().mockImplementation(() =>
+      Promise.resolve({
+        name: 'ZAP',
+        value: 'Proxy',
+        path: '/',
+        domain: 'example.com',
+      })
+    ),
+  },
+  action: {
+    onClicked: {
+      addListener: jest.fn(),
+    },
+  },
+  tabs: {
+    query: jest.fn(),
   },
 };
 

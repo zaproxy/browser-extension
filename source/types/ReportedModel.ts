@@ -41,7 +41,8 @@ class ReportedObject {
     tagName: string,
     id: string,
     nodeName: string,
-    text: string | null
+    text: string | null,
+    url: string = window.location.href
   ) {
     this.timestamp = Date.now();
     this.type = type;
@@ -49,7 +50,7 @@ class ReportedObject {
     this.id = id;
     this.nodeName = nodeName;
     this.text = text;
-    this.url = window.location.href;
+    this.url = url;
   }
 
   public toString(): string {
@@ -80,7 +81,12 @@ class ReportedObject {
 class ReportedStorage extends ReportedObject {
   public toShortString(): string {
     return JSON.stringify(this, function replacer(k: string, v: string) {
-      if (k === 'xpath' || k === 'url' || k === 'href' || k === 'timestamp') {
+      if (
+        k === 'xpath' ||
+        k === 'href' ||
+        k === 'timestamp' ||
+        (k === 'url' && !(this.type === 'cookies'))
+      ) {
         // Storage events are not time or URL specific
         return undefined;
       }

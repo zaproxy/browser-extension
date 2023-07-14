@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 import 'emoji-log';
-import Browser, {Runtime} from 'webextension-polyfill';
+import Browser, {Cookies, Runtime} from 'webextension-polyfill';
 import {ReportedStorage} from '../types/ReportedModel';
 import {ZestScript, ZestScriptMessage} from '../types/zestScript/ZestScript';
 
@@ -37,6 +37,105 @@ function zapApiUrl(zapurl: string, action: string): string {
     return zapurl;
   }
   return `${zapurl}JSON/client/action/${action}/`;
+}
+
+function getUrlFromCookieDomain(domain: string): string {
+  return domain.startsWith('.')
+    ? `http://${domain.substring(1)}`
+    : `http://${domain}`;
+}
+
+function getCookieTabUrl(cookie: Cookies.Cookie): Promise<string> {
+  const getAllTabs = Browser.tabs.query({
+    currentWindow: true,
+  });
+  return new Promise((resolve, reject) => {
+    getAllTabs
+      .then((allTabs) => {
+        for (const tab of allTabs) {
+          if (tab.url) {
+            const getAllCookiesForTab = Browser.cookies.getAll({url: tab.url});
+            getAllCookiesForTab.then((cookies) => {
+              for (const c of cookies) {
+                if (
+                  c.name === cookie.name &&
+                  c.value === cookie.value &&
+                  c.domain === cookie.domain &&
+                  c.storeId === cookie.storeId
+                ) {
+                  resolve(
+                    tab.url ? tab.url : getUrlFromCookieDomain(cookie.domain)
+                  );
+                }
+              }
+            });
+          }
+        }
+      })
+      .catch((error) => {
+        console.error(`Could not fetch tabs: ${error.message}`);
+        reject(getUrlFromCookieDomain(cookie.domain));
+      });
+  });
+}
+
+function reportCookies(
+  cookie: Cookies.Cookie,
+  zapurl: string,
+  zapkey: string
+): boolean {
+  let cookieString = `${cookie.name}=${cookie.value}; path=${cookie.path}; domain=${cookie.domain}`;
+  if (cookie.expirationDate) {
+    cookieString = cookieString.concat(
+      `; expires=${new Date(cookie.expirationDate * 1000).toUTCString()}`
+    );
+  }
+  if (cookie.secure) {
+    cookieString = cookieString.concat(`; secure`);
+  }
+  if (cookie.sameSite === 'lax' || cookie.sameSite === 'strict') {
+    cookieString = cookieString.concat(`; SameSite=${cookie.sameSite}`);
+  }
+  if (cookie.httpOnly) {
+    cookieString = cookieString.concat(`; HttpOnly`);
+  }
+
+  getCookieTabUrl(cookie)
+    .then((cookieUrl) => {
+      const repStorage = new ReportedStorage(
+        'Cookies',
+        '',
+        cookie.name,
+        '',
+        cookieString,
+        cookieUrl
+      );
+      const repStorStr: string = repStorage.toShortString();
+      if (
+        !reportedStorage.has(repStorStr) &&
+        repStorage.url.startsWith('http')
+      ) {
+        const body = `objectJson=${encodeURIComponent(
+          repStorage.toString()
+        )}&apikey=${encodeURIComponent(zapkey)}`;
+
+        fetch(zapApiUrl(zapurl, 'reportObject'), {
+          method: 'POST',
+          body,
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+        });
+
+        reportedStorage.add(repStorStr);
+      }
+    })
+    .catch((error) => {
+      console.log(error);
+      return false;
+    });
+
+  return true;
 }
 
 function handleMessage(
@@ -134,10 +233,24 @@ async function onMessageHandler(
   return Promise.resolve(val);
 }
 
+function cookieChangeHandler(
+  changeInfo: Cookies.OnChangedChangeInfoType
+): void {
+  Browser.storage.sync
+    .get({
+      zapurl: 'http://localhost:8080/',
+      zapkey: 'not set',
+    })
+    .then((items) => {
+      reportCookies(changeInfo.cookie, items.zapurl, items.zapkey);
+    });
+}
+
 Browser.action.onClicked.addListener((_tab: Browser.Tabs.Tab) => {
   Browser.runtime.openOptionsPage();
 });
 
+Browser.cookies.onChanged.addListener(cookieChangeHandler);
 Browser.runtime.onMessage.addListener(onMessageHandler);
 
 Browser.runtime.onInstalled.addListener((): void => {
@@ -147,3 +260,5 @@ Browser.runtime.onInstalled.addListener((): void => {
     zapkey: 'not set',
   });
 });
+
+export {reportCookies};
