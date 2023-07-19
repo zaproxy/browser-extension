@@ -228,6 +228,14 @@ function enableExtension(): void {
 
 function injectScript(): Promise<boolean> {
   return new Promise((resolve) => {
+    const localzapurl = localStorage.getItem('localzapurl');
+    const localzapenable = localStorage.getItem('localzapenable') || true;
+    if (localzapurl) {
+      Browser.storage.sync.set({
+        zapurl: localzapurl,
+        zapenable: localzapenable !== 'false',
+      });
+    }
     withZapRecordingActive(() => {
       recordUserInteractions();
     });
