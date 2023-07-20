@@ -25,11 +25,11 @@ let recordingActive = false;
 const RECORD = i18n.t('Record');
 const STOP = i18n.t('Stop');
 
-function sendMessageToContentScript(message: string): void {
+function sendMessageToContentScript(message: string, data = ''): void {
   Browser.tabs.query({active: true, currentWindow: true}).then((tabs) => {
     const activeTab = tabs[0];
     if (activeTab?.id) {
-      Browser.tabs.sendMessage(activeTab.id, {type: message});
+      Browser.tabs.sendMessage(activeTab.id, {type: message, data});
     }
   });
 }
@@ -40,6 +40,8 @@ function restoreState(): void {
   Browser.storage.sync
     .get({
       zaprecordingactive: false,
+      zapscriptname: 'recordedScript',
+      zapclosewindowhandle: false,
     })
     .then((items) => {
       recordingActive = items.zaprecordingactive;
@@ -49,6 +51,14 @@ function restoreState(): void {
         ) as HTMLButtonElement;
         recordButton.textContent = STOP;
       }
+      const scriptNameInput = document.getElementById(
+        'script-name-input'
+      ) as HTMLInputElement;
+      scriptNameInput.value = items.zapscriptname;
+      const closeWindowHandle = document.getElementById(
+        'window-close-input'
+      ) as HTMLInputElement;
+      closeWindowHandle.checked = items.zapclosewindowhandle;
     });
 }
 
@@ -126,9 +136,26 @@ function handleSaveScript(): void {
   });
 }
 
+function handleScriptNameChange(e: Event): void {
+  const {value} = e.target as HTMLInputElement;
+  Browser.storage.sync.set({
+    zapscriptname: value,
+  });
+  sendMessageToContentScript('updateTitle', value);
+}
+
+function handleWindowHandleClose(e: Event): void {
+  const {checked} = e.target as HTMLInputElement;
+  Browser.storage.sync.set({
+    zapclosewindowhandle: checked,
+  });
+}
+
 const recordButton = document.getElementById('record-btn');
 const configureButton = document.getElementById('configure-btn');
 const saveScript = document.getElementById('save-script');
+const scriptNameInput = document.getElementById('script-name-input');
+const windowHandleCloseInput = document.getElementById('window-close-input');
 
 document.addEventListener('DOMContentLoaded', restoreState);
 document.addEventListener('load', restoreState);
@@ -136,3 +163,5 @@ document.addEventListener('load', restoreState);
 recordButton?.addEventListener('click', toggleRecording);
 configureButton?.addEventListener('click', openOptionsPage);
 saveScript?.addEventListener('click', handleSaveScript);
+scriptNameInput?.addEventListener('input', handleScriptNameChange);
+windowHandleCloseInput?.addEventListener('click', handleWindowHandleClose);

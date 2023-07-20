@@ -157,11 +157,11 @@ function sendZestScriptToZAP(
   });
 }
 
-function handleMessage(
+async function handleMessage(
   request: MessageEvent,
   zapurl: string,
   zapkey: string
-): boolean | ZestScriptMessage {
+): Promise<boolean | ZestScriptMessage> {
   if (request.type === 'zapDetails') {
     console.log('ZAP Service worker updating the ZAP details');
     Browser.storage.sync.set({
@@ -241,7 +241,7 @@ async function onMessageHandler(
     zapurl: 'http://zap/',
     zapkey: 'not set',
   });
-  const msg = handleMessage(message, items.zapurl, items.zapkey);
+  const msg = await handleMessage(message, items.zapurl, items.zapkey);
   if (!(typeof msg === 'boolean')) {
     val = msg;
   }

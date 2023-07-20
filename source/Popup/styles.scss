@@ -24,7 +24,8 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  height: 80vh;
+  width: 120vh;
   background-color: #f2f2f2;
 }
 
@@ -60,4 +61,29 @@ body {
 
 .button:hover {
   background-color: #0056b3;
+}
+
+#script-name-label , #window-close-label {
+  display: inline-block; /* Add this line */
+  margin-bottom: 5px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+#script-name-input {
+  display: inline-block;
+  padding: 2px;
+  border: 1px solid #737272;
+  border-radius: 3px;
+  font-size: 16px;
+  line-height: 16px;
+  height: 20px;
+  width: 50vh;
+}
+
+#window-close-input {
+  display: inline-block;
+  padding: 2px;
+  border: 1px solid #737272;
+  border-radius: 3px;
 }
