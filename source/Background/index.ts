@@ -21,6 +21,7 @@ import 'emoji-log';
 import Browser, {Cookies, Runtime} from 'webextension-polyfill';
 import {ReportedStorage} from '../types/ReportedModel';
 import {ZestScript, ZestScriptMessage} from '../types/zestScript/ZestScript';
+import {ZestStatementWindowClose} from '../types/zestScript/ZestStatement';
 
 console.log('ZAP Service Worker 👋');
 
@@ -138,6 +139,24 @@ function reportCookies(
   return true;
 }
 
+function sendZestScriptToZAP(
+  data: string,
+  zapkey: string,
+  zapurl: string
+): void {
+  const body = `scriptJson=${encodeURIComponent(
+    data
+  )}&apikey=${encodeURIComponent(zapkey)}`;
+  console.log(`body = ${body}`);
+  fetch(zapApiUrl(zapurl, 'reportZestScript'), {
+    method: 'POST',
+    body,
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+  });
+}
+
 function handleMessage(
   request: MessageEvent,
   zapurl: string,
@@ -198,21 +217,17 @@ function handleMessage(
     });
   } else if (request.type === 'zestScript') {
     const data = zestScript.addStatement(request.data);
-    const body = `scriptJson=${encodeURIComponent(
-      data
-    )}&apikey=${encodeURIComponent(zapkey)}`;
-    console.log(`body = ${body}`);
-    fetch(zapApiUrl(zapurl, 'reportZestScript'), {
-      method: 'POST',
-      body,
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-    });
+    sendZestScriptToZAP(data, zapkey, zapurl);
   } else if (request.type === 'saveZestScript') {
     return zestScript.getZestScript();
   } else if (request.type === 'resetZestScript') {
     zestScript.reset();
+  } else if (request.type === 'stopRecording') {
+    if (zestScript.getZestStatementCount() > 0) {
+      const stmt = new ZestStatementWindowClose(0);
+      const data = zestScript.addStatement(stmt.toJSON());
+      sendZestScriptToZAP(data, zapkey, zapurl);
+    }
   }
   return true;
 }

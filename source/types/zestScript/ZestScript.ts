@@ -4,11 +4,11 @@ interface ZestScriptMessage {
 }
 
 class ZestScript {
-  zestStatements: string[] = [];
+  private zestStatements: string[] = [];
 
-  curIndex = 1;
+  private curIndex = 1;
 
-  title: string;
+  private title: string;
 
   constructor(title = '') {
     this.title = title;
@@ -29,6 +29,14 @@ class ZestScript {
   reset(): void {
     this.zestStatements = [];
     this.curIndex = 1;
+  }
+
+  getZestStatementCount(): number {
+    return this.zestStatements.length;
+  }
+
+  getTitle(): string {
+    return this.title;
   }
 
   toJSON(): string {

@@ -256,6 +256,7 @@ Browser.runtime.onMessage.addListener(
       recordUserInteractions();
     } else if (message.type === 'zapStopRecording') {
       stopRecordingUserInteractions();
+      Browser.runtime.sendMessage({type: 'stopRecording'});
     }
   }
 );
