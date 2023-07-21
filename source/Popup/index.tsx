@@ -71,6 +71,7 @@ function closePopup(): void {
 function stopRecording(): void {
   console.log('Recording stopped ...');
   sendMessageToContentScript('zapStopRecording');
+  Browser.runtime.sendMessage({type: 'stopRecording'});
   Browser.storage.sync.set({
     zaprecordingactive: false,
   });

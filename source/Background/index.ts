@@ -224,9 +224,14 @@ async function handleMessage(
     zestScript.reset();
   } else if (request.type === 'stopRecording') {
     if (zestScript.getZestStatementCount() > 0) {
-      const stmt = new ZestStatementWindowClose(0);
-      const data = zestScript.addStatement(stmt.toJSON());
-      sendZestScriptToZAP(data, zapkey, zapurl);
+      const {zapclosewindowhandle} = await Browser.storage.sync.get({
+        zapclosewindowhandle: false,
+      });
+      if (zapclosewindowhandle) {
+        const stmt = new ZestStatementWindowClose(0);
+        const data = zestScript.addStatement(stmt.toJSON());
+        sendZestScriptToZAP(data, zapkey, zapurl);
+      }
     }
   }
   return true;
