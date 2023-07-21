@@ -24,8 +24,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 80vh;
-  width: 120vh;
+  width: 400px;
   background-color: #f2f2f2;
 }
 
@@ -54,13 +53,17 @@ body {
   border-radius: 4px;
   background-color: #007bff;
   color: #fff;
-  border: none;
+  border: 1px solid transparent; 
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
 
 .button:hover {
   background-color: #0056b3;
+}
+
+.button:focus {
+  outline: none;
 }
 
 #script-name-label , #window-close-label {
@@ -86,4 +89,8 @@ body {
   padding: 2px;
   border: 1px solid #737272;
   border-radius: 3px;
+}
+
+input[type="checkbox"] {
+  vertical-align: middle;
 }

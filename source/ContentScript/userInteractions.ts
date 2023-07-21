@@ -116,7 +116,6 @@ function handleChange(
       (event.target as HTMLInputElement).value
     )
   );
-  // send keys to the element
 }
 
 function handleResize(): void {

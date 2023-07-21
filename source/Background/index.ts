@@ -33,6 +33,7 @@ const zestScript = new ZestScript('recordedScript');
 /*
   A callback URL will only be available if the browser has been launched from ZAP, otherwise call the individual endpoints
 */
+
 function zapApiUrl(zapurl: string, action: string): string {
   if (zapurl.indexOf('/zapCallBackUrl/') > 0) {
     return zapurl;
@@ -216,6 +217,14 @@ async function handleMessage(
       },
     });
   } else if (request.type === 'zestScript') {
+    const stmt = JSON.parse(request.data);
+    if (stmt.elementType === 'ZestClientElementSendKeys') {
+      console.log(stmt);
+      stmt.elementType = 'ZestClientElementClear';
+      delete stmt.value;
+      const cleardata = zestScript.addStatement(JSON.stringify(stmt));
+      sendZestScriptToZAP(cleardata, zapkey, zapurl);
+    }
     const data = zestScript.addStatement(request.data);
     sendZestScriptToZAP(data, zapkey, zapurl);
   } else if (request.type === 'saveZestScript') {
@@ -233,6 +242,10 @@ async function handleMessage(
         sendZestScriptToZAP(data, zapkey, zapurl);
       }
     }
+  } else if (request.type === 'setSaveScriptEnable') {
+    Browser.storage.sync.set({
+      zapenablesavescript: zestScript.getZestStatementCount() > 0,
+    });
   }
   return true;
 }

@@ -133,6 +133,23 @@ class ZestStatementElementSendKeys extends ZestStatementElement {
   }
 }
 
+class ZestStatementElementClear extends ZestStatementElement {
+  constructor(elementLocator: ElementLocator, windowHandle = 'windowHandle1') {
+    super('ZestClientElementClear', elementLocator);
+    this.windowHandle = windowHandle;
+  }
+
+  toJSON(): string {
+    return JSON.stringify({
+      windowHandle: this.windowHandle,
+      ...this.elementLocator.toJSON(),
+      index: this.index,
+      enabled: true,
+      elementType: this.elementType,
+    });
+  }
+}
+
 class ZestStatementWindowClose extends ZestStatement {
   sleepInSeconds: number;
 
@@ -191,5 +208,6 @@ export {
   ZestStatementElementClick,
   ZestStatementSwichToFrame,
   ZestStatementElementSendKeys,
+  ZestStatementElementClear,
   ZestStatementWindowClose,
 };

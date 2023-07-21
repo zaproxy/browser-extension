@@ -34,14 +34,15 @@ function sendMessageToContentScript(message: string, data = ''): void {
   });
 }
 
-function restoreState(): void {
+async function restoreState(): Promise<void> {
   console.log('Restore state');
-
+  await Browser.runtime.sendMessage({type: 'setSaveScriptEnable'});
   Browser.storage.sync
     .get({
       zaprecordingactive: false,
       zapscriptname: 'recordedScript',
       zapclosewindowhandle: false,
+      zapenablesavescript: false,
     })
     .then((items) => {
       recordingActive = items.zaprecordingactive;
@@ -59,6 +60,10 @@ function restoreState(): void {
         'window-close-input'
       ) as HTMLInputElement;
       closeWindowHandle.checked = items.zapclosewindowhandle;
+      const saveScriptButton = document.getElementById(
+        'save-script'
+      ) as HTMLButtonElement;
+      saveScriptButton.style.display = items.zapenablesavescript ? '' : 'none';
     });
 }
 
