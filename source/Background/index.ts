@@ -29,7 +29,7 @@ console.log('ZAP Service Worker 👋');
   We check the storage on every page, so need to record which storage events we have reported to ZAP here so that we dont keep sending the same events.
 */
 const reportedStorage = new Set<string>();
-const zestScript = new ZestScript('recordedScript');
+const zestScript = new ZestScript();
 /*
   A callback URL will only be available if the browser has been launched from ZAP, otherwise call the individual endpoints
 */

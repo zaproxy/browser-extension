@@ -150,6 +150,8 @@ function integrationTests(
       const context = await driver.getContext(_JSONPORT, true);
       await driver.setEnable(false);
       const page = await context.newPage();
+      await page.goto(await driver.getPopupURL());
+      await page.fill('#script-name-input', 'recordedScript');
       await page.goto(
         `http://localhost:${_HTTPPORT}/webpages/interactions.html`
       );
@@ -175,7 +177,7 @@ function integrationTests(
       await driver.setEnable(false);
       const page = await context.newPage();
       await page.goto(await driver.getPopupURL());
-      await page.check('#window-close-input');
+      await page.click('.done');
       await page.goto(
         `http://localhost:${_HTTPPORT}/webpages/interactions.html`
       );

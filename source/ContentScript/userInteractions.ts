@@ -30,7 +30,8 @@ import {getPath} from './util';
 let previousDOMState: string;
 let curLevel = -1;
 let curFrame = 0;
-let active = true;
+let active = false;
+let haveListenersBeenAdded = false;
 
 async function sendZestScriptToZAP(
   zestStatement: ZestStatement
@@ -181,15 +182,17 @@ function initializationScript(): void {
   const url = window.location.href;
   sendZestScriptToZAP(new ZestStatementLaunchBrowser(browserType, url));
   handleResize();
-  // TODO: goto URL specified
 }
 
 function recordUserInteractions(): void {
   console.log('user interactions');
   active = true;
   previousDOMState = document.documentElement.outerHTML;
+  if (haveListenersBeenAdded) return;
+  
   window.addEventListener('resize', debounce(handleResize, 100));
   addListenersToDocument(document, -1, 0);
+  haveListenersBeenAdded = true;
 }
 
 function stopRecordingUserInteractions(): void {

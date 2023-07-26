@@ -19,11 +19,25 @@
  */
 import Browser from 'webextension-polyfill';
 import './styles.scss';
-import i18n from './i18n';
 
-let recordingActive = false;
-const RECORD = i18n.t('Record');
-const STOP = i18n.t('Stop');
+const play = document.querySelector('.play');
+const pause = document.querySelector('.pause');
+const wave1 = document.querySelector('.record__back-1');
+const wave2 = document.querySelector('.record__back-2');
+const done = document.querySelector('.done');
+
+const recordButton = document.getElementById('record-btn');
+const configureButton = document.getElementById('configure-btn');
+const saveScript = document.getElementById('save-script');
+const scriptNameInput = document.getElementById(
+  'script-name-input'
+) as HTMLInputElement;
+const windowHandleCloseInput = document.getElementById(
+  'window-close-input'
+) as HTMLInputElement;
+const saveScriptButton = document.getElementById(
+  'save-script'
+) as HTMLButtonElement;
 
 function sendMessageToContentScript(message: string, data = ''): void {
   Browser.tabs.query({active: true, currentWindow: true}).then((tabs) => {
@@ -34,36 +48,50 @@ function sendMessageToContentScript(message: string, data = ''): void {
   });
 }
 
+function stoppedAnimation(): void {
+  pause?.classList.add('visibility');
+  play?.classList.add('visibility');
+  recordButton?.classList.add('shadow');
+  wave1?.classList.add('paused');
+  wave2?.classList.add('paused');
+}
+
+function startedAnimation(): void {
+  pause?.classList.remove('visibility');
+  play?.classList.remove('visibility');
+  recordButton?.classList.remove('shadow');
+  wave1?.classList.remove('paused');
+  wave2?.classList.remove('paused');
+}
+
 async function restoreState(): Promise<void> {
   console.log('Restore state');
   await Browser.runtime.sendMessage({type: 'setSaveScriptEnable'});
   Browser.storage.sync
     .get({
       zaprecordingactive: false,
-      zapscriptname: 'recordedScript',
+      zapscriptname: '',
       zapclosewindowhandle: false,
       zapenablesavescript: false,
     })
     .then((items) => {
-      recordingActive = items.zaprecordingactive;
-      if (recordingActive) {
-        const recordButton = document.getElementById(
-          'record-btn'
-        ) as HTMLButtonElement;
-        recordButton.textContent = STOP;
+      if (items.zaprecordingactive) {
+        startedAnimation();
+      } else {
+        stoppedAnimation();
       }
-      const scriptNameInput = document.getElementById(
-        'script-name-input'
-      ) as HTMLInputElement;
       scriptNameInput.value = items.zapscriptname;
-      const closeWindowHandle = document.getElementById(
-        'window-close-input'
-      ) as HTMLInputElement;
-      closeWindowHandle.checked = items.zapclosewindowhandle;
-      const saveScriptButton = document.getElementById(
-        'save-script'
-      ) as HTMLButtonElement;
-      saveScriptButton.style.display = items.zapenablesavescript ? '' : 'none';
+      windowHandleCloseInput.checked = items.zapclosewindowhandle;
+      if (items.zapclosewindowhandle) {
+        done?.classList.remove('invisible');
+      } else {
+        done?.classList.add('invisible');
+      }
+      if (!items.zapenablesavescript) {
+        saveScriptButton.classList.add('disabled');
+      } else {
+        saveScriptButton.classList.remove('disabled');
+      }
     });
 }
 
@@ -75,40 +103,34 @@ function closePopup(): void {
 
 function stopRecording(): void {
   console.log('Recording stopped ...');
+  stoppedAnimation();
   sendMessageToContentScript('zapStopRecording');
   Browser.runtime.sendMessage({type: 'stopRecording'});
   Browser.storage.sync.set({
     zaprecordingactive: false,
   });
-  const recordButton = document.getElementById(
-    'record-btn'
-  ) as HTMLButtonElement;
-  recordButton.textContent = RECORD;
-  recordingActive = false;
 }
 
 function startRecording(): void {
-  console.log('Recording started ...');
+  startedAnimation();
   sendMessageToContentScript('zapStartRecording');
   Browser.runtime.sendMessage({type: 'resetZestScript'});
-
   Browser.storage.sync.set({
     zaprecordingactive: true,
   });
-  const recordButton = document.getElementById(
-    'record-btn'
-  ) as HTMLButtonElement;
-  recordButton.textContent = STOP;
-  recordingActive = true;
 }
 
-function toggleRecording(): void {
-  if (recordingActive) {
-    stopRecording();
-  } else {
-    closePopup();
-    startRecording();
-  }
+function toggleRecording(e: Event): void {
+  e.preventDefault();
+  Browser.storage.sync.get({zaprecordingactive: false}).then((items) => {
+    if (items.zaprecordingactive) {
+      stopRecording();
+      console.log('active');
+    } else {
+      startRecording();
+      closePopup();
+    }
+  });
 }
 
 function openOptionsPage(): void {
@@ -119,6 +141,10 @@ function openOptionsPage(): void {
 }
 
 function downloadZestScript(zestScriptJSON: string, title: string): void {
+  if (title === '') {
+    scriptNameInput?.focus();
+    return;
+  }
   const blob = new Blob([zestScriptJSON], {type: 'application/json'});
   const url = URL.createObjectURL(blob);
 
@@ -132,7 +158,7 @@ function downloadZestScript(zestScriptJSON: string, title: string): void {
   document.body.removeChild(link);
 
   URL.revokeObjectURL(url);
-
+  Browser.runtime.sendMessage({type: 'resetZestScript'});
   closePopup();
 }
 
@@ -152,16 +178,15 @@ function handleScriptNameChange(e: Event): void {
 
 function handleWindowHandleClose(e: Event): void {
   const {checked} = e.target as HTMLInputElement;
+  if (checked) {
+    done?.classList.remove('invisible');
+  } else {
+    done?.classList.add('invisible');
+  }
   Browser.storage.sync.set({
     zapclosewindowhandle: checked,
   });
 }
-
-const recordButton = document.getElementById('record-btn');
-const configureButton = document.getElementById('configure-btn');
-const saveScript = document.getElementById('save-script');
-const scriptNameInput = document.getElementById('script-name-input');
-const windowHandleCloseInput = document.getElementById('window-close-input');
 
 document.addEventListener('DOMContentLoaded', restoreState);
 document.addEventListener('load', restoreState);
