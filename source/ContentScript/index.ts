@@ -24,15 +24,13 @@ import {
   ReportedStorage,
   ReportedEvent,
 } from '../types/ReportedModel';
-import {
-  initializationScript,
-  recordUserInteractions,
-  stopRecordingUserInteractions,
-} from './userInteractions';
+import Recorder from './Recorder';
 
 const reportedObjects = new Set<string>();
 
 const reportedEvents: {[key: string]: ReportedEvent} = {};
+
+const recorder = new Recorder();
 
 function reportStorage(
   name: string,
@@ -237,7 +235,7 @@ function injectScript(): Promise<boolean> {
       });
     }
     withZapRecordingActive(() => {
-      recordUserInteractions();
+      recorder.recordUserInteractions();
     });
     withZapEnableSetting(() => {
       enableExtension();
@@ -252,10 +250,10 @@ injectScript();
 Browser.runtime.onMessage.addListener(
   (message: MessageEvent, _sender: Runtime.MessageSender) => {
     if (message.type === 'zapStartRecording') {
-      initializationScript();
-      recordUserInteractions();
+      recorder.initializationScript();
+      recorder.recordUserInteractions();
     } else if (message.type === 'zapStopRecording') {
-      stopRecordingUserInteractions();
+      recorder.stopRecordingUserInteractions();
     }
   }
 );
