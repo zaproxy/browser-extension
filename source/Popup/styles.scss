@@ -1,28 +1,25 @@
-// :root {
-//   --primary-light: #FFFFFF;
-//   --primary: #1976D2;
-//   --primary-dark: #01579B;
+@import "../styles/fonts";
+@import "../styles/variables";
+@import "~webext-base-css/webext-base.css";
 
-//   --white: #EEEEEE;
-//   --greyLight-1: #FFFFFF;
-//   --greyLight-2: #c8d0e7;
-//   --greyLight-3: #bec8e4;
-//   --greyDark: #9baacf;
-//   --text-color: #212121;
-// }
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 400;
+  src: url('../assets/fonts/Roboto-Regular.ttf') format('truetype');
+}
 
-// :root {
-//   --primary-light: #FFD166;   /* New light primary color */
-//   --primary: #06D6A0;         /* New primary color */
-//   --primary-dark: #118AB2;    /* New dark primary color */
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 700;
+  src: url('../assets/fonts/Roboto-Bold.ttf') format('truetype');
+}
 
-//   --white: #F0F0F0;           /* Slightly off-white */
-//   --greyLight-1: #D3D3D3;     /* Light grey */
-//   --greyLight-2: #A8A8A8;     /* Medium grey */
-//   --greyLight-3: #7E7E7E;     /* Dark grey */
-//   --greyDark: #525252;        /* Deeper dark grey */
-//   --text-color: #333333;      /* Dark text color */
-// }
+body {
+  font-family: "Roboto", sans-serif;
+  margin: 0px;
+}
 
 :root {
   --primary-light: #F0F5FF;   /* Light blue */
@@ -52,12 +49,10 @@ inset -.2rem -.2rem .5rem var(--white);
 
 html {
   box-sizing: border-box;
-  font-size: 62.5%; // 1rem = 10px    100% = 16px
+  font-size:10px !important;
   overflow-y: scroll;
   background: var(--greyLight-1);
-  
-  @media screen and (min-width: 900px) {
-        font-size: 75%; }
+  margin: 0px;
 }
 
 .container {
@@ -65,16 +60,12 @@ html {
   display: flex;
   justify-content: center;
   align-items: center;
-  font-family: 'Poppins', sans-serif;
   background: var(--greyLight-1);
 }
 
 .components {
   width: 30rem;
   height: 35rem;
-  border-radius: 3rem;
-  box-shadow:.8rem .8rem 1.4rem var(--greyLight-2), 
-            -.2rem -.2rem 1.8rem var(--white);
   padding: 2rem;
   display: grid;
   grid-template-columns: 0.5rem 0.5rem 0.5rem;
@@ -95,13 +86,13 @@ html {
 }
 
 .zapicon {
-  width: 40px;
-  height: 40px;
-  margin-right: 10px; 
+  width: 4rem;
+  height: 4rem;
+  margin-right: 1rem; 
 }
 
 .zaptitle {
-  font-size: 24px;
+  font-size: 2.4rem;
   font-weight: bold;
 }
 
@@ -148,7 +139,7 @@ html {
 
 
 .window-handle-label{
-  font-size: 16px;
+  font-size: 1.5rem;
   grid-column: 2 / 10;
   height: 4rem;
   font-size: 1.8rem;
