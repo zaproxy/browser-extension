@@ -224,16 +224,20 @@ function enableExtension(): void {
   reportPageLoaded(document, reportObject);
 }
 
+function configureExtension(): void {
+  const localzapurl = localStorage.getItem('localzapurl');
+  const localzapenable = localStorage.getItem('localzapenable') || true;
+  if (localzapurl) {
+    Browser.storage.sync.set({
+      zapurl: localzapurl,
+      zapenable: localzapenable !== 'false',
+    });
+  }
+}
+
 function injectScript(): Promise<boolean> {
   return new Promise((resolve) => {
-    const localzapurl = localStorage.getItem('localzapurl');
-    const localzapenable = localStorage.getItem('localzapenable') || true;
-    if (localzapurl) {
-      Browser.storage.sync.set({
-        zapurl: localzapurl,
-        zapenable: localzapenable !== 'false',
-      });
-    }
+    configureExtension();
     withZapRecordingActive(() => {
       recorder.recordUserInteractions();
     });
@@ -250,6 +254,7 @@ injectScript();
 Browser.runtime.onMessage.addListener(
   (message: MessageEvent, _sender: Runtime.MessageSender) => {
     if (message.type === 'zapStartRecording') {
+      configureExtension();
       recorder.initializationScript();
       recorder.recordUserInteractions();
     } else if (message.type === 'zapStopRecording') {
