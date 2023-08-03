@@ -1,11 +1,11 @@
 {
-  "name": "owasp-zap-extension",
+  "name": "zap-extension",
   "version": "0.0.3",
-  "description": "OWASP ZAP Browser Extension - allows ZAP to interact directly with the browser.",
+  "description": "ZAP Browser Extension - allows ZAP to interact directly with the browser.",
   "private": true,
   "repository": "https://github.com/zaproxy/browser-extension/",
   "author": {
-    "name": "OWASP ZAP Core Team",
+    "name": "ZAP Core Team",
     "email": "zaproxy-admin@googlegroups.com",
     "url": "https://zaproxy.org"
   },

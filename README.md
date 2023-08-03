@@ -1,6 +1,6 @@
-# OWASP ZAP Browser Extension
+# ZAP Browser Extension
 
-A browser extension which allows [OWASP ZAP](https://www.zaproxy.org) to interact directly with the browser.
+A browser extension which allows [ZAP](https://www.zaproxy.org) to interact directly with the browser.
 
 Works in both Firefox and Chrome but does not provide any useful functionality unless it is used with ZAP.
 

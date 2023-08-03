@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "OWASP ZAP Browser Extension",
+  "name": "ZAP Browser Extension",
   "version": "0.0.3",
 
   "icons": {
@@ -10,9 +10,9 @@
     "128": "assets/icons/zap128x128.png",
     "512": "assets/icons/zap512x512.png"
   },
-  "description": "A browser extension which allows OWASP ZAP to access the client side of a web app.",
+  "description": "A browser extension which allows ZAP to access the client side of a web app.",
   "homepage_url": "https://github.com/zaproxy/browser-extension/",
-  "short_name": "OWASP ZAP",
+  "short_name": "ZAP",
 
   "permissions": [
     "tabs",
@@ -29,9 +29,9 @@
     "extension_pages" : "script-src 'self'; object-src 'self'"
   },
 
-  "__chrome|firefox__author": "OWASP ZAP Core Team",
+  "__chrome|firefox__author": "ZAP Core Team",
   "__opera__developer": {
-    "name": "OWASP ZAP Core Team"
+    "name": "ZAP Core Team"
   },
 
   "__firefox__browser_specific_settings": {
@@ -51,7 +51,7 @@
       "128": "assets/icons/zap128x128.png",
       "512": "assets/icons/zap512x512.png"
     },
-    "default_title": "OWASP ZAP",
+    "default_title": "ZAP",
     "default_popup": "popup.html",
     "__chrome|opera__chrome_style": false,
     "__firefox__browser_style": false
