@@ -15,6 +15,7 @@
   "short_name": "ZAP",
 
   "permissions": [
+    "notifications",
     "tabs",
     "cookies",
     "storage"

@@ -22,6 +22,7 @@ import Browser, {Cookies, Runtime} from 'webextension-polyfill';
 import {ReportedStorage} from '../types/ReportedModel';
 import {ZestScript, ZestScriptMessage} from '../types/zestScript/ZestScript';
 import {ZestStatementWindowClose} from '../types/zestScript/ZestStatement';
+import {raiseNotification} from '../utils/notify';
 
 console.log('ZAP Service Worker 👋');
 
@@ -217,6 +218,7 @@ async function handleMessage(
       },
     });
   } else if (request.type === 'zestScript') {
+    raiseNotification(request.data);
     const stmt = JSON.parse(request.data);
     if (stmt.elementType === 'ZestClientElementSendKeys') {
       console.log(stmt);
