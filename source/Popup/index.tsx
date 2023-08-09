@@ -40,9 +40,6 @@ const saveScript = document.getElementById('save-script');
 const scriptNameInput = document.getElementById(
   'script-name-input'
 ) as HTMLInputElement;
-const windowHandleCloseInput = document.getElementById(
-  'window-close-input'
-) as HTMLInputElement;
 const saveScriptButton = document.getElementById(
   'save-script'
 ) as HTMLButtonElement;
@@ -83,7 +80,6 @@ async function restoreState(): Promise<void> {
     .get({
       zaprecordingactive: false,
       zapscriptname: '',
-      zapclosewindowhandle: false,
       zapenablesavescript: false,
     })
     .then((items) => {
@@ -93,7 +89,6 @@ async function restoreState(): Promise<void> {
         stoppedAnimation();
       }
       scriptNameInput.value = items.zapscriptname;
-      windowHandleCloseInput.checked = items.zapclosewindowhandle;
       if (items.zapclosewindowhandle) {
         done?.classList.remove('invisible');
       } else {
@@ -191,18 +186,6 @@ function handleScriptNameChange(e: Event): void {
   sendMessageToContentScript('updateTitle', value);
 }
 
-function handleWindowHandleClose(e: Event): void {
-  const {checked} = e.target as HTMLInputElement;
-  if (checked) {
-    done?.classList.remove('invisible');
-  } else {
-    done?.classList.add('invisible');
-  }
-  Browser.storage.sync.set({
-    zapclosewindowhandle: checked,
-  });
-}
-
 document.addEventListener('DOMContentLoaded', restoreState);
 document.addEventListener('load', restoreState);
 
@@ -210,4 +193,3 @@ recordButton?.addEventListener('click', toggleRecording);
 configureButton?.addEventListener('click', openOptionsPage);
 saveScript?.addEventListener('click', handleSaveScript);
 scriptNameInput?.addEventListener('input', handleScriptNameChange);
-windowHandleCloseInput?.addEventListener('click', handleWindowHandleClose);
