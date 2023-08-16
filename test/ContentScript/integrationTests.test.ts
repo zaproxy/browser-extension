@@ -176,8 +176,7 @@ function integrationTests(
       const context = await driver.getContext(_JSONPORT, true);
       await driver.setEnable(false);
       const page = await context.newPage();
-      await page.goto(await driver.getPopupURL());
-      await page.click('.done');
+      await page.goto(await driver.getOptionsURL());
       await page.goto(
         `http://localhost:${_HTTPPORT}/webpages/interactions.html`
       );

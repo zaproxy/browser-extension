@@ -24,7 +24,7 @@ import {
   ReportedStorage,
   ReportedEvent,
 } from '../types/ReportedModel';
-import Recorder from './Recorder';
+import Recorder from './recorder';
 
 const reportedObjects = new Set<string>();
 
