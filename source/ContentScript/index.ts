@@ -215,7 +215,7 @@ function enableExtension(): void {
 
   const observer = new MutationObserver(domMutated);
   observer.observe(document, {
-    attributes: true,
+    attributes: false,
     childList: true,
     subtree: true,
   });
