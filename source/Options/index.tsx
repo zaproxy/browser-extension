@@ -32,10 +32,14 @@ function saveOptions(): void {
   const zapkey = (document.getElementById(ZAP_KEY) as HTMLInputElement).value;
   const zapenable = (document.getElementById(ZAP_ENABLE) as HTMLInputElement)
     .checked;
+  const zapclosewindowhandle = (
+    document.getElementById('window-close-input') as HTMLInputElement
+  ).checked;
   Browser.storage.sync.set({
     zapurl,
     zapkey,
     zapenable,
+    zapclosewindowhandle,
   });
 }
 
@@ -49,6 +53,7 @@ function restoreOptions(): void {
       zapkey: 'not set',
       zapenable: true,
       zaprecordingactive: false,
+      zapclosewindowhandle: true,
     })
     .then((items) => {
       (document.getElementById(ZAP_URL) as HTMLInputElement).value =
@@ -57,6 +62,9 @@ function restoreOptions(): void {
         items.zapkey;
       (document.getElementById(ZAP_ENABLE) as HTMLInputElement).checked =
         items.zapenable;
+      (
+        document.getElementById('window-close-input') as HTMLInputElement
+      ).checked = items.zapclosewindowhandle;
     });
 }
 document.addEventListener('DOMContentLoaded', restoreOptions);

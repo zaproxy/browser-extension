@@ -28,7 +28,6 @@ import {
   ElementLocator,
   ZestStatementElementClick,
   ZestStatementElementSendKeys,
-  ZestStatementSwichToFrame,
 } from '../../source/types/zestScript/ZestStatement';
 
 jest.mock('webextension-polyfill');
@@ -458,15 +457,4 @@ test('should return correct path for element with XPath', () => {
   expect(path1.element).toBe('/html/body/div/button[1]');
   expect(path2.type).toBe('xpath');
   expect(path2.element).toBe('/html/body/div/button[2]');
-});
-
-test('should generate valid frame switch statement', () => {
-  const zestStatementSwichToFrame = new ZestStatementSwichToFrame(
-    0,
-    'testvalue'
-  );
-
-  expect(zestStatementSwichToFrame.toJSON()).toBe(
-    '{"windowHandle":"windowHandle1","frameIndex":0,"frameName":"testvalue","parent":false,"index":-1,"enabled":true,"elementType":"ZestClientSwitchToFrame"}'
-  );
 });

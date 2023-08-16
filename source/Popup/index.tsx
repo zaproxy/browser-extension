@@ -19,21 +19,26 @@
  */
 import Browser from 'webextension-polyfill';
 import './styles.scss';
+import i18n from './i18n';
+
+const STOP = i18n.t('stop');
+const START = i18n.t('start');
+const OPTIONS = i18n.t('options');
+const DOWNLOAD = i18n.t('download');
 
 const play = document.querySelector('.play');
 const pause = document.querySelector('.pause');
 const wave1 = document.querySelector('.record__back-1');
 const wave2 = document.querySelector('.record__back-2');
 const done = document.querySelector('.done');
+const optionsIcon = document.querySelector('.settings') as HTMLImageElement;
+const downloadIcon = document.querySelector('.download') as HTMLImageElement;
 
 const recordButton = document.getElementById('record-btn');
 const configureButton = document.getElementById('configure-btn');
 const saveScript = document.getElementById('save-script');
 const scriptNameInput = document.getElementById(
   'script-name-input'
-) as HTMLInputElement;
-const windowHandleCloseInput = document.getElementById(
-  'window-close-input'
 ) as HTMLInputElement;
 const saveScriptButton = document.getElementById(
   'save-script'
@@ -54,6 +59,7 @@ function stoppedAnimation(): void {
   recordButton?.classList.add('shadow');
   wave1?.classList.add('paused');
   wave2?.classList.add('paused');
+  (play as HTMLImageElement).title = START;
 }
 
 function startedAnimation(): void {
@@ -62,16 +68,18 @@ function startedAnimation(): void {
   recordButton?.classList.remove('shadow');
   wave1?.classList.remove('paused');
   wave2?.classList.remove('paused');
+  (play as HTMLImageElement).title = STOP;
 }
 
 async function restoreState(): Promise<void> {
   console.log('Restore state');
   await Browser.runtime.sendMessage({type: 'setSaveScriptEnable'});
+  optionsIcon.title = OPTIONS;
+  downloadIcon.title = DOWNLOAD;
   Browser.storage.sync
     .get({
       zaprecordingactive: false,
       zapscriptname: '',
-      zapclosewindowhandle: false,
       zapenablesavescript: false,
     })
     .then((items) => {
@@ -81,7 +89,6 @@ async function restoreState(): Promise<void> {
         stoppedAnimation();
       }
       scriptNameInput.value = items.zapscriptname;
-      windowHandleCloseInput.checked = items.zapclosewindowhandle;
       if (items.zapclosewindowhandle) {
         done?.classList.remove('invisible');
       } else {
@@ -150,7 +157,7 @@ function downloadZestScript(zestScriptJSON: string, title: string): void {
 
   const link = document.createElement('a');
   link.href = url;
-  link.download = `${title}.zst`;
+  link.download = title + (title.slice(-4) === '.zst' ? '' : '.zst');
   link.style.display = 'none';
 
   document.body.appendChild(link);
@@ -159,6 +166,9 @@ function downloadZestScript(zestScriptJSON: string, title: string): void {
 
   URL.revokeObjectURL(url);
   Browser.runtime.sendMessage({type: 'resetZestScript'});
+  Browser.storage.sync.set({
+    zaprecordingactive: false,
+  });
   closePopup();
 }
 
@@ -176,18 +186,6 @@ function handleScriptNameChange(e: Event): void {
   sendMessageToContentScript('updateTitle', value);
 }
 
-function handleWindowHandleClose(e: Event): void {
-  const {checked} = e.target as HTMLInputElement;
-  if (checked) {
-    done?.classList.remove('invisible');
-  } else {
-    done?.classList.add('invisible');
-  }
-  Browser.storage.sync.set({
-    zapclosewindowhandle: checked,
-  });
-}
-
 document.addEventListener('DOMContentLoaded', restoreState);
 document.addEventListener('load', restoreState);
 
@@ -195,4 +193,3 @@ recordButton?.addEventListener('click', toggleRecording);
 configureButton?.addEventListener('click', openOptionsPage);
 saveScript?.addEventListener('click', handleSaveScript);
 scriptNameInput?.addEventListener('input', handleScriptNameChange);
-windowHandleCloseInput?.addEventListener('click', handleWindowHandleClose);

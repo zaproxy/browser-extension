@@ -24,7 +24,6 @@ import {
   ZestStatementElementClick,
   ZestStatementElementSendKeys,
   ZestStatementLaunchBrowser,
-  ZestStatementSwichToFrame,
 } from '../types/zestScript/ZestStatement';
 import {getPath} from './util';
 
@@ -46,23 +45,38 @@ class Recorder {
     });
   }
 
-  handleFrameSwitches(level: number, frameIndex: number): void {
-    if (this.curLevel === level && this.curFrame === frameIndex) {
-      return;
-    }
-    if (this.curLevel > level) {
+  handleFrameSwitches(level: number, frame: number): void {
+    if (this.curLevel === level && this.curFrame === frame) {
+      // do nothing
+    } else if (this.curLevel > level) {
       while (this.curLevel > level) {
-        this.sendZestScriptToZAP(new ZestStatementSwichToFrame(-1));
         this.curLevel -= 1;
+        console.log(
+          'Switched to level: ',
+          this.curLevel,
+          'Frame:',
+          this.curFrame
+        );
+        // switch to parent frame
       }
-      this.curFrame = frameIndex;
+      this.curFrame = frame;
+      console.log(
+        'Switched to level: ',
+        this.curLevel,
+        'Frame:',
+        this.curFrame
+      );
+      // switch to frame
     } else {
       this.curLevel += 1;
-      this.curFrame = frameIndex;
-      this.sendZestScriptToZAP(new ZestStatementSwichToFrame(frameIndex));
-    }
-    if (this.curLevel !== level) {
-      console.log('Error in switching frames');
+      this.curFrame = frame;
+      console.log(
+        'Switched to level: ',
+        this.curLevel,
+        'Frame:',
+        this.curFrame
+      );
+      // switch to frame number 'frame'
     }
   }
 
