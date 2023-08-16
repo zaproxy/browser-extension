@@ -1,20 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="styles.css">
-  <title>ZAP Browser Extension</title>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZAP Browser Extension</title>
 </head>
 <body>
-  <div class="container">
-    <h1 class="title">ZAP</h1>
-    <div class="content">
-      <button id="record-btn" class="button">Record</button>
-      <button id="configure-btn" class="button">Options</button>
-      <button id="save-script" class="button">Save Script</button>
-    </div>
-  </div>
+    
+    <div class="container">
+        <div class="components">
+          <h1 class="title">
+            <img class="zapicon" src="./assets/icons/zap128x128.png">
+            <span class="zaptitle">ZAP</span>
+          </h1>
+          
+           <div class="record">
+            <span class="record__btn" id="record-btn">
+              <img class="pause" src="./assets/icons/stop-circle-outline.svg" title="Stop Recording">
+              <img class="play" src="./assets/icons/radio-button-on-outline.svg" title="Start Recording">
+            </span>
+            <span class="record__back-1"></span>
+            <span class="record__back-2"></span>
+          </div>
+          
+         <div class="form">
+            <input type="text" class="form__input" placeholder="Script Name" name="script-name" id="script-name-input" >
+            <div class="download-icon" id="save-script">
+              <img class="download" src="./assets/icons/download.svg" title="Download Script">
+            </div>
+          </div>
+          
+
+          <div class="setting-icon" id="configure-btn">
+            <div class="setting-icon__settings">
+              <img class="settings" src="./assets/icons/settings.svg" title="Options">
+            </div>
+          </div>
+        </div>
+      </div>
+      <script src="./script.js"></script>
 </body>
 </html>

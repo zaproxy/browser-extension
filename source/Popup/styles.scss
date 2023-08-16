@@ -1,8 +1,7 @@
 @import "../styles/fonts";
-@import "../styles/reset";
 @import "../styles/variables";
-
 @import "~webext-base-css/webext-base.css";
+
 @font-face {
   font-family: 'Roboto';
   font-style: normal;
@@ -19,45 +18,268 @@
 
 body {
   font-family: "Roboto", sans-serif;
+  margin: 0px;
+}
+
+:root {
+  --primary-light: #F0F5FF;   /* Light blue */
+  --primary: #2979FF;         /* Vivid blue */
+  --primary-dark: #ff1500;    /* Dark blue */
+
+  --white: #FFFFFF;           /* Pure white */
+  --greyLight-1: #F2F2F2;     /* Light grey */
+  --greyLight-2: #D9D9D9;     /* Medium grey */
+  --greyLight-3: #B0B0B0;     /* Dark grey */
+  --greyDark: #666666;        /* Deeper dark grey */
+  --text-color: #333333;      /* Dark text color */
+}
+
+
+
+$shadow: .3rem .3rem .6rem var(--greyLight-2), 
+-.2rem -.2rem .5rem var(--white);
+$inner-shadow: inset .2rem .2rem .5rem var(--greyLight-2), 
+inset -.2rem -.2rem .5rem var(--white);
+
+*, *::before, *::after {
   margin: 0;
   padding: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  background-color: #f2f2f2;
+  box-sizing: inherit;
+}
+
+html {
+  box-sizing: border-box;
+  font-size:10px !important;
+  overflow-y: scroll;
+  background: var(--greyLight-1);
+  margin: 0px;
 }
 
 .container {
-  text-align: center;
-  background-color: #fff;
-  border-radius: 8px;
-  padding: 40px;
-  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--greyLight-1);
 }
 
-.title {
-  font-size: 24px;
-  font-weight: 700;
-  margin-bottom: 20px;
+.components {
+  width: 30rem;
+  height: 35rem;
+  padding: 2rem;
+  display: grid;
+  grid-template-columns: 0.5rem 0.5rem 0.5rem;
+  grid-template-rows: repeat(autofit, min-content);
+  grid-column-gap: 5rem;
+  grid-row-gap: 2.5rem;
+  align-items: center;
+ }
+
+.title{
+  grid-column: 1/6;
+  grid-row: 5;
+  text-align: center;
+  color: var(--text-color); 
+  display: flex;
+  align-items: center; 
+  justify-content: center;
 }
 
-.button {
-  display: inline-block;
-  padding: 12px 24px;
-  margin: 2px;
-  font-size: 16px;
-  font-weight: 700;
-  text-align: center;
-  text-decoration: none;
-  border-radius: 4px;
-  background-color: #007bff;
-  color: #fff;
-  border: none;
+.zapicon {
+  width: 4rem;
+  height: 4rem;
+  margin-right: 1rem; 
+}
+
+.zaptitle {
+  font-size: 2.4rem;
+  font-weight: bold;
+}
+
+/*  PLAY BUTTON  */
+.record {
+  grid-column: 1 / 6;
+  grid-row: 1 / 4;
+  width: 9rem;
+  height: 100%;
+  justify-self: center;
+  border-radius: 1rem;
+  display: grid;
+  grid-template-rows: 1fr;
+  justify-items: center;
+  align-items: center;
+
+  &__btn {
+    grid-row: 1 / 2;
+    grid-column: 1 / 2;
+    width: 6rem;
+    height: 6rem;
+    display: flex;
+    margin: .6rem;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    font-size: 3.2rem;
+    color: var(--primary);
+    z-index: 300;
+    background: var(--greyLight-1);
+    box-shadow: $shadow;
+    cursor: pointer;
+    position: relative;
+    &.shadow {box-shadow: $inner-shadow;}
+
+    .play {
+      position: absolute;
+      opacity: 0;
+      transition: all .2s linear;
+      &.visibility {
+        opacity: 1;
+      }
+    }
+    .pause {
+      position: absolute;
+      transition: all .2s linear;
+      &.visibility {
+        opacity: 0;
+      }
+    }
+  }
+
+  &__back-1, &__back-2 {
+    grid-row: 1 / 2;
+    grid-column: 1 / 2;
+    width: 6rem;
+    height: 6rem;
+    border-radius: 50%;
+    filter: blur(1px);
+    z-index: 100;
+  }
+
+  &__back-1 {
+    box-shadow: .4rem .4rem .8rem var(--greyLight-2), 
+    -.4rem -.4rem .8rem var(--white);
+    background: linear-gradient(to bottom right, var(--greyLight-2) 0%, var(--white) 100%);
+    animation: waves 4s linear infinite;
+
+    &.paused { 
+    animation-play-state: paused;
+    }
+  }
+
+  &__back-2 {
+    box-shadow: .4rem .4rem .8rem var(--greyLight-2), 
+    -.4rem -.4rem .8rem var(--white);
+    animation: waves 4s linear 2s infinite;
+    
+    &.paused { 
+      animation-play-state: paused;
+    }
+  }
+}
+
+/*  FORM  */
+.form {
+  grid-column: 1 / 6;
+  grid-row: 4 / 5 ;
+  align-self: center;
+  display: flex;
+  justify-content:space-between;
+  color: var(--text-color);
+
+  &__input {
+    width: 20.4rem;
+    height: 4rem;
+    border: none;
+    border-radius: 1rem;
+    font-size: 1.4rem;
+    padding-left: 1.4rem;
+    box-shadow: $inner-shadow;
+    background: none;
+    font-family: inherit;
+
+    &::placeholder { color: var(--greyLight-3); }
+    &:focus { outline: none; box-shadow: $shadow; }
+    &:focus-visible {
+      outline: var(--text-color); 
+      box-shadow: $shadow;
+    }
+  }
+}
+
+/*  ICONS  */
+.setting-icon {
+  grid-column: 1;
+  grid-row: 1 ;
+  &__settings {
+    width: 4rem;
+    height: 4rem;
+    border-radius: 50%;
+    box-shadow: $shadow;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2rem;
+    cursor: pointer;
+    color: var(--greyDark);
+    transition: all .5s ease;
+
+    &:active {
+      box-shadow: $inner-shadow;
+      color: var(--primary);
+    }
+    &:hover {color: var(--primary);}
+  }
+  
+}
+
+
+/*  ICONS  */
+
+.download-icon  {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  box-shadow: $shadow;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 2rem;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  color: var(--greyDark);
+  transition: all .5s ease;
+
+  &:active {
+    box-shadow: $inner-shadow;
+    color: var(--primary);
+  }
+  &:hover {color: var(--primary);}
+
+  &.disabled {
+    pointer-events: none;
+    opacity: 0.5;
+  }
 }
 
-.button:hover {
-  background-color: #0056b3;
+@keyframes waves {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.pause, .play{
+  width: 3rem;
+}
+
+.download, .settings , .done{
+  width: 2rem;
 }

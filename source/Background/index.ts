@@ -21,6 +21,7 @@ import 'emoji-log';
 import Browser, {Cookies, Runtime} from 'webextension-polyfill';
 import {ReportedStorage} from '../types/ReportedModel';
 import {ZestScript, ZestScriptMessage} from '../types/zestScript/ZestScript';
+import {ZestStatementWindowClose} from '../types/zestScript/ZestStatement';
 
 console.log('ZAP Service Worker 👋');
 
@@ -28,10 +29,11 @@ console.log('ZAP Service Worker 👋');
   We check the storage on every page, so need to record which storage events we have reported to ZAP here so that we dont keep sending the same events.
 */
 const reportedStorage = new Set<string>();
-const zestScript = new ZestScript('recordedScript');
+const zestScript = new ZestScript();
 /*
   A callback URL will only be available if the browser has been launched from ZAP, otherwise call the individual endpoints
 */
+
 function zapApiUrl(zapurl: string, action: string): string {
   if (zapurl.indexOf('/zapCallBackUrl/') > 0) {
     return zapurl;
@@ -138,11 +140,29 @@ function reportCookies(
   return true;
 }
 
-function handleMessage(
+function sendZestScriptToZAP(
+  data: string,
+  zapkey: string,
+  zapurl: string
+): void {
+  const body = `scriptJson=${encodeURIComponent(
+    data
+  )}&apikey=${encodeURIComponent(zapkey)}`;
+  console.log(`body = ${body}`);
+  fetch(zapApiUrl(zapurl, 'reportZestScript'), {
+    method: 'POST',
+    body,
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+  });
+}
+
+async function handleMessage(
   request: MessageEvent,
   zapurl: string,
   zapkey: string
-): boolean | ZestScriptMessage {
+): Promise<boolean | ZestScriptMessage> {
   if (request.type === 'zapDetails') {
     console.log('ZAP Service worker updating the ZAP details');
     Browser.storage.sync.set({
@@ -197,22 +217,35 @@ function handleMessage(
       },
     });
   } else if (request.type === 'zestScript') {
+    const stmt = JSON.parse(request.data);
+    if (stmt.elementType === 'ZestClientElementSendKeys') {
+      console.log(stmt);
+      stmt.elementType = 'ZestClientElementClear';
+      delete stmt.value;
+      const cleardata = zestScript.addStatement(JSON.stringify(stmt));
+      sendZestScriptToZAP(cleardata, zapkey, zapurl);
+    }
     const data = zestScript.addStatement(request.data);
-    const body = `scriptJson=${encodeURIComponent(
-      data
-    )}&apikey=${encodeURIComponent(zapkey)}`;
-    console.log(`body = ${body}`);
-    fetch(zapApiUrl(zapurl, 'reportZestScript'), {
-      method: 'POST',
-      body,
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-    });
+    sendZestScriptToZAP(data, zapkey, zapurl);
   } else if (request.type === 'saveZestScript') {
     return zestScript.getZestScript();
   } else if (request.type === 'resetZestScript') {
     zestScript.reset();
+  } else if (request.type === 'stopRecording') {
+    if (zestScript.getZestStatementCount() > 0) {
+      const {zapclosewindowhandle} = await Browser.storage.sync.get({
+        zapclosewindowhandle: false,
+      });
+      if (zapclosewindowhandle) {
+        const stmt = new ZestStatementWindowClose(0);
+        const data = zestScript.addStatement(stmt.toJSON());
+        sendZestScriptToZAP(data, zapkey, zapurl);
+      }
+    }
+  } else if (request.type === 'setSaveScriptEnable') {
+    Browser.storage.sync.set({
+      zapenablesavescript: zestScript.getZestStatementCount() > 0,
+    });
   }
   return true;
 }
@@ -226,7 +259,7 @@ async function onMessageHandler(
     zapurl: 'http://zap/',
     zapkey: 'not set',
   });
-  const msg = handleMessage(message, items.zapurl, items.zapkey);
+  const msg = await handleMessage(message, items.zapurl, items.zapkey);
   if (!(typeof msg === 'boolean')) {
     val = msg;
   }

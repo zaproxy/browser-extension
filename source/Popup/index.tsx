@@ -21,33 +21,83 @@ import Browser from 'webextension-polyfill';
 import './styles.scss';
 import i18n from './i18n';
 
-let recordingActive = false;
-const RECORD = i18n.t('Record');
-const STOP = i18n.t('Stop');
+const STOP = i18n.t('stop');
+const START = i18n.t('start');
+const OPTIONS = i18n.t('options');
+const DOWNLOAD = i18n.t('download');
 
-function sendMessageToContentScript(message: string): void {
+const play = document.querySelector('.play');
+const pause = document.querySelector('.pause');
+const wave1 = document.querySelector('.record__back-1');
+const wave2 = document.querySelector('.record__back-2');
+const done = document.querySelector('.done');
+const optionsIcon = document.querySelector('.settings') as HTMLImageElement;
+const downloadIcon = document.querySelector('.download') as HTMLImageElement;
+
+const recordButton = document.getElementById('record-btn');
+const configureButton = document.getElementById('configure-btn');
+const saveScript = document.getElementById('save-script');
+const scriptNameInput = document.getElementById(
+  'script-name-input'
+) as HTMLInputElement;
+const saveScriptButton = document.getElementById(
+  'save-script'
+) as HTMLButtonElement;
+
+function sendMessageToContentScript(message: string, data = ''): void {
   Browser.tabs.query({active: true, currentWindow: true}).then((tabs) => {
     const activeTab = tabs[0];
     if (activeTab?.id) {
-      Browser.tabs.sendMessage(activeTab.id, {type: message});
+      Browser.tabs.sendMessage(activeTab.id, {type: message, data});
     }
   });
 }
 
-function restoreState(): void {
-  console.log('Restore state');
+function stoppedAnimation(): void {
+  pause?.classList.add('visibility');
+  play?.classList.add('visibility');
+  recordButton?.classList.add('shadow');
+  wave1?.classList.add('paused');
+  wave2?.classList.add('paused');
+  (play as HTMLImageElement).title = START;
+}
 
+function startedAnimation(): void {
+  pause?.classList.remove('visibility');
+  play?.classList.remove('visibility');
+  recordButton?.classList.remove('shadow');
+  wave1?.classList.remove('paused');
+  wave2?.classList.remove('paused');
+  (play as HTMLImageElement).title = STOP;
+}
+
+async function restoreState(): Promise<void> {
+  console.log('Restore state');
+  await Browser.runtime.sendMessage({type: 'setSaveScriptEnable'});
+  optionsIcon.title = OPTIONS;
+  downloadIcon.title = DOWNLOAD;
   Browser.storage.sync
     .get({
       zaprecordingactive: false,
+      zapscriptname: '',
+      zapenablesavescript: false,
     })
     .then((items) => {
-      recordingActive = items.zaprecordingactive;
-      if (recordingActive) {
-        const recordButton = document.getElementById(
-          'record-btn'
-        ) as HTMLButtonElement;
-        recordButton.textContent = STOP;
+      if (items.zaprecordingactive) {
+        startedAnimation();
+      } else {
+        stoppedAnimation();
+      }
+      scriptNameInput.value = items.zapscriptname;
+      if (items.zapclosewindowhandle) {
+        done?.classList.remove('invisible');
+      } else {
+        done?.classList.add('invisible');
+      }
+      if (!items.zapenablesavescript) {
+        saveScriptButton.classList.add('disabled');
+      } else {
+        saveScriptButton.classList.remove('disabled');
       }
     });
 }
@@ -60,39 +110,34 @@ function closePopup(): void {
 
 function stopRecording(): void {
   console.log('Recording stopped ...');
+  stoppedAnimation();
   sendMessageToContentScript('zapStopRecording');
+  Browser.runtime.sendMessage({type: 'stopRecording'});
   Browser.storage.sync.set({
     zaprecordingactive: false,
   });
-  const recordButton = document.getElementById(
-    'record-btn'
-  ) as HTMLButtonElement;
-  recordButton.textContent = RECORD;
-  recordingActive = false;
 }
 
 function startRecording(): void {
-  console.log('Recording started ...');
+  startedAnimation();
   sendMessageToContentScript('zapStartRecording');
   Browser.runtime.sendMessage({type: 'resetZestScript'});
-
   Browser.storage.sync.set({
     zaprecordingactive: true,
   });
-  const recordButton = document.getElementById(
-    'record-btn'
-  ) as HTMLButtonElement;
-  recordButton.textContent = STOP;
-  recordingActive = true;
 }
 
-function toggleRecording(): void {
-  if (recordingActive) {
-    stopRecording();
-  } else {
-    closePopup();
-    startRecording();
-  }
+function toggleRecording(e: Event): void {
+  e.preventDefault();
+  Browser.storage.sync.get({zaprecordingactive: false}).then((items) => {
+    if (items.zaprecordingactive) {
+      stopRecording();
+      console.log('active');
+    } else {
+      startRecording();
+      closePopup();
+    }
+  });
 }
 
 function openOptionsPage(): void {
@@ -103,12 +148,16 @@ function openOptionsPage(): void {
 }
 
 function downloadZestScript(zestScriptJSON: string, title: string): void {
+  if (title === '') {
+    scriptNameInput?.focus();
+    return;
+  }
   const blob = new Blob([zestScriptJSON], {type: 'application/json'});
   const url = URL.createObjectURL(blob);
 
   const link = document.createElement('a');
   link.href = url;
-  link.download = `${title}.zst`;
+  link.download = title + (title.slice(-4) === '.zst' ? '' : '.zst');
   link.style.display = 'none';
 
   document.body.appendChild(link);
@@ -116,7 +165,10 @@ function downloadZestScript(zestScriptJSON: string, title: string): void {
   document.body.removeChild(link);
 
   URL.revokeObjectURL(url);
-
+  Browser.runtime.sendMessage({type: 'resetZestScript'});
+  Browser.storage.sync.set({
+    zaprecordingactive: false,
+  });
   closePopup();
 }
 
@@ -126,9 +178,13 @@ function handleSaveScript(): void {
   });
 }
 
-const recordButton = document.getElementById('record-btn');
-const configureButton = document.getElementById('configure-btn');
-const saveScript = document.getElementById('save-script');
+function handleScriptNameChange(e: Event): void {
+  const {value} = e.target as HTMLInputElement;
+  Browser.storage.sync.set({
+    zapscriptname: value,
+  });
+  sendMessageToContentScript('updateTitle', value);
+}
 
 document.addEventListener('DOMContentLoaded', restoreState);
 document.addEventListener('load', restoreState);
@@ -136,3 +192,4 @@ document.addEventListener('load', restoreState);
 recordButton?.addEventListener('click', toggleRecording);
 configureButton?.addEventListener('click', openOptionsPage);
 saveScript?.addEventListener('click', handleSaveScript);
+scriptNameInput?.addEventListener('input', handleScriptNameChange);

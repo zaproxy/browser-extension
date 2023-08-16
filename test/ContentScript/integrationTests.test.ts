@@ -113,14 +113,15 @@ function integrationTests(
       await page.goto(
         `http://localhost:${_HTTPPORT}/webpages/interactions.html`
       );
+      await page;
       await page.fill('#input-1', 'testinput');
-      await page.fill('#input-2', '2023-06-15');
+      await page.click('#click');
       await page.waitForLoadState('networkidle');
       await page.waitForTimeout(1000);
       await page.close();
       // Then
       const expectedData =
-        '["{\\"action\\":{\\"action\\":\\"reportZestScript\\"},\\"body\\":{\\"scriptJson\\":\\"{\\"value\\":\\"testinput\\",\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"input-1\\",\\"index\\":1,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementSendKeys\\"}\\",\\"apikey\\":\\"not set\\"}}","{\\"action\\":{\\"action\\":\\"reportZestScript\\"},\\"body\\":{\\"scriptJson\\":\\"{\\"value\\":\\"2023-06-15\\",\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"input-2\\",\\"index\\":2,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementSendKeys\\"}\\",\\"apikey\\":\\"not set\\"}}"]';
+        '["{\\"action\\":{\\"action\\":\\"reportZestScript\\"},\\"body\\":{\\"scriptJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"input-1\\",\\"index\\":1,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementClear\\"}\\",\\"apikey\\":\\"not set\\"}}","{\\"action\\":{\\"action\\":\\"reportZestScript\\"},\\"body\\":{\\"scriptJson\\":\\"{\\"value\\":\\"testinput\\",\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"input-1\\",\\"index\\":2,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementSendKeys\\"}\\",\\"apikey\\":\\"not set\\"}}","{\\"action\\":{\\"action\\":\\"reportZestScript\\"},\\"body\\":{\\"scriptJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"click\\",\\"index\\":3,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementClick\\"}\\",\\"apikey\\":\\"not set\\"}}"]';
       expect(JSON.stringify(Array.from(actualData))).toBe(expectedData);
     });
 
@@ -135,7 +136,7 @@ function integrationTests(
         `http://localhost:${_HTTPPORT}/webpages/interactions.html`
       );
       await page.fill('#input-1', 'testinput');
-      await page.fill('#input-2', '2023-06-15');
+      await page.click('#click');
       await page.waitForLoadState('networkidle');
       await page.waitForTimeout(1000);
       await page.close();
@@ -150,6 +151,12 @@ function integrationTests(
       await driver.setEnable(false);
       const page = await context.newPage();
       await page.goto(await driver.getPopupURL());
+      await page.fill('#script-name-input', 'recordedScript');
+      await page.goto(
+        `http://localhost:${_HTTPPORT}/webpages/interactions.html`
+      );
+      await page.click('#click');
+      await page.goto(await driver.getPopupURL());
       let actualOutcome = '';
       page.on('download', async (download) => {
         actualOutcome = download.suggestedFilename();
@@ -162,6 +169,54 @@ function integrationTests(
       await page.close();
       // Then
       expect(actualOutcome).toBe('recordedScript.zst');
+    });
+
+    test('Should send window handle close script when enabled', async () => {
+      server = getFakeZapServer(actualData, _JSONPORT);
+      const context = await driver.getContext(_JSONPORT, true);
+      await driver.setEnable(false);
+      const page = await context.newPage();
+      await page.goto(await driver.getOptionsURL());
+      await page.goto(
+        `http://localhost:${_HTTPPORT}/webpages/interactions.html`
+      );
+      await page.fill('#input-1', 'testinput');
+      await page.click('#click');
+      await page.goto(await driver.getPopupURL());
+      await page.click('#record-btn');
+      await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(1000);
+      await page.close();
+      // Then
+      const expectedData =
+        '["{\\"action\\":{\\"action\\":\\"reportZestScript\\"},\\"body\\":{\\"scriptJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"input-1\\",\\"index\\":1,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementClear\\"}\\",\\"apikey\\":\\"not set\\"}}","{\\"action\\":{\\"action\\":\\"reportZestScript\\"},\\"body\\":{\\"scriptJson\\":\\"{\\"value\\":\\"testinput\\",\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"input-1\\",\\"index\\":2,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementSendKeys\\"}\\",\\"apikey\\":\\"not set\\"}}","{\\"action\\":{\\"action\\":\\"reportZestScript\\"},\\"body\\":{\\"scriptJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"click\\",\\"index\\":3,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementClick\\"}\\",\\"apikey\\":\\"not set\\"}}","{\\"action\\":{\\"action\\":\\"reportZestScript\\"},\\"body\\":{\\"scriptJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"index\\":4,\\"sleepInSeconds\\":0,\\"enabled\\":true,\\"elementType\\":\\"ZestClientWindowClose\\"}\\",\\"apikey\\":\\"not set\\"}}"]';
+      expect(JSON.stringify(Array.from(actualData))).toBe(expectedData);
+    });
+
+    test('Should configure downloaded script name', async () => {
+      // Given
+      server = getFakeZapServer(actualData, _JSONPORT);
+      const context = await driver.getContext(_JSONPORT, true);
+      await driver.setEnable(false);
+      const page = await context.newPage();
+      await page.goto(
+        `http://localhost:${_HTTPPORT}/webpages/interactions.html`
+      );
+      await page.click('#click');
+      await page.goto(await driver.getPopupURL());
+      await page.fill('#script-name-input', 'test-name');
+      let actualOutcome = '';
+      page.on('download', async (download) => {
+        actualOutcome = download.suggestedFilename();
+        await download.delete();
+      });
+      // When
+      await page.click('#save-script');
+      await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(1000);
+      await page.close();
+      // Then
+      expect(actualOutcome).toBe('test-name.zst');
     });
   }
 }

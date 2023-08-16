@@ -282,7 +282,7 @@ test('Should Disable The Extension', async () => {
 });
 
 test('should generate valid script', () => {
-  const script = new ZestScript();
+  const script = new ZestScript('recordedScript');
   const expectedOutcome = `{
   "about": "This is a Zest script. For more details about Zest visit https://github.com/zaproxy/zest/",
   "zestVersion": "0.3",
@@ -329,7 +329,7 @@ test('should generate valid send keys statement', () => {
 });
 
 test('should add zest statement to zest script', () => {
-  const script = new ZestScript();
+  const script = new ZestScript('recordedScript');
   const elementLocator = new ElementLocator('id', 'test');
   const zestStatementElementClick = new ZestStatementElementClick(
     elementLocator
@@ -367,7 +367,7 @@ test('should add zest statement to zest script', () => {
 });
 
 test('should reset zest script', () => {
-  const script = new ZestScript();
+  const script = new ZestScript('recordedScript');
   const elementLocator = new ElementLocator('id', 'test');
   const zestStatementElementClick = new ZestStatementElementClick(
     elementLocator
