@@ -122,6 +122,7 @@ function startRecording(): void {
   startedAnimation();
   sendMessageToContentScript('zapStartRecording');
   Browser.runtime.sendMessage({type: 'resetZestScript'});
+  Browser.runtime.sendMessage({type: 'startRecording'});
   Browser.storage.sync.set({
     zaprecordingactive: true,
   });

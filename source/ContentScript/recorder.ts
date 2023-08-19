@@ -38,6 +38,8 @@ class Recorder {
 
   haveListenersBeenAdded = false;
 
+  floatingWindowInserted = false;
+
   async sendZestScriptToZAP(zestStatement: ZestStatement): Promise<number> {
     return Browser.runtime.sendMessage({
       type: 'zestScript',
@@ -206,15 +208,119 @@ class Recorder {
     console.log('user interactions');
     this.active = true;
     this.previousDOMState = document.documentElement.outerHTML;
-    if (this.haveListenersBeenAdded) return;
+    if (this.haveListenersBeenAdded) {
+      this.insertFloatingPopup();
+      return;
+    }
     this.haveListenersBeenAdded = true;
     window.addEventListener('resize', debounce(this.handleResize, 100));
-    this.addListenersToDocument(document, -1, 0);
+    console.log('I am sdf here');
+    try {
+      this.addListenersToDocument(document, -1, 0);
+    } catch (err) {
+      // Sometimes throw DOMException: Blocked a frame with current origin from accessing a cross-origin frame.
+      console.log(err);
+    }
+    this.insertFloatingPopup();
   }
 
   stopRecordingUserInteractions(): void {
     console.log('Stopping Recording User Interactions ...');
+    Browser.storage.sync.set({zaprecordingactive: false});
     this.active = false;
+    const floatingDiv = document.getElementById('ZapfloatingDiv');
+    if (floatingDiv) {
+      floatingDiv.style.display = 'none';
+    }
+  }
+
+  insertFloatingPopup(): void {
+    if (this.floatingWindowInserted) {
+      const floatingDiv = document.getElementById('ZapfloatingDiv');
+      console.log('hello');
+      if (floatingDiv) {
+        console.log('insite');
+        floatingDiv.style.display = 'flex';
+        return;
+      }
+    }
+
+    const floatingDiv = document.createElement('div');
+    floatingDiv.id = 'ZapfloatingDiv';
+    floatingDiv.style.position = 'fixed';
+    floatingDiv.style.top = '90vh';
+    floatingDiv.style.right = '40vw';
+    floatingDiv.style.width = '20vw';
+    floatingDiv.style.height = '8vh';
+    floatingDiv.style.backgroundColor = '#f9f9f9';
+    floatingDiv.style.border = '2px solid #e74c3c';
+    floatingDiv.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
+    floatingDiv.style.zIndex = '999999';
+    floatingDiv.style.textAlign = 'center';
+    floatingDiv.style.borderRadius = '5px';
+    floatingDiv.style.fontFamily = 'Arial, sans-serif';
+    floatingDiv.style.display = 'flex';
+    floatingDiv.style.flexDirection = 'column';
+    floatingDiv.style.justifyContent = 'center';
+    floatingDiv.style.alignItems = 'center';
+
+    const textElement = document.createElement('p');
+    textElement.style.margin = '0';
+    textElement.style.fontSize = '16px';
+    textElement.style.color = '#333';
+    textElement.textContent = 'ZAP Browser Extension is Recording...';
+
+    const buttonElement = document.createElement('button');
+    buttonElement.style.marginTop = '10px';
+    buttonElement.style.padding = '8px 15px';
+    buttonElement.style.background = '#e74c3c';
+    buttonElement.style.color = 'white';
+    buttonElement.style.border = 'none';
+    buttonElement.style.borderRadius = '3px';
+    buttonElement.style.cursor = 'pointer';
+    buttonElement.textContent = 'Stop Recording';
+
+    buttonElement.addEventListener('click', () => {
+      this.stopRecordingUserInteractions();
+      Browser.runtime.sendMessage({type: 'stopRecording'});
+    });
+
+    floatingDiv.appendChild(textElement);
+    floatingDiv.appendChild(buttonElement);
+
+    document.body.appendChild(floatingDiv);
+    this.floatingWindowInserted = true;
+
+    let isDragging = false;
+    let initialMouseX: number;
+    let initialMouseY: number;
+    let initialDivX: number;
+    let initialDivY: number;
+
+    // Mouse down event listener
+    floatingDiv.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      initialMouseX = e.clientX;
+      initialMouseY = e.clientY;
+      initialDivX = floatingDiv.offsetLeft;
+      initialDivY = floatingDiv.offsetTop;
+    });
+
+    // Mouse move event listener
+    window.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+
+      const offsetX = e.clientX - initialMouseX;
+      const offsetY = e.clientY - initialMouseY;
+
+      floatingDiv.style.left = `${initialDivX + offsetX}px`;
+      floatingDiv.style.top = `${initialDivY + offsetY}px`;
+    });
+
+    // Mouse up event listener
+    window.addEventListener('mouseup', () => {
+      isDragging = false;
+    });
   }
 }
 
