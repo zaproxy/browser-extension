@@ -175,15 +175,30 @@ class ZestStatementWindowClose extends ZestStatement {
 class ZestStatementSwichToFrame extends ZestStatement {
   frameIndex: number;
 
-  constructor(frameIndex: number) {
-    super('ZestSwitchToFrame');
+  frameName: string;
+
+  windowHandle: string;
+
+  constructor(
+    frameIndex: number,
+    frameName = '',
+    windowHandle = 'windowHandle1'
+  ) {
+    super('ZestClientSwitchToFrame');
     this.frameIndex = frameIndex;
+    this.frameName = frameName;
+    this.windowHandle = windowHandle;
   }
 
   toJSON(): string {
     return JSON.stringify({
-      elementType: this.elementType,
+      windowHandle: this.windowHandle,
       frameIndex: this.frameIndex,
+      frameName: this.frameName,
+      parent: this.frameIndex === -1,
+      index: this.index,
+      enabled: true,
+      elementType: this.elementType,
     });
   }
 }
