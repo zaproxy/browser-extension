@@ -17,6 +17,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {
+  DEFAULT_WINDOW_HANDLE,
+  ZEST_CLIENT_ELEMENT_CLEAR,
+  ZEST_CLIENT_ELEMENT_CLICK,
+  ZEST_CLIENT_ELEMENT_MOUSE_OVER,
+  ZEST_CLIENT_ELEMENT_SEND_KEYS,
+  ZEST_CLIENT_LAUNCH,
+  ZEST_CLIENT_SWITCH_TO_FRAME,
+  ZEST_CLIENT_WINDOW_CLOSE,
+} from '../../utils/constants';
+
 class ElementLocator {
   type: string;
 
@@ -58,9 +69,9 @@ class ZestStatementLaunchBrowser extends ZestStatement {
   constructor(
     browserType: string,
     url: string,
-    windowHandle = 'windowHandle1'
+    windowHandle = DEFAULT_WINDOW_HANDLE
   ) {
-    super('ZestClientLaunch');
+    super(ZEST_CLIENT_LAUNCH);
     this.windowHandle = windowHandle;
     this.browserType = browserType;
     this.url = url;
@@ -92,8 +103,11 @@ abstract class ZestStatementElement extends ZestStatement {
 }
 
 class ZestStatementElementClick extends ZestStatementElement {
-  constructor(elementLocator: ElementLocator, windowHandle = 'windowHandle1') {
-    super('ZestClientElementClick', elementLocator);
+  constructor(
+    elementLocator: ElementLocator,
+    windowHandle = DEFAULT_WINDOW_HANDLE
+  ) {
+    super(ZEST_CLIENT_ELEMENT_CLICK, elementLocator);
     this.windowHandle = windowHandle;
   }
 
@@ -114,9 +128,9 @@ class ZestStatementElementSendKeys extends ZestStatementElement {
   constructor(
     elementLocator: ElementLocator,
     keys: string,
-    windowHandle = 'windowHandle1'
+    windowHandle = DEFAULT_WINDOW_HANDLE
   ) {
-    super('ZestClientElementSendKeys', elementLocator);
+    super(ZEST_CLIENT_ELEMENT_SEND_KEYS, elementLocator);
     this.keys = keys;
     this.windowHandle = windowHandle;
   }
@@ -134,8 +148,11 @@ class ZestStatementElementSendKeys extends ZestStatementElement {
 }
 
 class ZestStatementElementClear extends ZestStatementElement {
-  constructor(elementLocator: ElementLocator, windowHandle = 'windowHandle1') {
-    super('ZestClientElementClear', elementLocator);
+  constructor(
+    elementLocator: ElementLocator,
+    windowHandle = DEFAULT_WINDOW_HANDLE
+  ) {
+    super(ZEST_CLIENT_ELEMENT_CLEAR, elementLocator);
     this.windowHandle = windowHandle;
   }
 
@@ -155,8 +172,8 @@ class ZestStatementWindowClose extends ZestStatement {
 
   windowHandle: string;
 
-  constructor(sleepInSeconds: number, windowHandle = 'windowHandle1') {
-    super('ZestClientWindowClose');
+  constructor(sleepInSeconds: number, windowHandle = DEFAULT_WINDOW_HANDLE) {
+    super(ZEST_CLIENT_WINDOW_CLOSE);
     this.sleepInSeconds = sleepInSeconds;
     this.windowHandle = windowHandle;
   }
@@ -182,9 +199,9 @@ class ZestStatementSwichToFrame extends ZestStatement {
   constructor(
     frameIndex: number,
     frameName = '',
-    windowHandle = 'windowHandle1'
+    windowHandle = DEFAULT_WINDOW_HANDLE
   ) {
-    super('ZestClientSwitchToFrame');
+    super(ZEST_CLIENT_SWITCH_TO_FRAME);
     this.frameIndex = frameIndex;
     this.frameName = frameName;
     this.windowHandle = windowHandle;
@@ -205,7 +222,7 @@ class ZestStatementSwichToFrame extends ZestStatement {
 
 class ZestStatementElementMouseOver extends ZestStatementElement {
   constructor(elementLocator: ElementLocator) {
-    super('ZestMouseOverElement', elementLocator);
+    super(ZEST_CLIENT_ELEMENT_MOUSE_OVER, elementLocator);
   }
 
   toJSON(): string {
