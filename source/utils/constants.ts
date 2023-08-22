@@ -25,3 +25,25 @@ export const ZEST_CLIENT_ELEMENT_CLEAR = 'ZestClientElementClear';
 export const ZEST_CLIENT_WINDOW_CLOSE = 'ZestClientWindowClose';
 export const ZEST_CLIENT_ELEMENT_MOUSE_OVER = 'ZestClientMouseOverElement';
 export const DEFAULT_WINDOW_HANDLE = 'windowHandle1';
+
+export const ZAP_STOP_RECORDING = 'zapStopRecording';
+export const ZAP_START_RECORDING = 'zapStartRecording';
+export const SET_SAVE_SCRIPT_ENABLE = 'setSaveScriptEnable';
+export const ZEST_SCRIPT = 'zestScript';
+
+export const STOP_RECORDING = 'stopRecording';
+export const RESET_ZEST_SCRIPT = 'resetZestScript';
+export const SAVE_ZEST_SCRIPT = 'saveZestScript';
+export const UPDATE_TITLE = 'updateTitle';
+
+export const REPORT_EVENT = 'reportEvent';
+export const REPORT_OBJECT = 'reportObject';
+
+export const LOCAL_STORAGE = 'localStorage';
+export const SESSION_STORAGE = 'sessionStorage';
+export const LOCAL_ZAP_URL = 'localzapurl';
+export const LOCAL_ZAP_ENABLE = 'localzapenable';
+
+export const ZAP_URL = 'zapurl';
+export const ZAP_KEY = 'zapkey';
+export const ZAP_ENABLE = 'zapenable';
