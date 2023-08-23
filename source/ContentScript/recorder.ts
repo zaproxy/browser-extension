@@ -27,6 +27,7 @@ import {
   ZestStatementSwichToFrame,
 } from '../types/zestScript/ZestStatement';
 import {getPath} from './util';
+import {ZEST_SCRIPT} from '../utils/constants';
 
 class Recorder {
   previousDOMState: string;
@@ -41,7 +42,7 @@ class Recorder {
 
   async sendZestScriptToZAP(zestStatement: ZestStatement): Promise<number> {
     return Browser.runtime.sendMessage({
-      type: 'zestScript',
+      type: ZEST_SCRIPT,
       data: zestStatement.toJSON(),
     });
   }

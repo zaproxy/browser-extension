@@ -18,12 +18,9 @@
  * limitations under the License.
  */
 import Browser from 'webextension-polyfill';
+import {ZAP_ENABLE, ZAP_KEY, ZAP_URL} from '../utils/constants';
 
 console.log('Options loading');
-
-const ZAP_URL = 'zapurl';
-const ZAP_KEY = 'zapkey';
-const ZAP_ENABLE = 'zapenable';
 
 // Saves options to chrome.storage
 function saveOptions(): void {
