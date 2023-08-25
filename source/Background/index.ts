@@ -22,6 +22,19 @@ import Browser, {Cookies, Runtime} from 'webextension-polyfill';
 import {ReportedStorage} from '../types/ReportedModel';
 import {ZestScript, ZestScriptMessage} from '../types/zestScript/ZestScript';
 import {ZestStatementWindowClose} from '../types/zestScript/ZestStatement';
+import {
+  LOCAL_STORAGE,
+  REPORT_EVENT,
+  REPORT_OBJECT,
+  RESET_ZEST_SCRIPT,
+  SAVE_ZEST_SCRIPT,
+  SESSION_STORAGE,
+  SET_SAVE_SCRIPT_ENABLE,
+  STOP_RECORDING,
+  ZEST_CLIENT_ELEMENT_CLEAR,
+  ZEST_CLIENT_ELEMENT_SEND_KEYS,
+  ZEST_SCRIPT,
+} from '../utils/constants';
 
 console.log('ZAP Service Worker 👋');
 
@@ -121,7 +134,7 @@ function reportCookies(
           repStorage.toString()
         )}&apikey=${encodeURIComponent(zapkey)}`;
 
-        fetch(zapApiUrl(zapurl, 'reportObject'), {
+        fetch(zapApiUrl(zapurl, REPORT_OBJECT), {
           method: 'POST',
           body,
           headers: {
@@ -175,14 +188,14 @@ async function handleMessage(
   }
 
   console.log(`ZAP Service worker calling ZAP on ${zapurl}`);
-  console.log(zapApiUrl(zapurl, 'reportObject'));
+  console.log(zapApiUrl(zapurl, REPORT_OBJECT));
   console.log(encodeURIComponent(zapkey));
   console.log(`Type: ${request.type}`);
   console.log(`Data: ${request.data}`);
 
-  if (request.type === 'reportObject') {
+  if (request.type === REPORT_OBJECT) {
     const repObj = JSON.parse(request.data);
-    if (repObj.type === 'localStorage' || repObj.type === 'sessionStorage') {
+    if (repObj.type === LOCAL_STORAGE || repObj.type === SESSION_STORAGE) {
       // Check to see if we have already reported this storage object
       const repStorage = new ReportedStorage('', '', '', '', '');
       Object.assign(repStorage, repObj);
@@ -197,41 +210,41 @@ async function handleMessage(
       request.data
     )}&apikey=${encodeURIComponent(zapkey)}`;
     console.log(`body = ${body}`);
-    fetch(zapApiUrl(zapurl, 'reportObject'), {
+    fetch(zapApiUrl(zapurl, REPORT_OBJECT), {
       method: 'POST',
       body,
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
     });
-  } else if (request.type === 'reportEvent') {
+  } else if (request.type === REPORT_EVENT) {
     const body = `eventJson=${encodeURIComponent(
       request.data
     )}&apikey=${encodeURIComponent(zapkey)}`;
     console.log(`body = ${body}`);
-    fetch(zapApiUrl(zapurl, 'reportEvent'), {
+    fetch(zapApiUrl(zapurl, REPORT_EVENT), {
       method: 'POST',
       body,
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
     });
-  } else if (request.type === 'zestScript') {
+  } else if (request.type === ZEST_SCRIPT) {
     const stmt = JSON.parse(request.data);
-    if (stmt.elementType === 'ZestClientElementSendKeys') {
+    if (stmt.elementType === ZEST_CLIENT_ELEMENT_SEND_KEYS) {
       console.log(stmt);
-      stmt.elementType = 'ZestClientElementClear';
+      stmt.elementType = ZEST_CLIENT_ELEMENT_CLEAR;
       delete stmt.value;
       const cleardata = zestScript.addStatement(JSON.stringify(stmt));
       sendZestScriptToZAP(cleardata, zapkey, zapurl);
     }
     const data = zestScript.addStatement(request.data);
     sendZestScriptToZAP(data, zapkey, zapurl);
-  } else if (request.type === 'saveZestScript') {
+  } else if (request.type === SAVE_ZEST_SCRIPT) {
     return zestScript.getZestScript();
-  } else if (request.type === 'resetZestScript') {
+  } else if (request.type === RESET_ZEST_SCRIPT) {
     zestScript.reset();
-  } else if (request.type === 'stopRecording') {
+  } else if (request.type === STOP_RECORDING) {
     if (zestScript.getZestStatementCount() > 0) {
       const {zapclosewindowhandle} = await Browser.storage.sync.get({
         zapclosewindowhandle: false,
@@ -249,7 +262,7 @@ async function handleMessage(
         });
       });
     }
-  } else if (request.type === 'setSaveScriptEnable') {
+  } else if (request.type === SET_SAVE_SCRIPT_ENABLE) {
     Browser.storage.sync.set({
       zapenablesavescript: zestScript.getZestStatementCount() > 0,
     });

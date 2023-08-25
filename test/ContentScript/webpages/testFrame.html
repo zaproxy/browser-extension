@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Document</title>
+</head>
+<body>
+    <button id="test-btn">Test ME</button>
+    <script>
+        const button = document.getElementById('test-btn'); 
+        button.addEventListener('click', ()=>{
+            button.after("Clicked !!!"); 
+        })
+    </script>
+</body>
+</html>

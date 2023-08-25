@@ -25,6 +25,16 @@ import {
   ReportedEvent,
 } from '../types/ReportedModel';
 import Recorder from './recorder';
+import {
+  LOCAL_STORAGE,
+  LOCAL_ZAP_ENABLE,
+  LOCAL_ZAP_URL,
+  REPORT_EVENT,
+  REPORT_OBJECT,
+  SESSION_STORAGE,
+  ZAP_START_RECORDING,
+  ZAP_STOP_RECORDING,
+} from '../utils/constants';
 
 const reportedObjects = new Set<string>();
 
@@ -44,14 +54,14 @@ function reportStorage(
 
 async function sendEventToZAP(obj: ReportedEvent): Promise<number> {
   return Browser.runtime.sendMessage({
-    type: 'reportEvent',
+    type: REPORT_EVENT,
     data: obj.toString(),
   });
 }
 
 async function sendObjectToZAP(obj: ReportedObject): Promise<number> {
   return Browser.runtime.sendMessage({
-    type: 'reportObject',
+    type: REPORT_OBJECT,
     data: obj.toString(),
   });
 }
@@ -65,8 +75,8 @@ function reportObject(repObj: ReportedObject): void {
 }
 
 function reportAllStorage(): void {
-  reportStorage('localStorage', localStorage, reportObject);
-  reportStorage('sessionStorage', sessionStorage, reportObject);
+  reportStorage(LOCAL_STORAGE, localStorage, reportObject);
+  reportStorage(SESSION_STORAGE, sessionStorage, reportObject);
 }
 
 function withZapEnableSetting(fn: () => void): void {
@@ -88,7 +98,7 @@ function withZapRecordingActive(fn: () => void): void {
 function reportPageUnloaded(): void {
   withZapEnableSetting(() => {
     Browser.runtime.sendMessage({
-      type: 'reportEvent',
+      type: REPORT_EVENT,
       data: new ReportedEvent('pageUnload').toString(),
     });
     for (const value of Object.values(reportedEvents)) {
@@ -173,7 +183,7 @@ function reportPageLoaded(
   }
 
   Browser.runtime.sendMessage({
-    type: 'reportEvent',
+    type: REPORT_EVENT,
     data: new ReportedEvent('pageLoad').toString(),
   });
 
@@ -181,8 +191,8 @@ function reportPageLoaded(
   reportPageForms(doc, fn);
   reportElements(doc.getElementsByTagName('input'), fn);
   reportElements(doc.getElementsByTagName('button'), fn);
-  reportStorage('localStorage', localStorage, fn);
-  reportStorage('sessionStorage', sessionStorage, fn);
+  reportStorage(LOCAL_STORAGE, localStorage, fn);
+  reportStorage(SESSION_STORAGE, sessionStorage, fn);
 }
 
 const domMutated = function domMutation(
@@ -225,8 +235,8 @@ function enableExtension(): void {
 }
 
 function configureExtension(): void {
-  const localzapurl = localStorage.getItem('localzapurl');
-  const localzapenable = localStorage.getItem('localzapenable') || true;
+  const localzapurl = localStorage.getItem(LOCAL_ZAP_URL);
+  const localzapenable = localStorage.getItem(LOCAL_ZAP_ENABLE) || true;
   if (localzapurl) {
     Browser.storage.sync.set({
       zapurl: localzapurl,
@@ -253,11 +263,11 @@ injectScript();
 
 Browser.runtime.onMessage.addListener(
   (message: MessageEvent, _sender: Runtime.MessageSender) => {
-    if (message.type === 'zapStartRecording') {
+    if (message.type === ZAP_START_RECORDING) {
       configureExtension();
       recorder.initializationScript();
       recorder.recordUserInteractions();
-    } else if (message.type === 'zapStopRecording') {
+    } else if (message.type === ZAP_STOP_RECORDING) {
       recorder.stopRecordingUserInteractions();
     }
   }

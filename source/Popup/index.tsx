@@ -20,6 +20,16 @@
 import Browser from 'webextension-polyfill';
 import './styles.scss';
 import i18n from './i18n';
+import {
+  RESET_ZEST_SCRIPT,
+  SAVE_ZEST_SCRIPT,
+  SET_SAVE_SCRIPT_ENABLE,
+  START_RECORDING,
+  STOP_RECORDING,
+  UPDATE_TITLE,
+  ZAP_START_RECORDING,
+  ZAP_STOP_RECORDING,
+} from '../utils/constants';
 
 const STOP = i18n.t('stop');
 const START = i18n.t('start');
@@ -73,7 +83,7 @@ function startedAnimation(): void {
 
 async function restoreState(): Promise<void> {
   console.log('Restore state');
-  await Browser.runtime.sendMessage({type: 'setSaveScriptEnable'});
+  await Browser.runtime.sendMessage({type: SET_SAVE_SCRIPT_ENABLE});
   optionsIcon.title = OPTIONS;
   downloadIcon.title = DOWNLOAD;
   Browser.storage.sync
@@ -111,8 +121,8 @@ function closePopup(): void {
 function stopRecording(): void {
   console.log('Recording stopped ...');
   stoppedAnimation();
-  sendMessageToContentScript('zapStopRecording');
-  Browser.runtime.sendMessage({type: 'stopRecording'});
+  sendMessageToContentScript(ZAP_STOP_RECORDING);
+  Browser.runtime.sendMessage({type: STOP_RECORDING});
   Browser.storage.sync.set({
     zaprecordingactive: false,
   });
@@ -120,9 +130,9 @@ function stopRecording(): void {
 
 function startRecording(): void {
   startedAnimation();
-  sendMessageToContentScript('zapStartRecording');
-  Browser.runtime.sendMessage({type: 'resetZestScript'});
-  Browser.runtime.sendMessage({type: 'startRecording'});
+  sendMessageToContentScript(ZAP_START_RECORDING);
+  Browser.runtime.sendMessage({type: RESET_ZEST_SCRIPT});
+  Browser.runtime.sendMessage({type: START_RECORDING});
   Browser.storage.sync.set({
     zaprecordingactive: true,
   });
@@ -166,7 +176,7 @@ function downloadZestScript(zestScriptJSON: string, title: string): void {
   document.body.removeChild(link);
 
   URL.revokeObjectURL(url);
-  Browser.runtime.sendMessage({type: 'resetZestScript'});
+  Browser.runtime.sendMessage({type: RESET_ZEST_SCRIPT});
   Browser.storage.sync.set({
     zaprecordingactive: false,
   });
@@ -174,7 +184,7 @@ function downloadZestScript(zestScriptJSON: string, title: string): void {
 }
 
 function handleSaveScript(): void {
-  Browser.runtime.sendMessage({type: 'saveZestScript'}).then((items) => {
+  Browser.runtime.sendMessage({type: SAVE_ZEST_SCRIPT}).then((items) => {
     downloadZestScript(items.script, items.title);
   });
 }
@@ -184,7 +194,7 @@ function handleScriptNameChange(e: Event): void {
   Browser.storage.sync.set({
     zapscriptname: value,
   });
-  sendMessageToContentScript('updateTitle', value);
+  sendMessageToContentScript(UPDATE_TITLE, value);
 }
 
 document.addEventListener('DOMContentLoaded', restoreState);

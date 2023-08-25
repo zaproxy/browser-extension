@@ -218,6 +218,26 @@ function integrationTests(
       // Then
       expect(actualOutcome).toBe('test-name.zst');
     });
+
+    test('Should record frame switches', async () => {
+      // Given / When
+      server = getFakeZapServer(actualData, _JSONPORT);
+      const context = await driver.getContext(_JSONPORT, true);
+      await driver.setEnable(false);
+      const page = await context.newPage();
+      await page.goto(
+        `http://localhost:${_HTTPPORT}/webpages/interactions.html`
+      );
+      const frame = await page.frame('frame1');
+      frame?.click('#test-btn');
+      await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(1000);
+      await page.close();
+      // Then
+      expect(JSON.stringify(Array.from(actualData))).toBe(
+        '["{\\"action\\":{\\"action\\":\\"reportZestScript\\"},\\"body\\":{\\"scriptJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"frameIndex\\":0,\\"frameName\\":\\"\\",\\"parent\\":false,\\"index\\":1,\\"enabled\\":true,\\"elementType\\":\\"ZestClientSwitchToFrame\\"}\\",\\"apikey\\":\\"not set\\"}}","{\\"action\\":{\\"action\\":\\"reportZestScript\\"},\\"body\\":{\\"scriptJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"test-btn\\",\\"index\\":2,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementClick\\"}\\",\\"apikey\\":\\"not set\\"}}"]'
+      );
+    });
   }
 }
 
