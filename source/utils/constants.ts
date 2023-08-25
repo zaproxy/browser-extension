@@ -35,7 +35,6 @@ export const STOP_RECORDING = 'stopRecording';
 export const RESET_ZEST_SCRIPT = 'resetZestScript';
 export const SAVE_ZEST_SCRIPT = 'saveZestScript';
 export const UPDATE_TITLE = 'updateTitle';
-export const START_RECORDING = 'startRecording';
 
 export const REPORT_EVENT = 'reportEvent';
 export const REPORT_OBJECT = 'reportObject';

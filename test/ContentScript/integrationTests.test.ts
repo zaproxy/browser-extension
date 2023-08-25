@@ -193,6 +193,28 @@ function integrationTests(
       expect(JSON.stringify(Array.from(actualData))).toBe(expectedData);
     });
 
+    test('Should send window handle close script when directly pressed save script', async () => {
+      server = getFakeZapServer(actualData, _JSONPORT);
+      const context = await driver.getContext(_JSONPORT, true);
+      await driver.setEnable(false);
+      const page = await context.newPage();
+      await page.goto(await driver.getOptionsURL());
+      await page.goto(
+        `http://localhost:${_HTTPPORT}/webpages/interactions.html`
+      );
+      await page.fill('#input-1', 'testinput');
+      await page.click('#click');
+      await page.goto(await driver.getPopupURL());
+      await page.click('#save-script');
+      await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(1000);
+      await page.close();
+      // Then
+      const expectedData =
+        '["{\\"action\\":{\\"action\\":\\"reportZestScript\\"},\\"body\\":{\\"scriptJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"input-1\\",\\"index\\":1,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementClear\\"}\\",\\"apikey\\":\\"not set\\"}}","{\\"action\\":{\\"action\\":\\"reportZestScript\\"},\\"body\\":{\\"scriptJson\\":\\"{\\"value\\":\\"testinput\\",\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"input-1\\",\\"index\\":2,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementSendKeys\\"}\\",\\"apikey\\":\\"not set\\"}}","{\\"action\\":{\\"action\\":\\"reportZestScript\\"},\\"body\\":{\\"scriptJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"click\\",\\"index\\":3,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementClick\\"}\\",\\"apikey\\":\\"not set\\"}}","{\\"action\\":{\\"action\\":\\"reportZestScript\\"},\\"body\\":{\\"scriptJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"index\\":4,\\"sleepInSeconds\\":0,\\"enabled\\":true,\\"elementType\\":\\"ZestClientWindowClose\\"}\\",\\"apikey\\":\\"not set\\"}}"]';
+      expect(JSON.stringify(Array.from(actualData))).toBe(expectedData);
+    });
+
     test('Should configure downloaded script name', async () => {
       // Given
       server = getFakeZapServer(actualData, _JSONPORT);
@@ -237,6 +259,23 @@ function integrationTests(
       expect(JSON.stringify(Array.from(actualData))).toBe(
         '["{\\"action\\":{\\"action\\":\\"reportZestScript\\"},\\"body\\":{\\"scriptJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"frameIndex\\":0,\\"frameName\\":\\"\\",\\"parent\\":false,\\"index\\":1,\\"enabled\\":true,\\"elementType\\":\\"ZestClientSwitchToFrame\\"}\\",\\"apikey\\":\\"not set\\"}}","{\\"action\\":{\\"action\\":\\"reportZestScript\\"},\\"body\\":{\\"scriptJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"test-btn\\",\\"index\\":2,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementClick\\"}\\",\\"apikey\\":\\"not set\\"}}"]'
       );
+    });
+
+    test('Should not record interactions on floating container', async () => {
+      // Given / When
+      server = getFakeZapServer(actualData, _JSONPORT);
+      const context = await driver.getContext(_JSONPORT, true);
+      await driver.setEnable(false);
+      const page = await context.newPage();
+      await page.goto(
+        `http://localhost:${_HTTPPORT}/webpages/interactions.html`
+      );
+      await page.click('#ZapfloatingDiv');
+      await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(1000);
+      await page.close();
+      // Then
+      expect(JSON.stringify(Array.from(actualData))).toBe('[]');
     });
   }
 }

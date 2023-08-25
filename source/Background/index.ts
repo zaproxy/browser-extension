@@ -254,25 +254,10 @@ async function handleMessage(
         const data = zestScript.addStatement(stmt.toJSON());
         sendZestScriptToZAP(data, zapkey, zapurl);
       }
-      Browser.tabs.query({currentWindow: true}).then((tabs) => {
-        tabs.forEach((activeTab) => {
-          if (activeTab?.id) {
-            Browser.tabs.sendMessage(activeTab.id, {type: 'zapStopRecording'});
-          }
-        });
-      });
     }
   } else if (request.type === SET_SAVE_SCRIPT_ENABLE) {
     Browser.storage.sync.set({
       zapenablesavescript: zestScript.getZestStatementCount() > 0,
-    });
-  } else if (request.type === 'startRecording') {
-    Browser.tabs.query({currentWindow: true}).then((tabs) => {
-      tabs.forEach((activeTab) => {
-        if (activeTab?.id) {
-          Browser.tabs.sendMessage(activeTab.id, {type: 'zapStartRecording'});
-        }
-      });
     });
   }
   return true;

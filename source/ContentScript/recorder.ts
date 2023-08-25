@@ -73,7 +73,7 @@ class Recorder {
     params: {level: number; frame: number; element: Document},
     event: Event
   ): void {
-    if (!this.active) return;
+    if (!this.shouldRecord(event.target as HTMLElement)) return;
     const {level, frame, element} = params;
     this.handleFrameSwitches(level, frame);
     console.log(event, 'clicked');
@@ -83,7 +83,7 @@ class Recorder {
   }
 
   handleScroll(params: {level: number; frame: number}, event: Event): void {
-    if (!this.active) return;
+    if (!this.shouldRecord(event.target as HTMLElement)) return;
     const {level, frame} = params;
     this.handleFrameSwitches(level, frame);
     console.log(event, 'scrolling.. ');
@@ -94,7 +94,7 @@ class Recorder {
     params: {level: number; frame: number; element: Document},
     event: Event
   ): void {
-    if (!this.active) return;
+    if (!this.shouldRecord(event.target as HTMLElement)) return;
     const {level, frame, element} = params;
     const currentDOMState = element.documentElement.outerHTML;
     if (currentDOMState === this.previousDOMState) {
@@ -110,7 +110,7 @@ class Recorder {
     params: {level: number; frame: number; element: Document},
     event: Event
   ): void {
-    if (!this.active) return;
+    if (!this.shouldRecord(event.target as HTMLElement)) return;
     const {level, frame, element} = params;
     this.handleFrameSwitches(level, frame);
     console.log(event, 'change', (event.target as HTMLInputElement).value);
@@ -172,6 +172,12 @@ class Recorder {
     });
   }
 
+  shouldRecord(element: HTMLElement): boolean {
+    if (!this.active) return this.active;
+    if (element.style.zIndex === '999999') return false;
+    return true;
+  }
+
   getBrowserName(): string {
     let browserName: string;
     const {userAgent} = navigator;
@@ -201,7 +207,6 @@ class Recorder {
     }
     this.haveListenersBeenAdded = true;
     window.addEventListener('resize', debounce(this.handleResize, 100));
-    console.log('I am sdf here');
     try {
       this.addListenersToDocument(document, -1, 0);
     } catch (err) {
@@ -224,9 +229,7 @@ class Recorder {
   insertFloatingPopup(): void {
     if (this.floatingWindowInserted) {
       const floatingDiv = document.getElementById('ZapfloatingDiv');
-      console.log('hello');
       if (floatingDiv) {
-        console.log('insite');
         floatingDiv.style.display = 'flex';
         return;
       }
@@ -253,6 +256,7 @@ class Recorder {
 
     const textElement = document.createElement('p');
     textElement.style.margin = '0';
+    textElement.style.zIndex = '999999';
     textElement.style.fontSize = '16px';
     textElement.style.color = '#333';
     textElement.textContent = 'ZAP Browser Extension is Recording...';
@@ -262,6 +266,7 @@ class Recorder {
     buttonElement.style.padding = '8px 15px';
     buttonElement.style.background = '#e74c3c';
     buttonElement.style.color = 'white';
+    buttonElement.style.zIndex = '999999';
     buttonElement.style.border = 'none';
     buttonElement.style.borderRadius = '3px';
     buttonElement.style.cursor = 'pointer';

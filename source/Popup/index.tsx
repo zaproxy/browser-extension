@@ -24,7 +24,6 @@ import {
   RESET_ZEST_SCRIPT,
   SAVE_ZEST_SCRIPT,
   SET_SAVE_SCRIPT_ENABLE,
-  START_RECORDING,
   STOP_RECORDING,
   UPDATE_TITLE,
   ZAP_START_RECORDING,
@@ -132,7 +131,6 @@ function startRecording(): void {
   startedAnimation();
   sendMessageToContentScript(ZAP_START_RECORDING);
   Browser.runtime.sendMessage({type: RESET_ZEST_SCRIPT});
-  Browser.runtime.sendMessage({type: START_RECORDING});
   Browser.storage.sync.set({
     zaprecordingactive: true,
   });
@@ -183,7 +181,13 @@ function downloadZestScript(zestScriptJSON: string, title: string): void {
   closePopup();
 }
 
-function handleSaveScript(): void {
+async function handleSaveScript(): Promise<void> {
+  const storageItems = await Browser.storage.sync.get({
+    zaprecordingactive: false,
+  });
+  if (storageItems.zaprecordingactive) {
+    await Browser.runtime.sendMessage({type: STOP_RECORDING});
+  }
   Browser.runtime.sendMessage({type: SAVE_ZEST_SCRIPT}).then((items) => {
     downloadZestScript(items.script, items.title);
   });
