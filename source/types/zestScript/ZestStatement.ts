@@ -189,7 +189,7 @@ class ZestStatementWindowClose extends ZestStatement {
   }
 }
 
-class ZestStatementSwichToFrame extends ZestStatement {
+class ZestStatementSwitchToFrame extends ZestStatement {
   frameIndex: number;
 
   frameName: string;
@@ -238,7 +238,7 @@ export {
   ZestStatementLaunchBrowser,
   ZestStatementElementMouseOver,
   ZestStatementElementClick,
-  ZestStatementSwichToFrame,
+  ZestStatementSwitchToFrame,
   ZestStatementElementSendKeys,
   ZestStatementElementClear,
   ZestStatementWindowClose,
