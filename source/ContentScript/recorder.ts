@@ -24,7 +24,7 @@ import {
   ZestStatementElementClick,
   ZestStatementElementSendKeys,
   ZestStatementLaunchBrowser,
-  ZestStatementSwichToFrame,
+  ZestStatementSwitchToFrame,
 } from '../types/zestScript/ZestStatement';
 import {getPath} from './util';
 import {ZEST_SCRIPT} from '../utils/constants';
@@ -53,14 +53,14 @@ class Recorder {
     }
     if (this.curLevel > level) {
       while (this.curLevel > level) {
-        this.sendZestScriptToZAP(new ZestStatementSwichToFrame(-1));
+        this.sendZestScriptToZAP(new ZestStatementSwitchToFrame(-1));
         this.curLevel -= 1;
       }
       this.curFrame = frameIndex;
     } else {
       this.curLevel += 1;
       this.curFrame = frameIndex;
-      this.sendZestScriptToZAP(new ZestStatementSwichToFrame(frameIndex));
+      this.sendZestScriptToZAP(new ZestStatementSwitchToFrame(frameIndex));
     }
     if (this.curLevel !== level) {
       console.log('Error in switching frames');
