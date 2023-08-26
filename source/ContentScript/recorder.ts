@@ -27,7 +27,7 @@ import {
   ZestStatementSwichToFrame,
 } from '../types/zestScript/ZestStatement';
 import {getPath} from './util';
-import {ZEST_SCRIPT} from '../utils/constants';
+import {STOP_RECORDING, ZEST_SCRIPT} from '../utils/constants';
 
 class Recorder {
   previousDOMState: string;
@@ -174,7 +174,7 @@ class Recorder {
 
   shouldRecord(element: HTMLElement): boolean {
     if (!this.active) return this.active;
-    if (element.style.zIndex === '999999') return false;
+    if (element.className === 'ZapfloatingDivElements') return false;
     return true;
   }
 
@@ -236,6 +236,7 @@ class Recorder {
     }
 
     const floatingDiv = document.createElement('div');
+    floatingDiv.className = 'ZapfloatingDivElements';
     floatingDiv.id = 'ZapfloatingDiv';
     floatingDiv.style.position = 'fixed';
     floatingDiv.style.top = '90vh';
@@ -255,6 +256,7 @@ class Recorder {
     floatingDiv.style.alignItems = 'center';
 
     const textElement = document.createElement('p');
+    textElement.className = 'ZapfloatingDivElements';
     textElement.style.margin = '0';
     textElement.style.zIndex = '999999';
     textElement.style.fontSize = '16px';
@@ -262,6 +264,7 @@ class Recorder {
     textElement.textContent = 'ZAP Browser Extension is Recording...';
 
     const buttonElement = document.createElement('button');
+    buttonElement.className = 'ZapfloatingDivElements';
     buttonElement.style.marginTop = '10px';
     buttonElement.style.padding = '8px 15px';
     buttonElement.style.background = '#e74c3c';
@@ -274,7 +277,7 @@ class Recorder {
 
     buttonElement.addEventListener('click', () => {
       this.stopRecordingUserInteractions();
-      Browser.runtime.sendMessage({type: 'stopRecording'});
+      Browser.runtime.sendMessage({type: STOP_RECORDING});
     });
 
     floatingDiv.appendChild(textElement);
