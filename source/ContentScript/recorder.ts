@@ -342,13 +342,13 @@ class Recorder {
     if (this.isNotificationRaised) {
       await this.waitForNotificationToClear();
     }
-
-    this.isNotificationRaised = true;
     const floatingDiv = document.getElementById('ZapfloatingDiv');
     if (!floatingDiv) {
       console.log('Floating Div Not Found !');
       return;
     }
+
+    this.isNotificationRaised = true;
     const messageElement = document.createElement('p');
     messageElement.textContent = `${notifyMessage.title}: ${notifyMessage.message}`;
     messageElement.style.fontSize = '20px';
