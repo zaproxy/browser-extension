@@ -239,10 +239,11 @@ class Recorder {
     floatingDiv.className = 'ZapfloatingDivElements';
     floatingDiv.id = 'ZapfloatingDiv';
     floatingDiv.style.position = 'fixed';
-    floatingDiv.style.top = '90vh';
-    floatingDiv.style.right = '40vw';
-    floatingDiv.style.width = '20vw';
-    floatingDiv.style.height = '8vh';
+    floatingDiv.style.top = '100%';
+    floatingDiv.style.left = '50%';
+    floatingDiv.style.width = '400px';
+    floatingDiv.style.height = '100px';
+    floatingDiv.style.transform = 'translate(-50%, -105%)';
     floatingDiv.style.backgroundColor = '#f9f9f9';
     floatingDiv.style.border = '2px solid #e74c3c';
     floatingDiv.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
