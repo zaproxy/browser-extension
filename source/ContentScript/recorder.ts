@@ -315,6 +315,25 @@ class Recorder {
 
     // Mouse up event listener
     window.addEventListener('mouseup', () => {
+      if (!isDragging || floatingDiv.style.left.includes('%')) {
+        isDragging = false;
+        return;
+      }
+      const width =
+        window.innerWidth ||
+        document.documentElement.clientWidth ||
+        document.body.clientWidth;
+
+      const height =
+        window.innerHeight ||
+        document.documentElement.clientHeight ||
+        document.body.clientHeight;
+
+      const leftPercent = (parseInt(floatingDiv.style.left) / width) * 100;
+      const topPercent = (parseInt(floatingDiv.style.top) / height) * 100;
+
+      floatingDiv.style.left = `${leftPercent}%`;
+      floatingDiv.style.top = `${topPercent}%`;
       isDragging = false;
     });
   }
