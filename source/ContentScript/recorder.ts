@@ -235,7 +235,17 @@ class Recorder {
       }
     }
 
+    const fa = document.createElement('style');
+    fa.textContent =
+      "@font-face { font-family: 'Roboto';font-style: normal;font-weight: 400;" +
+      `src: url("${Browser.runtime.getURL(
+        'assets/fonts/Roboto-Regular.ttf'
+      )}"); };`;
+
+    document.head.appendChild(fa);
+
     const floatingDiv = document.createElement('div');
+    floatingDiv.style.all = 'initial';
     floatingDiv.className = 'ZapfloatingDivElements';
     floatingDiv.id = 'ZapfloatingDiv';
     floatingDiv.style.position = 'fixed';
@@ -250,21 +260,24 @@ class Recorder {
     floatingDiv.style.zIndex = '999999';
     floatingDiv.style.textAlign = 'center';
     floatingDiv.style.borderRadius = '5px';
-    floatingDiv.style.fontFamily = 'Arial, sans-serif';
+    floatingDiv.style.fontFamily = 'Roboto';
     floatingDiv.style.display = 'flex';
     floatingDiv.style.flexDirection = 'column';
     floatingDiv.style.justifyContent = 'center';
     floatingDiv.style.alignItems = 'center';
 
     const textElement = document.createElement('p');
+    textElement.style.all = 'initial';
     textElement.className = 'ZapfloatingDivElements';
     textElement.style.margin = '0';
     textElement.style.zIndex = '999999';
     textElement.style.fontSize = '16px';
     textElement.style.color = '#333';
+    textElement.style.fontFamily = 'Roboto';
     textElement.textContent = 'ZAP Browser Extension is Recording...';
 
     const buttonElement = document.createElement('button');
+    buttonElement.style.all = 'initial';
     buttonElement.className = 'ZapfloatingDivElements';
     buttonElement.style.marginTop = '10px';
     buttonElement.style.padding = '8px 15px';
@@ -274,6 +287,7 @@ class Recorder {
     buttonElement.style.border = 'none';
     buttonElement.style.borderRadius = '3px';
     buttonElement.style.cursor = 'pointer';
+    buttonElement.style.fontFamily = 'Roboto';
     buttonElement.textContent = 'Stop Recording';
 
     buttonElement.addEventListener('click', () => {
