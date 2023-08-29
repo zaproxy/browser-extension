@@ -181,7 +181,13 @@ function downloadZestScript(zestScriptJSON: string, title: string): void {
   closePopup();
 }
 
-function handleSaveScript(): void {
+async function handleSaveScript(): Promise<void> {
+  const storageItems = await Browser.storage.sync.get({
+    zaprecordingactive: false,
+  });
+  if (storageItems.zaprecordingactive) {
+    await Browser.runtime.sendMessage({type: STOP_RECORDING});
+  }
   Browser.runtime.sendMessage({type: SAVE_ZEST_SCRIPT}).then((items) => {
     downloadZestScript(items.script, items.title);
   });
