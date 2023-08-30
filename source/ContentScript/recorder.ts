@@ -27,7 +27,7 @@ import {
   ZestStatementSwitchToFrame,
 } from '../types/zestScript/ZestStatement';
 import {getPath} from './util';
-import {ZEST_SCRIPT} from '../utils/constants';
+import {STOP_RECORDING, ZEST_SCRIPT} from '../utils/constants';
 
 class Recorder {
   previousDOMState: string;
@@ -39,6 +39,8 @@ class Recorder {
   active = false;
 
   haveListenersBeenAdded = false;
+
+  floatingWindowInserted = false;
 
   async sendZestScriptToZAP(zestStatement: ZestStatement): Promise<number> {
     return Browser.runtime.sendMessage({
@@ -71,7 +73,7 @@ class Recorder {
     params: {level: number; frame: number; element: Document},
     event: Event
   ): void {
-    if (!this.active) return;
+    if (!this.shouldRecord(event.target as HTMLElement)) return;
     const {level, frame, element} = params;
     this.handleFrameSwitches(level, frame);
     console.log(event, 'clicked');
@@ -81,7 +83,7 @@ class Recorder {
   }
 
   handleScroll(params: {level: number; frame: number}, event: Event): void {
-    if (!this.active) return;
+    if (!this.shouldRecord(event.target as HTMLElement)) return;
     const {level, frame} = params;
     this.handleFrameSwitches(level, frame);
     console.log(event, 'scrolling.. ');
@@ -92,7 +94,7 @@ class Recorder {
     params: {level: number; frame: number; element: Document},
     event: Event
   ): void {
-    if (!this.active) return;
+    if (!this.shouldRecord(event.target as HTMLElement)) return;
     const {level, frame, element} = params;
     const currentDOMState = element.documentElement.outerHTML;
     if (currentDOMState === this.previousDOMState) {
@@ -108,7 +110,7 @@ class Recorder {
     params: {level: number; frame: number; element: Document},
     event: Event
   ): void {
-    if (!this.active) return;
+    if (!this.shouldRecord(event.target as HTMLElement)) return;
     const {level, frame, element} = params;
     this.handleFrameSwitches(level, frame);
     console.log(event, 'change', (event.target as HTMLInputElement).value);
@@ -170,6 +172,12 @@ class Recorder {
     });
   }
 
+  shouldRecord(element: HTMLElement): boolean {
+    if (!this.active) return this.active;
+    if (element.className === 'ZapfloatingDivElements') return false;
+    return true;
+  }
+
   getBrowserName(): string {
     let browserName: string;
     const {userAgent} = navigator;
@@ -193,15 +201,155 @@ class Recorder {
     console.log('user interactions');
     this.active = true;
     this.previousDOMState = document.documentElement.outerHTML;
-    if (this.haveListenersBeenAdded) return;
+    if (this.haveListenersBeenAdded) {
+      this.insertFloatingPopup();
+      return;
+    }
     this.haveListenersBeenAdded = true;
     window.addEventListener('resize', debounce(this.handleResize, 100));
-    this.addListenersToDocument(document, -1, 0);
+    try {
+      this.addListenersToDocument(document, -1, 0);
+    } catch (err) {
+      // Sometimes throw DOMException: Blocked a frame with current origin from accessing a cross-origin frame.
+      console.log(err);
+    }
+    this.insertFloatingPopup();
   }
 
   stopRecordingUserInteractions(): void {
     console.log('Stopping Recording User Interactions ...');
+    Browser.storage.sync.set({zaprecordingactive: false});
     this.active = false;
+    const floatingDiv = document.getElementById('ZapfloatingDiv');
+    if (floatingDiv) {
+      floatingDiv.style.display = 'none';
+    }
+  }
+
+  insertFloatingPopup(): void {
+    if (this.floatingWindowInserted) {
+      const floatingDiv = document.getElementById('ZapfloatingDiv');
+      if (floatingDiv) {
+        floatingDiv.style.display = 'flex';
+        return;
+      }
+    }
+
+    const fa = document.createElement('style');
+    fa.textContent =
+      "@font-face { font-family: 'Roboto';font-style: normal;font-weight: 400;" +
+      `src: url("${Browser.runtime.getURL(
+        'assets/fonts/Roboto-Regular.ttf'
+      )}"); };`;
+
+    document.head.appendChild(fa);
+
+    const floatingDiv = document.createElement('div');
+    floatingDiv.style.all = 'initial';
+    floatingDiv.className = 'ZapfloatingDivElements';
+    floatingDiv.id = 'ZapfloatingDiv';
+    floatingDiv.style.position = 'fixed';
+    floatingDiv.style.top = '100%';
+    floatingDiv.style.left = '50%';
+    floatingDiv.style.width = '400px';
+    floatingDiv.style.height = '100px';
+    floatingDiv.style.transform = 'translate(-50%, -105%)';
+    floatingDiv.style.backgroundColor = '#f9f9f9';
+    floatingDiv.style.border = '2px solid #e74c3c';
+    floatingDiv.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
+    floatingDiv.style.zIndex = '999999';
+    floatingDiv.style.textAlign = 'center';
+    floatingDiv.style.borderRadius = '5px';
+    floatingDiv.style.fontFamily = 'Roboto';
+    floatingDiv.style.display = 'flex';
+    floatingDiv.style.flexDirection = 'column';
+    floatingDiv.style.justifyContent = 'center';
+    floatingDiv.style.alignItems = 'center';
+
+    const textElement = document.createElement('p');
+    textElement.style.all = 'initial';
+    textElement.className = 'ZapfloatingDivElements';
+    textElement.style.margin = '0';
+    textElement.style.zIndex = '999999';
+    textElement.style.fontSize = '16px';
+    textElement.style.color = '#333';
+    textElement.style.fontFamily = 'Roboto';
+    textElement.textContent = 'ZAP Browser Extension is Recording...';
+
+    const buttonElement = document.createElement('button');
+    buttonElement.style.all = 'initial';
+    buttonElement.className = 'ZapfloatingDivElements';
+    buttonElement.style.marginTop = '10px';
+    buttonElement.style.padding = '8px 15px';
+    buttonElement.style.background = '#e74c3c';
+    buttonElement.style.color = 'white';
+    buttonElement.style.zIndex = '999999';
+    buttonElement.style.border = 'none';
+    buttonElement.style.borderRadius = '3px';
+    buttonElement.style.cursor = 'pointer';
+    buttonElement.style.fontFamily = 'Roboto';
+    buttonElement.textContent = 'Stop Recording';
+
+    buttonElement.addEventListener('click', () => {
+      this.stopRecordingUserInteractions();
+      Browser.runtime.sendMessage({type: STOP_RECORDING});
+    });
+
+    floatingDiv.appendChild(textElement);
+    floatingDiv.appendChild(buttonElement);
+
+    document.body.appendChild(floatingDiv);
+    this.floatingWindowInserted = true;
+
+    let isDragging = false;
+    let initialMouseX: number;
+    let initialMouseY: number;
+    let initialDivX: number;
+    let initialDivY: number;
+
+    // Mouse down event listener
+    floatingDiv.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      initialMouseX = e.clientX;
+      initialMouseY = e.clientY;
+      initialDivX = floatingDiv.offsetLeft;
+      initialDivY = floatingDiv.offsetTop;
+    });
+
+    // Mouse move event listener
+    window.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+
+      const offsetX = e.clientX - initialMouseX;
+      const offsetY = e.clientY - initialMouseY;
+
+      floatingDiv.style.left = `${initialDivX + offsetX}px`;
+      floatingDiv.style.top = `${initialDivY + offsetY}px`;
+    });
+
+    // Mouse up event listener
+    window.addEventListener('mouseup', () => {
+      if (!isDragging || floatingDiv.style.left.includes('%')) {
+        isDragging = false;
+        return;
+      }
+      const width =
+        window.innerWidth ||
+        document.documentElement.clientWidth ||
+        document.body.clientWidth;
+
+      const height =
+        window.innerHeight ||
+        document.documentElement.clientHeight ||
+        document.body.clientHeight;
+
+      const leftPercent = (parseInt(floatingDiv.style.left) / width) * 100;
+      const topPercent = (parseInt(floatingDiv.style.top) / height) * 100;
+
+      floatingDiv.style.left = `${leftPercent}%`;
+      floatingDiv.style.top = `${topPercent}%`;
+      isDragging = false;
+    });
   }
 }
 

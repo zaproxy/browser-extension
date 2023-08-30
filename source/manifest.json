@@ -78,5 +78,15 @@
     "js": [
       "js/contentScript.bundle.js"
     ]
-  }]
+  }],
+
+  "web_accessible_resources": [
+    {
+      "resources": [ "assets/fonts/Roboto-Regular.ttf"],
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ]
+    }
+  ]
 }
