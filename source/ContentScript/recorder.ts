@@ -177,7 +177,7 @@ class Recorder {
 
   shouldRecord(element: HTMLElement): boolean {
     if (!this.active) return this.active;
-    if (element.style.zIndex === '999999') return false;
+    if (element.className === 'ZapfloatingDivElements') return false;
     return true;
   }
 
@@ -238,33 +238,50 @@ class Recorder {
       }
     }
 
+    const fa = document.createElement('style');
+    fa.textContent =
+      "@font-face { font-family: 'Roboto';font-style: normal;font-weight: 400;" +
+      `src: url("${Browser.runtime.getURL(
+        'assets/fonts/Roboto-Regular.ttf'
+      )}"); };`;
+
+    document.head.appendChild(fa);
+
     const floatingDiv = document.createElement('div');
+    floatingDiv.style.all = 'initial';
+    floatingDiv.className = 'ZapfloatingDivElements';
     floatingDiv.id = 'ZapfloatingDiv';
     floatingDiv.style.position = 'fixed';
-    floatingDiv.style.top = '90vh';
-    floatingDiv.style.right = '40vw';
-    floatingDiv.style.width = '20vw';
-    floatingDiv.style.height = '8vh';
+    floatingDiv.style.top = '100%';
+    floatingDiv.style.left = '50%';
+    floatingDiv.style.width = '400px';
+    floatingDiv.style.height = '100px';
+    floatingDiv.style.transform = 'translate(-50%, -105%)';
     floatingDiv.style.backgroundColor = '#f9f9f9';
     floatingDiv.style.border = '2px solid #e74c3c';
     floatingDiv.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
     floatingDiv.style.zIndex = '999999';
     floatingDiv.style.textAlign = 'center';
     floatingDiv.style.borderRadius = '5px';
-    floatingDiv.style.fontFamily = 'Arial, sans-serif';
+    floatingDiv.style.fontFamily = 'Roboto';
     floatingDiv.style.display = 'flex';
     floatingDiv.style.flexDirection = 'column';
     floatingDiv.style.justifyContent = 'center';
     floatingDiv.style.alignItems = 'center';
 
     const textElement = document.createElement('p');
+    textElement.style.all = 'initial';
+    textElement.className = 'ZapfloatingDivElements';
     textElement.style.margin = '0';
     textElement.style.zIndex = '999999';
     textElement.style.fontSize = '16px';
     textElement.style.color = '#333';
+    textElement.style.fontFamily = 'Roboto';
     textElement.textContent = 'ZAP Browser Extension is Recording...';
 
     const buttonElement = document.createElement('button');
+    buttonElement.style.all = 'initial';
+    buttonElement.className = 'ZapfloatingDivElements';
     buttonElement.style.marginTop = '10px';
     buttonElement.style.padding = '8px 15px';
     buttonElement.style.background = '#e74c3c';
@@ -273,6 +290,7 @@ class Recorder {
     buttonElement.style.border = 'none';
     buttonElement.style.borderRadius = '3px';
     buttonElement.style.cursor = 'pointer';
+    buttonElement.style.fontFamily = 'Roboto';
     buttonElement.textContent = 'Stop Recording';
 
     buttonElement.addEventListener('click', () => {
@@ -314,6 +332,25 @@ class Recorder {
 
     // Mouse up event listener
     window.addEventListener('mouseup', () => {
+      if (!isDragging || floatingDiv.style.left.includes('%')) {
+        isDragging = false;
+        return;
+      }
+      const width =
+        window.innerWidth ||
+        document.documentElement.clientWidth ||
+        document.body.clientWidth;
+
+      const height =
+        window.innerHeight ||
+        document.documentElement.clientHeight ||
+        document.body.clientHeight;
+
+      const leftPercent = (parseInt(floatingDiv.style.left) / width) * 100;
+      const topPercent = (parseInt(floatingDiv.style.top) / height) * 100;
+
+      floatingDiv.style.left = `${leftPercent}%`;
+      floatingDiv.style.top = `${topPercent}%`;
       isDragging = false;
     });
   }
@@ -329,7 +366,7 @@ class Recorder {
       notifyMessage.message = stmt.elementLocator.element;
     } else if (stmt instanceof ZestStatementElementSendKeys) {
       notifyMessage.title = 'Send Keys';
-      notifyMessage.message = stmt.elementLocator.element;
+      notifyMessage.message = `${stmt.elementLocator.element}: ${stmt.keys}`;
     } else if (stmt instanceof ZestStatementLaunchBrowser) {
       notifyMessage.title = 'Launch Browser';
       notifyMessage.message = stmt.browserType;
@@ -351,8 +388,10 @@ class Recorder {
     this.isNotificationRaised = true;
     const messageElement = document.createElement('p');
     messageElement.textContent = `${notifyMessage.title}: ${notifyMessage.message}`;
+    messageElement.style.all = 'initial';
     messageElement.style.fontSize = '20px';
     messageElement.style.zIndex = '999999';
+    messageElement.style.fontFamily = 'Roboto';
 
     const existingChildElements = Array.from(floatingDiv.children || []);
 

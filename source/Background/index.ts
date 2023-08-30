@@ -192,74 +192,93 @@ async function handleMessage(
   console.log(encodeURIComponent(zapkey));
   console.log(`Type: ${request.type}`);
   console.log(`Data: ${request.data}`);
-
-  if (request.type === REPORT_OBJECT) {
-    const repObj = JSON.parse(request.data);
-    if (repObj.type === LOCAL_STORAGE || repObj.type === SESSION_STORAGE) {
-      // Check to see if we have already reported this storage object
-      const repStorage = new ReportedStorage('', '', '', '', '');
-      Object.assign(repStorage, repObj);
-      const repStorStr: string = repStorage.toShortString();
-      if (reportedStorage.has(repStorStr)) {
-        // Already reported
-        return true;
+  switch (request.type) {
+    case REPORT_OBJECT: {
+      const repObj = JSON.parse(request.data);
+      if (repObj.type === LOCAL_STORAGE || repObj.type === SESSION_STORAGE) {
+        const repStorage = new ReportedStorage('', '', '', '', '');
+        Object.assign(repStorage, repObj);
+        const repStorStr = repStorage.toShortString();
+        if (reportedStorage.has(repStorStr)) {
+          return true;
+        }
+        reportedStorage.add(repStorStr);
       }
-      reportedStorage.add(repStorStr);
-    }
-    const body = `objectJson=${encodeURIComponent(
-      request.data
-    )}&apikey=${encodeURIComponent(zapkey)}`;
-    console.log(`body = ${body}`);
-    fetch(zapApiUrl(zapurl, REPORT_OBJECT), {
-      method: 'POST',
-      body,
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-    });
-  } else if (request.type === REPORT_EVENT) {
-    const body = `eventJson=${encodeURIComponent(
-      request.data
-    )}&apikey=${encodeURIComponent(zapkey)}`;
-    console.log(`body = ${body}`);
-    fetch(zapApiUrl(zapurl, REPORT_EVENT), {
-      method: 'POST',
-      body,
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-    });
-  } else if (request.type === ZEST_SCRIPT) {
-    const stmt = JSON.parse(request.data);
-    if (stmt.elementType === ZEST_CLIENT_ELEMENT_SEND_KEYS) {
-      console.log(stmt);
-      stmt.elementType = ZEST_CLIENT_ELEMENT_CLEAR;
-      delete stmt.value;
-      const cleardata = zestScript.addStatement(JSON.stringify(stmt));
-      sendZestScriptToZAP(cleardata, zapkey, zapurl);
-    }
-    const data = zestScript.addStatement(request.data);
-    sendZestScriptToZAP(data, zapkey, zapurl);
-  } else if (request.type === SAVE_ZEST_SCRIPT) {
-    return zestScript.getZestScript();
-  } else if (request.type === RESET_ZEST_SCRIPT) {
-    zestScript.reset();
-  } else if (request.type === STOP_RECORDING) {
-    if (zestScript.getZestStatementCount() > 0) {
-      const {zapclosewindowhandle} = await Browser.storage.sync.get({
-        zapclosewindowhandle: false,
+      const repObjBody = `objectJson=${encodeURIComponent(
+        request.data
+      )}&apikey=${encodeURIComponent(zapkey)}`;
+      console.log(`body = ${repObjBody}`);
+      fetch(zapApiUrl(zapurl, REPORT_OBJECT), {
+        method: 'POST',
+        body: repObjBody,
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
       });
-      if (zapclosewindowhandle) {
-        const stmt = new ZestStatementWindowClose(0);
-        const data = zestScript.addStatement(stmt.toJSON());
-        sendZestScriptToZAP(data, zapkey, zapurl);
-      }
+      break;
     }
-  } else if (request.type === SET_SAVE_SCRIPT_ENABLE) {
-    Browser.storage.sync.set({
-      zapenablesavescript: zestScript.getZestStatementCount() > 0,
-    });
+
+    case REPORT_EVENT: {
+      const eventBody = `eventJson=${encodeURIComponent(
+        request.data
+      )}&apikey=${encodeURIComponent(zapkey)}`;
+      console.log(`body = ${eventBody}`);
+      fetch(zapApiUrl(zapurl, REPORT_EVENT), {
+        method: 'POST',
+        body: eventBody,
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      });
+      break;
+    }
+
+    case ZEST_SCRIPT: {
+      const stmt = JSON.parse(request.data);
+      if (stmt.elementType === ZEST_CLIENT_ELEMENT_SEND_KEYS) {
+        console.log(stmt);
+        stmt.elementType = ZEST_CLIENT_ELEMENT_CLEAR;
+        delete stmt.value;
+        const cleardata = zestScript.addStatement(JSON.stringify(stmt));
+        sendZestScriptToZAP(cleardata, zapkey, zapurl);
+      }
+      const data = zestScript.addStatement(request.data);
+      sendZestScriptToZAP(data, zapkey, zapurl);
+      break;
+    }
+
+    case SAVE_ZEST_SCRIPT:
+      return zestScript.getZestScript();
+
+    case RESET_ZEST_SCRIPT:
+      zestScript.reset();
+      break;
+
+    case STOP_RECORDING: {
+      if (zestScript.getZestStatementCount() > 0) {
+        const {zapclosewindowhandle} = await Browser.storage.sync.get({
+          zapclosewindowhandle: false,
+        });
+        if (zapclosewindowhandle) {
+          const stmt = new ZestStatementWindowClose(0);
+          const data = zestScript.addStatement(stmt.toJSON());
+          sendZestScriptToZAP(data, zapkey, zapurl);
+        }
+      }
+      break;
+    }
+
+    case SET_SAVE_SCRIPT_ENABLE:
+      Browser.storage.sync.set({
+        zapenablesavescript: zestScript.getZestStatementCount() > 0,
+      });
+      break;
+
+    default:
+      // Handle unknown request type
+      break;
   }
+
   return true;
 }
 
