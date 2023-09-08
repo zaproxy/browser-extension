@@ -387,6 +387,7 @@ class Recorder {
 
     this.isNotificationRaised = true;
     const messageElement = document.createElement('p');
+    messageElement.className = 'ZapfloatingDivElements';
     messageElement.textContent = `${notifyMessage.title}: ${notifyMessage.message}`;
     messageElement.style.all = 'initial';
     messageElement.style.fontSize = '20px';
