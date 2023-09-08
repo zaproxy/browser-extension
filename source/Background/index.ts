@@ -158,11 +158,11 @@ function sendZestScriptToZAP(
   zapkey: string,
   zapurl: string
 ): void {
-  const body = `scriptJson=${encodeURIComponent(
+  const body = `statementJson=${encodeURIComponent(
     data
   )}&apikey=${encodeURIComponent(zapkey)}`;
   console.log(`body = ${body}`);
-  fetch(zapApiUrl(zapurl, 'reportZestScript'), {
+  fetch(zapApiUrl(zapurl, 'reportZestStatement'), {
     method: 'POST',
     body,
     headers: {
