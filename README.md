@@ -8,6 +8,11 @@ Initially generated from https://github.com/abhijithvijayan/web-extension-starte
 
 Only Firefox and Chrome have been tested - Opera may or may not work :wink:
 
+The latest published extensions are also available via the relevant stores:
+
+* Firefox [ZAP Browser Extension](https://addons.mozilla.org/en-GB/firefox/addon/zap-browser-extension/)
+* Chrome [ZAP Browser Extension](https://chrome.google.com/webstore/detail/zap-browser-extension/oeadiegekjdlhpooeidmimgnmbfllehp)
+
 ## Quick Start
 
 Ensure you have
