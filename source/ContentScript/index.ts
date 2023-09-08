@@ -265,8 +265,8 @@ Browser.runtime.onMessage.addListener(
   (message: MessageEvent, _sender: Runtime.MessageSender) => {
     if (message.type === ZAP_START_RECORDING) {
       configureExtension();
-      recorder.initializationScript();
       recorder.recordUserInteractions();
+      recorder.initializationScript();
     } else if (message.type === ZAP_STOP_RECORDING) {
       recorder.stopRecordingUserInteractions();
     }

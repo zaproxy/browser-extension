@@ -42,7 +42,10 @@ class Recorder {
 
   floatingWindowInserted = false;
 
+  isNotificationRaised = false;
+
   async sendZestScriptToZAP(zestStatement: ZestStatement): Promise<number> {
+    this.notify(zestStatement);
     return Browser.runtime.sendMessage({
       type: ZEST_SCRIPT,
       data: zestStatement.toJSON(),
@@ -349,6 +352,69 @@ class Recorder {
       floatingDiv.style.left = `${leftPercent}%`;
       floatingDiv.style.top = `${topPercent}%`;
       isDragging = false;
+    });
+  }
+
+  async notify(stmt: ZestStatement): Promise<void> {
+    const notifyMessage = {
+      title: '',
+      message: '',
+    };
+
+    if (stmt instanceof ZestStatementElementClick) {
+      notifyMessage.title = 'Click';
+      notifyMessage.message = stmt.elementLocator.element;
+    } else if (stmt instanceof ZestStatementElementSendKeys) {
+      notifyMessage.title = 'Send Keys';
+      notifyMessage.message = `${stmt.elementLocator.element}: ${stmt.keys}`;
+    } else if (stmt instanceof ZestStatementLaunchBrowser) {
+      notifyMessage.title = 'Launch Browser';
+      notifyMessage.message = stmt.browserType;
+    } else if (stmt instanceof ZestStatementSwitchToFrame) {
+      notifyMessage.title = 'Switch To Frame';
+      notifyMessage.message = stmt.frameIndex.toString();
+    }
+
+    // wait for previous notification to be removed
+    if (this.isNotificationRaised) {
+      await this.waitForNotificationToClear();
+    }
+    const floatingDiv = document.getElementById('ZapfloatingDiv');
+    if (!floatingDiv) {
+      console.log('Floating Div Not Found !');
+      return;
+    }
+
+    this.isNotificationRaised = true;
+    const messageElement = document.createElement('p');
+    messageElement.className = 'ZapfloatingDivElements';
+    messageElement.textContent = `${notifyMessage.title}: ${notifyMessage.message}`;
+    messageElement.style.all = 'initial';
+    messageElement.style.fontSize = '20px';
+    messageElement.style.zIndex = '999999';
+    messageElement.style.fontFamily = 'Roboto';
+
+    const existingChildElements = Array.from(floatingDiv.children || []);
+
+    floatingDiv.innerHTML = '';
+
+    floatingDiv.appendChild(messageElement);
+
+    setTimeout(() => {
+      floatingDiv.removeChild(messageElement);
+      existingChildElements.forEach((child) => floatingDiv.appendChild(child));
+      this.isNotificationRaised = false;
+    }, 1000);
+  }
+
+  waitForNotificationToClear(): Promise<number> {
+    return new Promise((resolve) => {
+      const checkInterval = setInterval(() => {
+        if (!this.isNotificationRaised) {
+          clearInterval(checkInterval);
+          resolve(1);
+        }
+      }, 100);
     });
   }
 }
