@@ -47,8 +47,9 @@ function reportStorage(
   storage: Storage,
   fn: (re: ReportedStorage) => void
 ): void {
+  const url = window.location.href;
   for (const key of Object.keys(storage)) {
-    fn(new ReportedStorage(name, '', key, '', storage.getItem(key)));
+    fn(new ReportedStorage(name, '', key, '', storage.getItem(key), url));
   }
 }
 
@@ -131,8 +132,9 @@ function reportPageForms(
   doc: Document,
   fn: (re: ReportedObject) => void
 ): void {
+  const url = window.location.href;
   Array.prototype.forEach.call(doc.forms, (form: HTMLFormElement) => {
-    fn(new ReportedElement(form));
+    fn(new ReportedElement(form, url));
   });
 }
 
@@ -140,10 +142,11 @@ function reportPageLinks(
   doc: Document,
   fn: (re: ReportedObject) => void
 ): void {
+  const url = window.location.href;
   Array.prototype.forEach.call(
     doc.links,
     (link: HTMLAnchorElement | HTMLAreaElement) => {
-      fn(new ReportedElement(link));
+      fn(new ReportedElement(link, url));
     }
   );
 }
@@ -152,8 +155,9 @@ function reportElements(
   collection: HTMLCollection,
   fn: (re: ReportedObject) => void
 ): void {
+  const url = window.location.href;
   Array.prototype.forEach.call(collection, (element: Element) => {
-    fn(new ReportedElement(element));
+    fn(new ReportedElement(element, url));
   });
 }
 
