@@ -47,7 +47,8 @@ test('ReportedObject toString as expected', () => {
     'b',
     'c',
     'd',
-    'e'
+    'e',
+    'http://localhost/'
   );
 
   // Then
@@ -59,7 +60,10 @@ test('ReportedObject toString as expected', () => {
 test('ReportedElement P toString as expected', () => {
   // Given / When
   const el: Element = document.createElement('p');
-  const ro: src.ReportedElement = new src.ReportedElement(el);
+  const ro: src.ReportedElement = new src.ReportedElement(
+    el,
+    'http://localhost/'
+  );
 
   // Then
   expect(ro.toNonTimestampString()).toBe(
@@ -73,7 +77,10 @@ test('ReportedElement A toString as expected', () => {
   const linkText = document.createTextNode('Title');
   a.appendChild(linkText);
   a.setAttribute('href', 'https://example.com');
-  const ro: src.ReportedElement = new src.ReportedElement(a);
+  const ro: src.ReportedElement = new src.ReportedElement(
+    a,
+    'http://localhost/'
+  );
 
   // Then
   expect(ro.toNonTimestampString()).toBe(
