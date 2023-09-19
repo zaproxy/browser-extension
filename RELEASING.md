@@ -3,5 +3,8 @@
 1. Update the version in `package.json` and `source/manifest.json`
 1. Update `CHANGELOG.md` with the new version
 1. Submit a PR with the above changes
+1. Once the PR has been merged
+  1. Tag the release e.g. `git tag -a v0.0.x -m "Release v0.0.x`
+  1. Push the tag e.g. `git push upstream v0.0.x`
 1. Run `yarn run build`
 1. Upload the extensions to Firefox Add-Ons and the Chrome Web Store
