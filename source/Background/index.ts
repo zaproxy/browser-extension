@@ -196,7 +196,7 @@ async function handleMessage(
     case REPORT_OBJECT: {
       const repObj = JSON.parse(request.data);
       if (repObj.type === LOCAL_STORAGE || repObj.type === SESSION_STORAGE) {
-        const repStorage = new ReportedStorage('', '', '', '', '');
+        const repStorage = new ReportedStorage('', '', '', '', '', '');
         Object.assign(repStorage, repObj);
         const repStorStr = repStorage.toShortString();
         if (reportedStorage.has(repStorStr)) {

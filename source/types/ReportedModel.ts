@@ -42,7 +42,7 @@ class ReportedObject {
     id: string,
     nodeName: string,
     text: string | null,
-    url: string = window.location.href
+    url: string
   ) {
     this.timestamp = Date.now();
     this.type = type;
@@ -96,13 +96,14 @@ class ReportedStorage extends ReportedObject {
 }
 
 class ReportedElement extends ReportedObject {
-  public constructor(element: Element) {
+  public constructor(element: Element, url: string) {
     super(
       'nodeAdded',
       element.tagName,
       element.id,
       element.nodeName,
-      element.textContent
+      element.textContent,
+      url
     );
     if (element.tagName === 'A') {
       // This gets the full URL rather than a relative one

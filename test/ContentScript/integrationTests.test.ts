@@ -66,7 +66,6 @@ function integrationTests(
     // Then
     const expectedData =
       '["{\\"action\\":{\\"action\\":\\"reportEvent\\"},\\"body\\":{\\"eventJson\\":\\"{TIMESTAMP,\\"eventName\\":\\"pageLoad\\",\\"url\\":\\"http://localhost:1801/webpages/integrationTest.html\\",\\"count\\":1}\\",\\"apikey\\":\\"not set\\"}}","{\\"action\\":{\\"action\\":\\"reportObject\\"},\\"body\\":{\\"objectJson\\":\\"{TIMESTAMP,\\"type\\":\\"nodeAdded\\",\\"tagName\\":\\"A\\",\\"id\\":\\"\\",\\"nodeName\\":\\"A\\",\\"url\\":\\"http://localhost:1801/webpages/integrationTest.html\\",\\"href\\":\\"http://localhost:1801/webpages/integrationTest.html#test\\",\\"text\\":\\"Link\\"}\\",\\"apikey\\":\\"not set\\"}}","{\\"action\\":{\\"action\\":\\"reportObject\\"},\\"body\\":{\\"objectJson\\":\\"{TIMESTAMP,\\"type\\":\\"localStorage\\",\\"tagName\\":\\"\\",\\"id\\":\\"localzapurl\\",\\"nodeName\\":\\"\\",\\"url\\":\\"http://localhost:1801/webpages/integrationTest.html\\",\\"text\\":\\"http://localhost:8080/\\"}\\",\\"apikey\\":\\"not set\\"}}","{\\"action\\":{\\"action\\":\\"reportObject\\"},\\"body\\":{\\"objectJson\\":\\"{TIMESTAMP,\\"type\\":\\"localStorage\\",\\"tagName\\":\\"\\",\\"id\\":\\"localzapenable\\",\\"nodeName\\":\\"\\",\\"url\\":\\"http://localhost:1801/webpages/integrationTest.html\\",\\"text\\":\\"true\\"}\\",\\"apikey\\":\\"not set\\"}}"]';
-
     expect(JSON.stringify(Array.from(actualData))).toBe(expectedData);
   });
 
@@ -122,7 +121,9 @@ function integrationTests(
       await page.close();
       // Then
       const expectedData =
-        '["{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"input-1\\",\\"index\\":1,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementClear\\"}\\",\\"apikey\\":\\"not set\\"}}","{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"value\\":\\"testinput\\",\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"input-1\\",\\"index\\":2,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementSendKeys\\"}\\",\\"apikey\\":\\"not set\\"}}","{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"click\\",\\"index\\":3,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementClick\\"}\\",\\"apikey\\":\\"not set\\"}}"]';
+        '["{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"input-1\\",\\"index\\":1,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementClear\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
+        '"{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"value\\":\\"testinput\\",\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"input-1\\",\\"index\\":2,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementSendKeys\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
+        '"{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"click\\",\\"index\\":3,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementClick\\"}\\",\\"apikey\\":\\"not set\\"}}"]';
       expect(JSON.stringify(Array.from(actualData))).toBe(expectedData);
     });
 
@@ -190,7 +191,10 @@ function integrationTests(
       await page.close();
       // Then
       const expectedData =
-        '["{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"input-1\\",\\"index\\":1,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementClear\\"}\\",\\"apikey\\":\\"not set\\"}}","{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"value\\":\\"testinput\\",\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"input-1\\",\\"index\\":2,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementSendKeys\\"}\\",\\"apikey\\":\\"not set\\"}}","{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"click\\",\\"index\\":3,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementClick\\"}\\",\\"apikey\\":\\"not set\\"}}","{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"index\\":4,\\"sleepInSeconds\\":0,\\"enabled\\":true,\\"elementType\\":\\"ZestClientWindowClose\\"}\\",\\"apikey\\":\\"not set\\"}}"]';
+        '["{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"input-1\\",\\"index\\":1,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementClear\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
+        '"{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"value\\":\\"testinput\\",\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"input-1\\",\\"index\\":2,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementSendKeys\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
+        '"{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"click\\",\\"index\\":3,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementClick\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
+        '"{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"index\\":4,\\"sleepInSeconds\\":0,\\"enabled\\":true,\\"elementType\\":\\"ZestClientWindowClose\\"}\\",\\"apikey\\":\\"not set\\"}}"]';
       expect(JSON.stringify(Array.from(actualData))).toBe(expectedData);
     });
 
@@ -212,7 +216,10 @@ function integrationTests(
       await page.close();
       // Then
       const expectedData =
-        '["{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"input-1\\",\\"index\\":1,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementClear\\"}\\",\\"apikey\\":\\"not set\\"}}","{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"value\\":\\"testinput\\",\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"input-1\\",\\"index\\":2,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementSendKeys\\"}\\",\\"apikey\\":\\"not set\\"}}","{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"click\\",\\"index\\":3,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementClick\\"}\\",\\"apikey\\":\\"not set\\"}}","{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"index\\":4,\\"sleepInSeconds\\":0,\\"enabled\\":true,\\"elementType\\":\\"ZestClientWindowClose\\"}\\",\\"apikey\\":\\"not set\\"}}"]';
+        '["{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"input-1\\",\\"index\\":1,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementClear\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
+        '"{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"value\\":\\"testinput\\",\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"input-1\\",\\"index\\":2,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementSendKeys\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
+        '"{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"click\\",\\"index\\":3,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementClick\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
+        '"{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"index\\":4,\\"sleepInSeconds\\":0,\\"enabled\\":true,\\"elementType\\":\\"ZestClientWindowClose\\"}\\",\\"apikey\\":\\"not set\\"}}"]';
       expect(JSON.stringify(Array.from(actualData))).toBe(expectedData);
     });
 
@@ -258,7 +265,8 @@ function integrationTests(
       await page.close();
       // Then
       expect(JSON.stringify(Array.from(actualData))).toBe(
-        '["{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"frameIndex\\":0,\\"frameName\\":\\"\\",\\"parent\\":false,\\"index\\":1,\\"enabled\\":true,\\"elementType\\":\\"ZestClientSwitchToFrame\\"}\\",\\"apikey\\":\\"not set\\"}}","{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"test-btn\\",\\"index\\":2,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementClick\\"}\\",\\"apikey\\":\\"not set\\"}}"]'
+        '["{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"frameIndex\\":0,\\"frameName\\":\\"\\",\\"parent\\":false,\\"index\\":1,\\"enabled\\":true,\\"elementType\\":\\"ZestClientSwitchToFrame\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
+          '"{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"test-btn\\",\\"index\\":2,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementClick\\"}\\",\\"apikey\\":\\"not set\\"}}"]'
       );
     });
 
@@ -277,6 +285,42 @@ function integrationTests(
       await page.close();
       // Then
       expect(JSON.stringify(Array.from(actualData))).toBe('[]');
+    });
+
+    test('Should record set localStorage', async () => {
+      // Given / When
+      server = getFakeZapServer(actualData, _JSONPORT);
+      const context = await driver.getContext(_JSONPORT);
+      const page = await context.newPage();
+      await page.goto(
+        `http://localhost:${_HTTPPORT}/webpages/localStorage.html`
+      );
+      await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(1000);
+      await page.close();
+      // Then
+      const expectedData =
+        '["{\\"action\\":{\\"action\\":\\"reportEvent\\"},\\"body\\":{\\"eventJson\\":\\"{TIMESTAMP,\\"eventName\\":\\"pageLoad\\",\\"url\\":\\"http://localhost:1801/webpages/localStorage.html\\",\\"count\\":1}\\",\\"apikey\\":\\"not set\\"}}",' +
+        '"{\\"action\\":{\\"action\\":\\"reportObject\\"},\\"body\\":{\\"objectJson\\":\\"{TIMESTAMP,\\"type\\":\\"localStorage\\",\\"tagName\\":\\"\\",\\"id\\":\\"test\\",\\"nodeName\\":\\"\\",\\"url\\":\\"http://localhost:1801/webpages/localStorage.html\\",\\"text\\":\\"localData\\"}\\",\\"apikey\\":\\"not set\\"}}"]';
+      expect(JSON.stringify(Array.from(actualData))).toBe(expectedData);
+    });
+
+    test('Should record set sessionStorage', async () => {
+      // Given / When
+      server = getFakeZapServer(actualData, _JSONPORT);
+      const context = await driver.getContext(_JSONPORT);
+      const page = await context.newPage();
+      await page.goto(
+        `http://localhost:${_HTTPPORT}/webpages/sessionStorage.html`
+      );
+      await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(1000);
+      await page.close();
+      // Then
+      const expectedData =
+        '["{\\"action\\":{\\"action\\":\\"reportEvent\\"},\\"body\\":{\\"eventJson\\":\\"{TIMESTAMP,\\"eventName\\":\\"pageLoad\\",\\"url\\":\\"http://localhost:1801/webpages/sessionStorage.html\\",\\"count\\":1}\\",\\"apikey\\":\\"not set\\"}}",' +
+        '"{\\"action\\":{\\"action\\":\\"reportObject\\"},\\"body\\":{\\"objectJson\\":\\"{TIMESTAMP,\\"type\\":\\"sessionStorage\\",\\"tagName\\":\\"\\",\\"id\\":\\"test\\",\\"nodeName\\":\\"\\",\\"url\\":\\"http://localhost:1801/webpages/sessionStorage.html\\",\\"text\\":\\"sessionData\\"}\\",\\"apikey\\":\\"not set\\"}}"]';
+      expect(JSON.stringify(Array.from(actualData))).toBe(expectedData);
     });
   }
 }
