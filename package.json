@@ -1,6 +1,6 @@
 {
   "name": "zap-extension",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "ZAP Browser Extension - allows ZAP to interact directly with the browser.",
   "private": true,
   "repository": "https://github.com/zaproxy/browser-extension/",
