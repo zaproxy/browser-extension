@@ -303,7 +303,7 @@ function cookieChangeHandler(
 ): void {
   Browser.storage.sync
     .get({
-      zapurl: 'http://localhost:8080/',
+      zapurl: 'http://zap/',
       zapkey: 'not set',
     })
     .then((items) => {
@@ -321,7 +321,7 @@ Browser.runtime.onMessage.addListener(onMessageHandler);
 Browser.runtime.onInstalled.addListener((): void => {
   console.emoji('🦄', 'extension installed');
   Browser.storage.sync.set({
-    zapurl: 'http://localhost:8080/',
+    zapurl: 'http://zap/',
     zapkey: 'not set',
   });
 });
