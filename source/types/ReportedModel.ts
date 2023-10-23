@@ -113,6 +113,16 @@ class ReportedElement extends ReportedObject {
       this.href = element.getAttribute('href');
     }
   }
+
+  public toShortString(): string {
+    return JSON.stringify(this, function replacer(k: string, v: string) {
+      if (k === 'timestamp') {
+        // No point reporting the same element lots of times
+        return undefined;
+      }
+      return v;
+    });
+  }
 }
 
 class ReportedEvent {
