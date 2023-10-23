@@ -17,7 +17,7 @@ The latest published extensions are also available via the relevant stores:
 
 Ensure you have
 
-- [Node.js](https://nodejs.org) 10 or later installed
+- [Node.js](https://nodejs.org) 16 or later installed
 - [Yarn](https://yarnpkg.com) v1 or v2 installed
 
 Then run the following:
