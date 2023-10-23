@@ -30,11 +30,11 @@ function integrationTests(
 ): void {
   let server: http.Server;
   let httpServer: http.Server;
-  const actualData = new Set<string>();
+  const actualData = new Array<string>();
   let driver: ChromeDriver | FirefoxDriver;
 
   beforeEach(async () => {
-    actualData.clear();
+    actualData.length = 0;
     if (browserName === BROWSERNAME.FIREFOX) {
       driver = new FirefoxDriver();
     } else {
@@ -54,7 +54,7 @@ function integrationTests(
 
   test('Should load extension into browser', async () => {
     // Given / When
-    server = getFakeZapServer(actualData, _JSONPORT);
+    server = getFakeZapServer(actualData, _JSONPORT, true);
     const context = await driver.getContext(_JSONPORT);
     const page = await context.newPage();
     await page.goto(
@@ -289,7 +289,7 @@ function integrationTests(
 
     test('Should record set localStorage', async () => {
       // Given / When
-      server = getFakeZapServer(actualData, _JSONPORT);
+      server = getFakeZapServer(actualData, _JSONPORT, true);
       const context = await driver.getContext(_JSONPORT);
       const page = await context.newPage();
       await page.goto(
@@ -320,6 +320,39 @@ function integrationTests(
       const expectedData =
         '["{\\"action\\":{\\"action\\":\\"reportEvent\\"},\\"body\\":{\\"eventJson\\":\\"{TIMESTAMP,\\"eventName\\":\\"pageLoad\\",\\"url\\":\\"http://localhost:1801/webpages/sessionStorage.html\\",\\"count\\":1}\\",\\"apikey\\":\\"not set\\"}}",' +
         '"{\\"action\\":{\\"action\\":\\"reportObject\\"},\\"body\\":{\\"objectJson\\":\\"{TIMESTAMP,\\"type\\":\\"sessionStorage\\",\\"tagName\\":\\"\\",\\"id\\":\\"test\\",\\"nodeName\\":\\"\\",\\"url\\":\\"http://localhost:1801/webpages/sessionStorage.html\\",\\"text\\":\\"sessionData\\"}\\",\\"apikey\\":\\"not set\\"}}"]';
+      expect(JSON.stringify(Array.from(actualData))).toBe(expectedData);
+    });
+
+    test('Should record dup added link once ', async () => {
+      // Given / When
+      server = getFakeZapServer(actualData, _JSONPORT);
+      const context = await driver.getContext(_JSONPORT);
+      const page = await context.newPage();
+      await page.goto(
+        `http://localhost:${_HTTPPORT}/webpages/integrationTest.html`
+      );
+      await page.waitForLoadState('networkidle');
+
+      await page.evaluate(() => {
+        // eslint-disable-next-line func-names
+        const addLink = function (): void {
+          const aTag = document.createElement('a');
+          aTag.innerHTML = 'Test link';
+          aTag.href = 'https://www.example.com';
+          aTag.title = 'Test link';
+          document.body.appendChild(aTag);
+        };
+        addLink();
+        addLink();
+      });
+      await page.waitForTimeout(1000);
+      await page.close();
+      // Then
+      const expectedData =
+        '["{\\"action\\":{\\"action\\":\\"reportEvent\\"},\\"body\\":{\\"eventJson\\":\\"{TIMESTAMP,\\"eventName\\":\\"pageLoad\\",\\"url\\":\\"http://localhost:1801/webpages/integrationTest.html\\",\\"count\\":1}\\",\\"apikey\\":\\"not set\\"}}",' +
+        '"{\\"action\\":{\\"action\\":\\"reportObject\\"},\\"body\\":{\\"objectJson\\":\\"{TIMESTAMP,\\"type\\":\\"nodeAdded\\",\\"tagName\\":\\"A\\",\\"id\\":\\"\\",\\"nodeName\\":\\"A\\",\\"url\\":\\"http://localhost:1801/webpages/integrationTest.html\\",\\"href\\":\\"http://localhost:1801/webpages/integrationTest.html#test\\",\\"text\\":\\"Link\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
+        '"{\\"action\\":{\\"action\\":\\"reportEvent\\"},\\"body\\":{\\"eventJson\\":\\"{TIMESTAMP,\\"eventName\\":\\"domMutation\\",\\"url\\":\\"http://localhost:1801/webpages/integrationTest.html\\",\\"count\\":1}\\",\\"apikey\\":\\"not set\\"}}",' +
+        '"{\\"action\\":{\\"action\\":\\"reportObject\\"},\\"body\\":{\\"objectJson\\":\\"{TIMESTAMP,\\"type\\":\\"nodeAdded\\",\\"tagName\\":\\"A\\",\\"id\\":\\"\\",\\"nodeName\\":\\"A\\",\\"url\\":\\"http://localhost:1801/webpages/integrationTest.html\\",\\"href\\":\\"https://www.example.com/\\",\\"text\\":\\"Test link\\"}\\",\\"apikey\\":\\"not set\\"}}"]';
       expect(JSON.stringify(Array.from(actualData))).toBe(expectedData);
     });
   }
