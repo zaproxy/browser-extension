@@ -300,9 +300,8 @@ function integrationTests(
       await page.close();
       // Then
       const expectedData =
-        '["{\\"action\\":{\\"action\\":\\"reportEvent\\"},\\"body\\":{\\"eventJson\\":\\"{TIMESTAMP,\\"eventName\\":\\"pageLoad\\",\\"url\\":\\"http://localhost:1801/webpages/localStorage.html\\",\\"count\\":1}\\",\\"apikey\\":\\"not set\\"}}",' +
-        '"{\\"action\\":{\\"action\\":\\"reportObject\\"},\\"body\\":{\\"objectJson\\":\\"{TIMESTAMP,\\"type\\":\\"localStorage\\",\\"tagName\\":\\"\\",\\"id\\":\\"test\\",\\"nodeName\\":\\"\\",\\"url\\":\\"http://localhost:1801/webpages/localStorage.html\\",\\"text\\":\\"localData\\"}\\",\\"apikey\\":\\"not set\\"}}"]';
-      expect(JSON.stringify(Array.from(actualData))).toBe(expectedData);
+        '"{\\"action\\":{\\"action\\":\\"reportObject\\"},\\"body\\":{\\"objectJson\\":\\"{TIMESTAMP,\\"type\\":\\"localStorage\\",\\"tagName\\":\\"\\",\\"id\\":\\"test\\",\\"nodeName\\":\\"\\",\\"url\\":\\"http://localhost:1801/webpages/localStorage.html\\",\\"text\\":\\"localData\\"}\\",\\"apikey\\":\\"not set\\"}}"';
+      expect(JSON.stringify(Array.from(actualData))).toContain(expectedData);
     });
 
     test('Should record set sessionStorage', async () => {
@@ -318,9 +317,44 @@ function integrationTests(
       await page.close();
       // Then
       const expectedData =
-        '["{\\"action\\":{\\"action\\":\\"reportEvent\\"},\\"body\\":{\\"eventJson\\":\\"{TIMESTAMP,\\"eventName\\":\\"pageLoad\\",\\"url\\":\\"http://localhost:1801/webpages/sessionStorage.html\\",\\"count\\":1}\\",\\"apikey\\":\\"not set\\"}}",' +
-        '"{\\"action\\":{\\"action\\":\\"reportObject\\"},\\"body\\":{\\"objectJson\\":\\"{TIMESTAMP,\\"type\\":\\"sessionStorage\\",\\"tagName\\":\\"\\",\\"id\\":\\"test\\",\\"nodeName\\":\\"\\",\\"url\\":\\"http://localhost:1801/webpages/sessionStorage.html\\",\\"text\\":\\"sessionData\\"}\\",\\"apikey\\":\\"not set\\"}}"]';
-      expect(JSON.stringify(Array.from(actualData))).toBe(expectedData);
+        '"{\\"action\\":{\\"action\\":\\"reportObject\\"},\\"body\\":{\\"objectJson\\":\\"{TIMESTAMP,\\"type\\":\\"sessionStorage\\",\\"tagName\\":\\"\\",\\"id\\":\\"test\\",\\"nodeName\\":\\"\\",\\"url\\":\\"http://localhost:1801/webpages/sessionStorage.html\\",\\"text\\":\\"sessionData\\"}\\",\\"apikey\\":\\"not set\\"}}"';
+      expect(JSON.stringify(Array.from(actualData))).toContain(expectedData);
+    });
+
+    test('Should record set localStorage with page open', async () => {
+      // Given / When
+      server = getFakeZapServer(actualData, _JSONPORT, true);
+      const context = await driver.getContext(_JSONPORT);
+      const page = await context.newPage();
+      await page.goto(
+        `http://localhost:${_HTTPPORT}/webpages/localStorageDelay.html`
+      );
+      await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(2000);
+      // Then
+      const expectedData =
+        '"{\\"action\\":{\\"action\\":\\"reportObject\\"},\\"body\\":{\\"objectJson\\":\\"{TIMESTAMP,\\"type\\":\\"localStorage\\",\\"tagName\\":\\"\\",\\"id\\":\\"test\\",\\"nodeName\\":\\"\\",\\"url\\":\\"http://localhost:1801/webpages/localStorageDelay.html\\",\\"text\\":\\"localData\\"}\\",\\"apikey\\":\\"not set\\"}}"';
+      expect(JSON.stringify(Array.from(actualData))).toContain(expectedData);
+      // Tidy up
+      await page.close();
+    });
+
+    test('Should record set sessionStorage with page open', async () => {
+      // Given / When
+      server = getFakeZapServer(actualData, _JSONPORT);
+      const context = await driver.getContext(_JSONPORT);
+      const page = await context.newPage();
+      await page.goto(
+        `http://localhost:${_HTTPPORT}/webpages/sessionStorageDelay.html`
+      );
+      await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(2000);
+      // Then
+      const expectedData =
+        '"{\\"action\\":{\\"action\\":\\"reportObject\\"},\\"body\\":{\\"objectJson\\":\\"{TIMESTAMP,\\"type\\":\\"sessionStorage\\",\\"tagName\\":\\"\\",\\"id\\":\\"test\\",\\"nodeName\\":\\"\\",\\"url\\":\\"http://localhost:1801/webpages/sessionStorageDelay.html\\",\\"text\\":\\"sessionData\\"}\\",\\"apikey\\":\\"not set\\"}}"';
+      expect(JSON.stringify(Array.from(actualData))).toContain(expectedData);
+      // Tidy up
+      await page.close();
     });
 
     test('Should record dup added link once ', async () => {

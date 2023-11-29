@@ -234,6 +234,11 @@ function enableExtension(): void {
     subtree: true,
   });
 
+  setInterval(() => {
+    // Have to poll to pickup storage changes in a timely fashion
+    reportAllStorage();
+  }, 500);
+
   // This is needed for more traditional apps
   reportPageLoaded(document, reportObject);
 }

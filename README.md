@@ -30,6 +30,8 @@ Then run the following:
 - `yarn run build:firefox` to build firefox addon
 - `yarn run build:opera` to build opera extension
 - `yarn run build` builds and packs extensions all at once to extension/ directory
+- `yarn run lint` to lint the code
+- `yarn run test` to run the test suite (you should not have anything listening on port 8080)
 
 ### Development
 
