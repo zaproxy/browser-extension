@@ -96,6 +96,10 @@ class ReportedStorage extends ReportedObject {
 }
 
 class ReportedElement extends ReportedObject {
+  public tagType: string | null;
+
+  public formId: number | null;
+
   public constructor(element: Element, url: string) {
     super(
       'nodeAdded',
@@ -109,6 +113,16 @@ class ReportedElement extends ReportedObject {
       // This gets the full URL rather than a relative one
       const a: HTMLAnchorElement = element as HTMLAnchorElement;
       this.href = a.toString();
+    } else if (element.tagName === 'INPUT') {
+      // Capture extra useful info for input elements
+      const input: HTMLInputElement = element as HTMLInputElement;
+      this.tagType = input.type;
+      this.text = input.value;
+      const {form} = input;
+      if (form) {
+        // This will not work if form tags are not used
+        this.formId = Array.prototype.slice.call(document.forms).indexOf(form);
+      }
     } else if (element.hasAttribute('href')) {
       this.href = element.getAttribute('href');
     }
