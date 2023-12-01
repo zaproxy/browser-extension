@@ -25,6 +25,14 @@ It will be bundled in a ZAP add-on - this add-on will add the extension to Firef
 * Firefox: Privacy and Security
 * Chrome: Developer Tools
 
+## Additional Fields
+
+Video: https://www.youtube.com/watch?v=Rq_d7OLmMfw
+
+Homepage: https://github.com/zaproxy/browser-extension
+
+Support URL: https://groups.google.com/group/zaproxy-users
+
 ## Chrome Privacy Practices
 
 ### Single Purpose
@@ -50,3 +58,6 @@ As a security tool it is essential to see and report what is being put in local 
 
 It's a security tool :) We have no idea which sites a security person will want to test.
 
+#### Privacy Policy URL
+
+https://www.zaproxy.org/faq/what-data-does-zap-collect/
