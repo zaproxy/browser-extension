@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "ZAP Browser Extension",
-  "version": "0.0.7",
+  "version": "0.0.8",
 
   "icons": {
     "16": "assets/icons/zap16x16.png",
