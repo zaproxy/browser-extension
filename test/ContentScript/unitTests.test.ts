@@ -200,10 +200,10 @@ test('Report node elements', () => {
   // Then
   expect(mockFn.mock.calls.length).toBe(2);
   expect(mockFn.mock.calls[0][0].toNonTimestampString()).toBe(
-    '{"type":"nodeAdded","tagName":"INPUT","id":"input1","nodeName":"INPUT","url":"http://localhost/","text":""}'
+    '{"type":"nodeAdded","tagName":"INPUT","id":"input1","nodeName":"INPUT","url":"http://localhost/","text":"","tagType":"text","formId":-1}'
   );
   expect(mockFn.mock.calls[1][0].toNonTimestampString()).toBe(
-    '{"type":"nodeAdded","tagName":"INPUT","id":"input2","nodeName":"INPUT","url":"http://localhost/","text":""}'
+    '{"type":"nodeAdded","tagName":"INPUT","id":"input2","nodeName":"INPUT","url":"http://localhost/","text":"","tagType":"text","formId":-1}'
   );
 });
 
@@ -242,9 +242,10 @@ test('Reported page loaded', () => {
     '<!DOCTYPE html><body>' +
       '<a href="https://www.example.com/1">link1</a>' +
       '<form id="form1">FormContent</form>' +
-      '<button id="button1"></button>' +
-      '<input id="input1"></input>' +
-      '<area href="https://www.example.com/1">'
+      '<button id="button1">Button</button>' +
+      '<input id="input1" value="default"/>' +
+      '<area href="https://www.example.com/1">' +
+      '<input id="submit" type="submit" value="Submit"/>'
   );
   const mockFn = jest.fn();
   localStorage.setItem('lsKey', 'value1');
@@ -254,7 +255,7 @@ test('Reported page loaded', () => {
   src.reportPageLoaded(dom.window.document, mockFn);
 
   // Then
-  expect(mockFn.mock.calls.length).toBe(7);
+  expect(mockFn.mock.calls.length).toBe(8);
   expect(mockFn.mock.calls[0][0].toNonTimestampString()).toBe(
     '{"type":"nodeAdded","tagName":"A","id":"","nodeName":"A","url":"http://localhost/","href":"https://www.example.com/1","text":"link1"}'
   );
@@ -265,15 +266,18 @@ test('Reported page loaded', () => {
     '{"type":"nodeAdded","tagName":"FORM","id":"form1","nodeName":"FORM","url":"http://localhost/","text":"FormContent"}'
   );
   expect(mockFn.mock.calls[3][0].toNonTimestampString()).toBe(
-    '{"type":"nodeAdded","tagName":"INPUT","id":"input1","nodeName":"INPUT","url":"http://localhost/","text":""}'
+    '{"type":"nodeAdded","tagName":"INPUT","id":"input1","nodeName":"INPUT","url":"http://localhost/","text":"default","tagType":"text"}'
   );
   expect(mockFn.mock.calls[4][0].toNonTimestampString()).toBe(
-    '{"type":"nodeAdded","tagName":"BUTTON","id":"button1","nodeName":"BUTTON","url":"http://localhost/","text":""}'
+    '{"type":"nodeAdded","tagName":"INPUT","id":"submit","nodeName":"INPUT","url":"http://localhost/","text":"Submit","tagType":"submit"}'
   );
   expect(mockFn.mock.calls[5][0].toNonTimestampString()).toBe(
-    '{"type":"localStorage","tagName":"","id":"lsKey","nodeName":"","url":"http://localhost/","text":"value1"}'
+    '{"type":"nodeAdded","tagName":"BUTTON","id":"button1","nodeName":"BUTTON","url":"http://localhost/","text":"Button"}'
   );
   expect(mockFn.mock.calls[6][0].toNonTimestampString()).toBe(
+    '{"type":"localStorage","tagName":"","id":"lsKey","nodeName":"","url":"http://localhost/","text":"value1"}'
+  );
+  expect(mockFn.mock.calls[7][0].toNonTimestampString()).toBe(
     '{"type":"sessionStorage","tagName":"","id":"ssKey","nodeName":"","url":"http://localhost/","text":"value2"}'
   );
 
