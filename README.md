@@ -2,6 +2,8 @@
 
 A browser extension which allows [ZAP](https://www.zaproxy.org) to interact directly with the browser.
 
+[![ZAP Chat: Modern Apps Part 1](https://img.youtube.com/vi/Rq_d7OLmMfw/0.jpg)](https://www.youtube.com/watch?v=Rq_d7OLmMfw)
+
 Works in both Firefox and Chrome but does not provide any useful functionality unless it is used with ZAP.
 
 Initially generated from https://github.com/abhijithvijayan/web-extension-starter/tree/react-typescript
@@ -32,6 +34,8 @@ Then run the following:
 - `yarn run build` builds and packs extensions all at once to extension/ directory
 - `yarn run lint` to lint the code
 - `yarn run test` to run the test suite (you should not have anything listening on port 8080)
+  - Note that individual tests can be run like `yarn run test -t "Should report forms"`
+
 
 ### Development
 
