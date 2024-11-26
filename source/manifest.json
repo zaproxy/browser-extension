@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "ZAP Browser Extension",
+  "name": "ZAP by Checkmarx Browser Extension",
   "version": "0.0.8",
 
   "icons": {
@@ -12,7 +12,7 @@
   },
   "description": "A browser extension which allows ZAP to access the client side of a web app.",
   "homepage_url": "https://github.com/zaproxy/browser-extension/",
-  "short_name": "ZAP",
+  "short_name": "ZAP by Checkmarx",
 
   "permissions": [
     "tabs",
@@ -51,7 +51,7 @@
       "128": "assets/icons/zap128x128.png",
       "512": "assets/icons/zap512x512.png"
     },
-    "default_title": "ZAP",
+    "default_title": "ZAP by Checkmarx",
     "default_popup": "popup.html",
     "__chrome|opera__chrome_style": false,
     "__firefox__browser_style": false

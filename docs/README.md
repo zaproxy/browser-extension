@@ -7,7 +7,7 @@ This directory contains the information and screenshots used for the browser sto
 
 ## Title
 
-ZAP Browser Extension
+ZAP by Checkmarx Browser Extension
 
 ## Summary
 
@@ -15,7 +15,7 @@ A browser extension which allows ZAP to access the client side of a web app.
 
 ## Description
 
-ZAP is a free OSS security tool which can be used to test the security of your web apps.
+ZAP by Checkmarx is a free OSS security tool which can be used to test the security of your web apps.
 This browser extension will allow ZAP to gather more information about your app from the browser.
 Most users should not install this extension.
 It will be bundled in a ZAP add-on - this add-on will add the extension to Firefox/Chrome when it is launched from ZAP.
