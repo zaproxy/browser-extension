@@ -23,9 +23,11 @@ import {
   ZEST_CLIENT_ELEMENT_CLICK,
   ZEST_CLIENT_ELEMENT_MOUSE_OVER,
   ZEST_CLIENT_ELEMENT_SEND_KEYS,
+  ZEST_CLIENT_ELEMENT_SUBMIT,
   ZEST_CLIENT_LAUNCH,
   ZEST_CLIENT_SWITCH_TO_FRAME,
   ZEST_CLIENT_WINDOW_CLOSE,
+  ZEST_COMMENT,
 } from '../../utils/constants';
 
 class ElementLocator {
@@ -91,6 +93,24 @@ class ZestStatementLaunchBrowser extends ZestStatement {
   }
 }
 
+class ZestComment extends ZestStatement {
+  comment: string;
+
+  constructor(comment: string) {
+    super(ZEST_COMMENT);
+    this.comment = comment;
+  }
+
+  toJSON(): string {
+    return JSON.stringify({
+      index: this.index,
+      enabled: true,
+      elementType: this.elementType,
+      comment: this.comment,
+    });
+  }
+}
+
 abstract class ZestStatementElement extends ZestStatement {
   elementLocator: ElementLocator;
 
@@ -132,6 +152,29 @@ class ZestStatementElementSendKeys extends ZestStatementElement {
   ) {
     super(ZEST_CLIENT_ELEMENT_SEND_KEYS, elementLocator);
     this.keys = keys;
+    this.windowHandle = windowHandle;
+  }
+
+  toJSON(): string {
+    return JSON.stringify({
+      value: this.keys,
+      windowHandle: this.windowHandle,
+      ...this.elementLocator.toJSON(),
+      index: this.index,
+      enabled: true,
+      elementType: this.elementType,
+    });
+  }
+}
+
+class ZestStatementElementSubmit extends ZestStatementElement {
+  keys: string;
+
+  constructor(
+    elementLocator: ElementLocator,
+    windowHandle = DEFAULT_WINDOW_HANDLE
+  ) {
+    super(ZEST_CLIENT_ELEMENT_SUBMIT, elementLocator);
     this.windowHandle = windowHandle;
   }
 
@@ -234,12 +277,14 @@ class ZestStatementElementMouseOver extends ZestStatementElement {
 
 export {
   ElementLocator,
+  ZestComment,
   ZestStatement,
   ZestStatementLaunchBrowser,
   ZestStatementElementMouseOver,
   ZestStatementElementClick,
   ZestStatementSwitchToFrame,
   ZestStatementElementSendKeys,
+  ZestStatementElementSubmit,
   ZestStatementElementClear,
   ZestStatementWindowClose,
 };

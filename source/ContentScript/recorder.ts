@@ -23,6 +23,7 @@ import {
   ZestStatement,
   ZestStatementElementClick,
   ZestStatementElementSendKeys,
+  ZestStatementElementSubmit,
   ZestStatementLaunchBrowser,
   ZestStatementSwitchToFrame,
 } from '../types/zestScript/ZestStatement';
@@ -44,12 +45,34 @@ class Recorder {
 
   isNotificationRaised = false;
 
-  async sendZestScriptToZAP(zestStatement: ZestStatement): Promise<number> {
+  // Enter keydown events often occur before the input change events, so we reorder them if needed
+  cachedSubmit?: ZestStatementElementSubmit;
+
+  // We can get duplicate events for the enter key, this allows us to dedup them
+  cachedTimeStamp = -1;
+
+  async sendZestScriptToZAP(
+    zestStatement: ZestStatement,
+    sendCache = true
+  ): Promise<number> {
+    if (sendCache) {
+      this.handleCachedSubmit();
+    }
+    // console.log('Sending statement', zestStatement);
     this.notify(zestStatement);
     return Browser.runtime.sendMessage({
       type: ZEST_SCRIPT,
       data: zestStatement.toJSON(),
     });
+  }
+
+  handleCachedSubmit(): void {
+    if (this.cachedSubmit) {
+      // console.log('Sending cached submit', this.cachedSubmit);
+      this.sendZestScriptToZAP(this.cachedSubmit, false);
+      delete this.cachedSubmit;
+      this.cachedTimeStamp = -1;
+    }
   }
 
   handleFrameSwitches(level: number, frameIndex: number): void {
@@ -118,12 +141,44 @@ class Recorder {
     this.handleFrameSwitches(level, frame);
     console.log(event, 'change', (event.target as HTMLInputElement).value);
     const elementLocator = getPath(event.target as HTMLElement, element);
+    // Send the keys before a cached submit statement on the same element
+    if (
+      this.cachedSubmit &&
+      this.cachedSubmit.elementLocator.element !== elementLocator.element
+    ) {
+      // The cached submit was not on the same element, so send it
+      this.handleCachedSubmit();
+    }
     this.sendZestScriptToZAP(
       new ZestStatementElementSendKeys(
         elementLocator,
         (event.target as HTMLInputElement).value
-      )
+      ),
+      false
     );
+    // Now send the cached submit, if there still is one
+    this.handleCachedSubmit();
+  }
+
+  handleKeypress(
+    params: {level: number; frame: number; element: Document},
+    event: KeyboardEvent
+  ): void {
+    if (!this.shouldRecord(event.target as HTMLElement)) return;
+    const {element} = params;
+    if (event.key === 'Enter') {
+      if (this.cachedSubmit && this.cachedTimeStamp === event.timeStamp) {
+        // console.log('Ignoring dup Enter event', this.cachedSubmit);
+        return;
+      }
+      this.handleCachedSubmit();
+      const elementLocator = getPath(event.target as HTMLElement, element);
+      // console.log('Enter key pressed', elementLocator, event.timeStamp);
+      // Cache the statement as it often occurs before the change event occurs
+      this.cachedSubmit = new ZestStatementElementSubmit(elementLocator);
+      this.cachedTimeStamp = event.timeStamp;
+      // console.log('Caching submit', this.cachedSubmit);
+    }
   }
 
   handleResize(): void {
@@ -140,11 +195,30 @@ class Recorder {
     console.log('Window Resize : ', width, height);
   }
 
+  addListenerToInputField(
+    elements: Set<HTMLElement>,
+    inputField: HTMLElement,
+    level: number,
+    frame: number,
+    element: Document
+  ): void {
+    if (!elements.has(inputField)) {
+      elements.add(inputField);
+      inputField.addEventListener(
+        'keydown',
+        this.handleKeypress.bind(this, {level, frame, element})
+      );
+    }
+  }
+
   addListenersToDocument(
     element: Document,
     level: number,
     frame: number
   ): void {
+    // A list of all of the text elements that we have added event listeners to
+    const textElements = new Set<HTMLElement>();
+
     element.addEventListener(
       'click',
       this.handleClick.bind(this, {level, frame, element})
@@ -172,6 +246,38 @@ class Recorder {
         this.addListenersToDocument(frameDocument, level + 1, i);
         i += 1;
       }
+    });
+
+    // Add listeners to all of the text fields
+    element.querySelectorAll('input').forEach((input) => {
+      this.addListenerToInputField(textElements, input, level, frame, element);
+    });
+    // Observer callback function to handle DOM mutations to detect added text fields
+    const domMutated: MutationCallback = (mutationsList: MutationRecord[]) => {
+      mutationsList.forEach((mutation) => {
+        if (mutation.type === 'childList') {
+          // Look for added input elements
+          if (mutation.target instanceof Element) {
+            const inputs = mutation.target.getElementsByTagName('input');
+            for (let j = 0; j < inputs.length; j += 1) {
+              this.addListenerToInputField(
+                textElements,
+                inputs[j],
+                level,
+                frame,
+                element
+              );
+            }
+          }
+        }
+      });
+    };
+
+    const observer = new MutationObserver(domMutated);
+    observer.observe(document, {
+      attributes: false,
+      childList: true,
+      subtree: true,
     });
   }
 
@@ -221,6 +327,7 @@ class Recorder {
 
   stopRecordingUserInteractions(): void {
     console.log('Stopping Recording User Interactions ...');
+    this.handleCachedSubmit();
     Browser.storage.sync.set({zaprecordingactive: false});
     this.active = false;
     const floatingDiv = document.getElementById('ZapfloatingDiv');
@@ -367,6 +474,9 @@ class Recorder {
     } else if (stmt instanceof ZestStatementElementSendKeys) {
       notifyMessage.title = 'Send Keys';
       notifyMessage.message = `${stmt.elementLocator.element}: ${stmt.keys}`;
+    } else if (stmt instanceof ZestStatementElementSubmit) {
+      notifyMessage.title = 'Submit';
+      notifyMessage.message = `${stmt.elementLocator.element}`;
     } else if (stmt instanceof ZestStatementLaunchBrowser) {
       notifyMessage.title = 'Launch Browser';
       notifyMessage.message = stmt.browserType;

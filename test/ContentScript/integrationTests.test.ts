@@ -127,6 +127,28 @@ function integrationTests(
       expect(JSON.stringify(Array.from(actualData))).toBe(expectedData);
     });
 
+    test('Should record return key', async () => {
+      // Given / When
+      server = getFakeZapServer(actualData, _JSONPORT);
+      const context = await driver.getContext(_JSONPORT, true);
+      await driver.setEnable(false);
+      const page = await context.newPage();
+      await page.goto(
+        `http://localhost:${_HTTPPORT}/webpages/interactions.html`
+      );
+      await page.type('#input-1', 'testinput');
+      await page.keyboard.press('Enter');
+      await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(1000);
+      await page.close();
+      // Then
+      const expectedData =
+        '["{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"input-1\\",\\"index\\":1,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementClear\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
+        '"{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"value\\":\\"testinput\\",\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"input-1\\",\\"index\\":2,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementSendKeys\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
+        '"{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"input-1\\",\\"index\\":3,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementSubmit\\"}\\",\\"apikey\\":\\"not set\\"}}"]';
+      expect(JSON.stringify(Array.from(actualData))).toBe(expectedData);
+    });
+
     test('Should stop recording', async () => {
       // Given / When
       server = getFakeZapServer(actualData, _JSONPORT);
