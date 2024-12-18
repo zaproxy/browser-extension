@@ -113,6 +113,8 @@ class ReportedElement extends ReportedObject {
       // This gets the full URL rather than a relative one
       const a: HTMLAnchorElement = element as HTMLAnchorElement;
       this.href = a.toString();
+    } else if (element.tagName === 'FORM') {
+      this.formId = Array.prototype.slice.call(document.forms).indexOf(element);
     } else if (element.tagName === 'INPUT') {
       // Capture extra useful info for input elements
       const input: HTMLInputElement = element as HTMLInputElement;
