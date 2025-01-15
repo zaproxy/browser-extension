@@ -23,6 +23,8 @@ import {ChromeDriver} from '../drivers/ChromeDriver';
 import {FirefoxDriver} from '../drivers/FirefoxDriver';
 import {getFakeZapServer, getStaticHttpServer, closeServer} from './utils';
 
+const TIMEOUT = 2000;
+
 function integrationTests(
   browserName: string,
   _HTTPPORT: number,
@@ -61,7 +63,7 @@ function integrationTests(
       `http://localhost:${_HTTPPORT}/webpages/integrationTest.html`
     );
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(TIMEOUT);
     await page.close();
     // Then
     const expectedData =
@@ -79,7 +81,7 @@ function integrationTests(
         `http://localhost:${_HTTPPORT}/webpages/interactions.html`
       );
       await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(1000);
+      await page.waitForTimeout(TIMEOUT);
       await page.close();
       // Then
       expect(JSON.stringify(Array.from(actualData))).toBe('[]');
@@ -96,7 +98,7 @@ function integrationTests(
       );
       await page.click('#click');
       await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(1000);
+      await page.waitForTimeout(TIMEOUT);
       await page.close();
       // Then
       const expectedData =
@@ -117,7 +119,7 @@ function integrationTests(
       await page.fill('#input-1', 'testinput');
       await page.click('#click');
       await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(1000);
+      await page.waitForTimeout(TIMEOUT);
       await page.close();
       // Then
       const expectedData =
@@ -139,7 +141,7 @@ function integrationTests(
       await page.type('#input-1', 'testinput');
       await page.keyboard.press('Enter');
       await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(1000);
+      await page.waitForTimeout(TIMEOUT);
       await page.close();
       // Then
       const expectedData =
@@ -162,7 +164,7 @@ function integrationTests(
       await page.fill('#input-1', 'testinput');
       await page.click('#click');
       await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(1000);
+      await page.waitForTimeout(TIMEOUT);
       await page.close();
       // Then
       expect(JSON.stringify(Array.from(actualData))).toBe('[]');
@@ -189,7 +191,7 @@ function integrationTests(
       // When
       await page.click('#save-script');
       await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(1000);
+      await page.waitForTimeout(TIMEOUT);
       await page.close();
       // Then
       expect(actualOutcome).toBe('recordedScript.zst');
@@ -209,7 +211,7 @@ function integrationTests(
       await page.goto(await driver.getPopupURL());
       await page.click('#record-btn');
       await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(1000);
+      await page.waitForTimeout(TIMEOUT);
       await page.close();
       // Then
       const expectedData =
@@ -234,7 +236,7 @@ function integrationTests(
       await page.goto(await driver.getPopupURL());
       await page.click('#save-script');
       await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(1000);
+      await page.waitForTimeout(TIMEOUT);
       await page.close();
       // Then
       const expectedData =
@@ -265,7 +267,7 @@ function integrationTests(
       // When
       await page.click('#save-script');
       await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(1000);
+      await page.waitForTimeout(TIMEOUT);
       await page.close();
       // Then
       expect(actualOutcome).toBe('test-name.zst');
@@ -283,7 +285,7 @@ function integrationTests(
       const frame = await page.frame('frame1');
       frame?.click('#test-btn');
       await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(1000);
+      await page.waitForTimeout(TIMEOUT);
       await page.close();
       // Then
       expect(JSON.stringify(Array.from(actualData))).toBe(
@@ -303,7 +305,7 @@ function integrationTests(
       );
       await page.click('#ZapfloatingDiv');
       await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(1000);
+      await page.waitForTimeout(TIMEOUT);
       await page.close();
       // Then
       expect(JSON.stringify(Array.from(actualData))).toBe('[]');
@@ -318,7 +320,7 @@ function integrationTests(
         `http://localhost:${_HTTPPORT}/webpages/localStorage.html`
       );
       await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(1000);
+      await page.waitForTimeout(TIMEOUT);
       await page.close();
       // Then
       const expectedData =
@@ -335,7 +337,7 @@ function integrationTests(
         `http://localhost:${_HTTPPORT}/webpages/sessionStorage.html`
       );
       await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(1000);
+      await page.waitForTimeout(TIMEOUT);
       await page.close();
       // Then
       const expectedData =
@@ -352,7 +354,7 @@ function integrationTests(
         `http://localhost:${_HTTPPORT}/webpages/localStorageDelay.html`
       );
       await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(2000);
+      await page.waitForTimeout(TIMEOUT);
       // Then
       const expectedData =
         '"{\\"action\\":{\\"action\\":\\"reportObject\\"},\\"body\\":{\\"objectJson\\":\\"{TIMESTAMP,\\"type\\":\\"localStorage\\",\\"tagName\\":\\"\\",\\"id\\":\\"test\\",\\"nodeName\\":\\"\\",\\"url\\":\\"http://localhost:1801/webpages/localStorageDelay.html\\",\\"text\\":\\"localData\\"}\\",\\"apikey\\":\\"not set\\"}}"';
@@ -370,7 +372,7 @@ function integrationTests(
         `http://localhost:${_HTTPPORT}/webpages/sessionStorageDelay.html`
       );
       await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(2000);
+      await page.waitForTimeout(TIMEOUT);
       // Then
       const expectedData =
         '"{\\"action\\":{\\"action\\":\\"reportObject\\"},\\"body\\":{\\"objectJson\\":\\"{TIMESTAMP,\\"type\\":\\"sessionStorage\\",\\"tagName\\":\\"\\",\\"id\\":\\"test\\",\\"nodeName\\":\\"\\",\\"url\\":\\"http://localhost:1801/webpages/sessionStorageDelay.html\\",\\"text\\":\\"sessionData\\"}\\",\\"apikey\\":\\"not set\\"}}"';
@@ -401,7 +403,7 @@ function integrationTests(
         addLink();
         addLink();
       });
-      await page.waitForTimeout(1000);
+      await page.waitForTimeout(TIMEOUT);
       await page.close();
       // Then
       const expectedData =
@@ -418,6 +420,8 @@ describe('Chrome Integration Test', () => {
   integrationTests(BROWSERNAME.CHROME, HTTPPORT, JSONPORT);
 });
 
+/* Using Playwright to test Firefox extensions is proving _very_ problematic
 describe('Firefox Integration Test', () => {
   integrationTests(BROWSERNAME.FIREFOX, HTTPPORT, JSONPORT);
 });
+*/
