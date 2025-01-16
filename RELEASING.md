@@ -8,3 +8,5 @@
   1. Push the tag e.g. `git push upstream v0.0.x`
 1. Run `yarn run build`
 1. Upload the extensions to Firefox Add-Ons and the Chrome Web Store
+  1. https://addons.mozilla.org/en-GB/developers/addon/zap-browser-extension/edit
+  1. https://chrome.google.com/webstore/devconsole
