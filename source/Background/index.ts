@@ -176,17 +176,6 @@ async function handleMessage(
   zapurl: string,
   zapkey: string
 ): Promise<boolean | ZestScriptMessage> {
-  if (request.type === 'zapDetails') {
-    console.log('ZAP Service worker updating the ZAP details');
-    Browser.storage.sync.set({
-      zapurl: request.data.zapurl,
-      zapcallback: request.data.zapcallback,
-      zapkey: request.data.zapkey,
-    });
-
-    return true;
-  }
-
   console.log(`ZAP Service worker calling ZAP on ${zapurl}`);
   console.log(zapApiUrl(zapurl, REPORT_OBJECT));
   console.log(encodeURIComponent(zapkey));

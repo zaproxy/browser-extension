@@ -28,10 +28,12 @@ import Recorder from './recorder';
 import {
   LOCAL_STORAGE,
   LOCAL_ZAP_ENABLE,
-  LOCAL_ZAP_URL,
+  LOCAL_ZAP_RECORD,
   REPORT_EVENT,
   REPORT_OBJECT,
   SESSION_STORAGE,
+  URL_ZAP_ENABLE,
+  URL_ZAP_RECORD,
   ZAP_START_RECORDING,
   ZAP_STOP_RECORDING,
 } from '../utils/constants';
@@ -81,7 +83,7 @@ function reportAllStorage(): void {
 }
 
 function withZapEnableSetting(fn: () => void): void {
-  Browser.storage.sync.get({zapenable: true}).then((items) => {
+  Browser.storage.sync.get({zapenable: false}).then((items) => {
     if (items.zapenable) {
       fn();
     }
@@ -175,17 +177,6 @@ function reportPageLoaded(
   doc: Document,
   fn: (re: ReportedObject) => void
 ): void {
-  const url = window.location.href;
-
-  if (url.indexOf('/zapCallBackUrl/') > 0) {
-    // The Browser has been launched from ZAP - use this URL for comms
-    Browser.runtime.sendMessage({
-      type: 'zapDetails',
-      data: {zapurl: url, zapkey: ''},
-    });
-    return;
-  }
-
   Browser.runtime.sendMessage({
     type: REPORT_EVENT,
     data: new ReportedEvent('pageLoad').toString(),
@@ -216,8 +207,16 @@ const domMutated = function domMutation(
   });
 };
 
+function isConfigurationRequest(): boolean {
+  return window.location.href.startsWith('https://zap/zapCallBackUrl/');
+}
+
 function onLoadEventListener(): void {
   Browser.storage.sync.set({zaprecordingactive: false});
+  if (isConfigurationRequest()) {
+    return;
+  }
+
   withZapEnableSetting(() => {
     reportPageLoaded(document, reportObject);
   });
@@ -244,12 +243,21 @@ function enableExtension(): void {
 }
 
 function configureExtension(): void {
-  const localzapurl = localStorage.getItem(LOCAL_ZAP_URL);
-  const localzapenable = localStorage.getItem(LOCAL_ZAP_ENABLE) || true;
-  if (localzapurl) {
+  if (isConfigurationRequest()) {
+    // The Browser has been launched from ZAP - use this URL for configuration
+    const params = new URLSearchParams(window.location.search);
+    const enable =
+      localStorage.getItem(LOCAL_ZAP_ENABLE) === 'true' ||
+      params.has(URL_ZAP_ENABLE);
+    const record =
+      localStorage.getItem(LOCAL_ZAP_RECORD) === 'true' ||
+      params.has(URL_ZAP_RECORD);
+
+    console.log('ZAP Configure', enable, record);
     Browser.storage.sync.set({
-      zapurl: localzapurl,
-      zapenable: localzapenable !== 'false',
+      zapurl: window.location.href.split('?')[0],
+      zapenable: enable,
+      zaprecordingactive: record,
     });
   }
 }
