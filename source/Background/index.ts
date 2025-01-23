@@ -31,8 +31,6 @@ import {
   SESSION_STORAGE,
   SET_SAVE_SCRIPT_ENABLE,
   STOP_RECORDING,
-  ZEST_CLIENT_ELEMENT_CLEAR,
-  ZEST_CLIENT_ELEMENT_SEND_KEYS,
   ZEST_SCRIPT,
 } from '../utils/constants';
 
@@ -223,14 +221,6 @@ async function handleMessage(
     }
 
     case ZEST_SCRIPT: {
-      const stmt = JSON.parse(request.data);
-      if (stmt.elementType === ZEST_CLIENT_ELEMENT_SEND_KEYS) {
-        console.log(stmt);
-        stmt.elementType = ZEST_CLIENT_ELEMENT_CLEAR;
-        delete stmt.value;
-        const cleardata = zestScript.addStatement(JSON.stringify(stmt));
-        sendZestScriptToZAP(cleardata, zapkey, zapurl);
-      }
       const data = zestScript.addStatement(request.data);
       sendZestScriptToZAP(data, zapkey, zapurl);
       break;
