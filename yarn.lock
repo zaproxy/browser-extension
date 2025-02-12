@@ -2274,10 +2274,10 @@ adjust-sourcemap-loader@^4.0.0:
     loader-utils "^2.0.0"
     regex-parser "^2.2.11"
 
-advanced-css-reset@^1.2.2:
-  version "1.2.2"
-  resolved "https://registry.yarnpkg.com/advanced-css-reset/-/advanced-css-reset-1.2.2.tgz#81aa037adc6f86d2e41171d989861c46b0667a95"
-  integrity sha512-q02okAI2K01GJj+FMko0ApeBkbNTWWmtlBd5A6tLZnLNl868qMaG7RHfzmpDJT8SRp0xvKro+IEH6q1J3cmwKA==
+advanced-css-reset@^2.1.3:
+  version "2.1.3"
+  resolved "https://registry.yarnpkg.com/advanced-css-reset/-/advanced-css-reset-2.1.3.tgz#4880fa23bf34d4a195c44c20607e7907d25bd02e"
+  integrity sha512-q9MOWNwkhuB6QcXk2ij498GV+1AozCBSWgYu1XM55SMXENvq42KKZYk8AjP8Ek1WWGuNeYq5/X9X4ZvOYyqtBg==
 
 agent-base@6:
   version "6.0.2"
