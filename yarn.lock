@@ -1574,15 +1574,12 @@
     mkdirp "^1.0.4"
     rimraf "^3.0.2"
 
-"@playwright/test@^1.33.0":
-  version "1.33.0"
-  resolved "https://registry.yarnpkg.com/@playwright/test/-/test-1.33.0.tgz#669ef859efb81b143dfc624eef99d1dd92a81b67"
-  integrity sha512-YunBa2mE7Hq4CfPkGzQRK916a4tuZoVx/EpLjeWlTVOnD4S2+fdaQZE0LJkbfhN5FTSKNLdcl7MoT5XB37bTkg==
+"@playwright/test@^1.50.1":
+  version "1.50.1"
+  resolved "https://registry.yarnpkg.com/@playwright/test/-/test-1.50.1.tgz#027d00ca77ec79688764eb765cfe9a688807bf0b"
+  integrity sha512-Jii3aBg+CEDpgnuDxEp/h7BimHcUTDlpEtce89xEumlJ5ef2hqepZ+PWp1DDpYC/VO9fmWVI1IlEaoI5fK9FXQ==
   dependencies:
-    "@types/node" "*"
-    playwright-core "1.33.0"
-  optionalDependencies:
-    fsevents "2.3.2"
+    playwright "1.50.1"
 
 "@sinclair/typebox@^0.25.16":
   version "0.25.24"
@@ -6741,10 +6738,24 @@ playwright-core@1.33.0:
   resolved "https://registry.yarnpkg.com/playwright-core/-/playwright-core-1.33.0.tgz#269efe29a927cd6d144d05f3c2d2f72bd72447a1"
   integrity sha512-aizyPE1Cj62vAECdph1iaMILpT0WUDCq3E6rW6I+dleSbBoGbktvJtzS6VHkZ4DKNEOG9qJpiom/ZxO+S15LAw==
 
+playwright-core@1.50.1:
+  version "1.50.1"
+  resolved "https://registry.yarnpkg.com/playwright-core/-/playwright-core-1.50.1.tgz#6a0484f1f1c939168f40f0ab3828c4a1592c4504"
+  integrity sha512-ra9fsNWayuYumt+NiM069M6OkcRb1FZSK8bgi66AtpFoWkg2+y0bJSNmkFrWhMbEBbVKC/EruAHH3g0zmtwGmQ==
+
 playwright-webextext@^0.0.3:
   version "0.0.3"
   resolved "https://registry.yarnpkg.com/playwright-webextext/-/playwright-webextext-0.0.3.tgz#8f809a439c976dd71a7a4d2f711b01a10d910a8a"
   integrity sha512-qcnMZES3vbnEfCrOobsaFrT+BBlRgCmKBCzhoRxPkdC9C5KSOYdROikuTHRoe/ez5v1Eh02szQjwRBStOkDF6g==
+
+playwright@1.50.1:
+  version "1.50.1"
+  resolved "https://registry.yarnpkg.com/playwright/-/playwright-1.50.1.tgz#2f93216511d65404f676395bfb97b41aa052b180"
+  integrity sha512-G8rwsOQJ63XG6BbKj2w5rHeavFjy5zynBA9zsJMMtBoe/Uf757oG12NXz6e6OirF7RCrTVAKFXbLmn1RbL7Qaw==
+  dependencies:
+    playwright-core "1.50.1"
+  optionalDependencies:
+    fsevents "2.3.2"
 
 playwright@^1.33.0:
   version "1.33.0"
