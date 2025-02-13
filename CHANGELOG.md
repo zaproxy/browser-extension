@@ -4,6 +4,8 @@ All notable changes to this add-on will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
+### Changed
+- Bulk update of dependencies.
 
 ### Removed
 - Clear statements before inputting text, they were not needed and could cause problems.
