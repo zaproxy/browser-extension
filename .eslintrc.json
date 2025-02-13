@@ -24,7 +24,10 @@
 		"node/no-unpublished-import": "off",
 		"node/no-unsupported-features/es-syntax": ["error", {
 			"ignores": ["modules"]
-		}]
+		}],
+		"@typescript-eslint/comma-dangle": "off",
+		"@typescript-eslint/object-curly-spacing": "off",
+		"@typescript-eslint/quotes": "off"
 	},
 	"env": {
 		"webextensions": true
