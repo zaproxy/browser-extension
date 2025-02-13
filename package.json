@@ -56,7 +56,7 @@
     "@babel/preset-react": "^7.13.13",
     "@babel/preset-typescript": "^7.21.5",
     "@jest/globals": "^29.4.3",
-    "@playwright/test": "^1.33.0",
+    "@playwright/test": "^1.50.1",
     "@types/jest": "^29.4.0",
     "@types/json-server": "^0.14.4",
     "@types/lodash": "^4.14.195",
