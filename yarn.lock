@@ -18,10 +18,10 @@
     eslint-config-airbnb-base "^15.0.0"
     eslint-config-airbnb-typescript "^17.1.0"
 
-"@abhijithvijayan/eslint-config@2.6.3":
-  version "2.6.3"
-  resolved "https://registry.yarnpkg.com/@abhijithvijayan/eslint-config/-/eslint-config-2.6.3.tgz#3f560c99ce4e9631a404d956c4396835e1e52aa7"
-  integrity sha512-njS8R0Q4FAtealxY48CmL8Ms58xPPqTZAcabB+92mogmfVkkHOlgb8kHfhW1PZpbe9xhHkKR5HwrkdMPNbMoiA==
+"@abhijithvijayan/eslint-config@2.8.1":
+  version "2.8.1"
+  resolved "https://registry.yarnpkg.com/@abhijithvijayan/eslint-config/-/eslint-config-2.8.1.tgz#9f8e42e21d37d773f4310ad555662987e27209f1"
+  integrity sha512-YBXZPiHhvDRK1B5cB59ymArKCNJZicNA7DbuABTzX9Z2ygWMqhroQciWWr6eEhxHv70bxZbiu9aIhmayDP8UOQ==
 
 "@abhijithvijayan/tsconfig@^1.3.0":
   version "1.3.0"
@@ -1742,10 +1742,10 @@
   resolved "https://registry.yarnpkg.com/@types/json-schema/-/json-schema-7.0.11.tgz#d421b6c527a3037f7c84433fd2c4229e016863d3"
   integrity sha512-wOuvG1SN4Us4rez+tylwwwCV1psiNVOkJeM3AUWUNWg/jDQY2+HE/444y5gc+jBmRqASOm2Oeh5c1axHobwRKQ==
 
-"@types/json-server@^0.14.4":
-  version "0.14.4"
-  resolved "https://registry.yarnpkg.com/@types/json-server/-/json-server-0.14.4.tgz#7b9db79bbd841bbe0dbafe1da314e8f1e001299b"
-  integrity sha512-mzeeqxw4cl+1hKm/Fp8ELhrukX2r7312G5DfdksLSpQCSeczauohzX4kbQWa4xUN7FlClct6nBubr1tos+XIeQ==
+"@types/json-server@^0.14.7":
+  version "0.14.7"
+  resolved "https://registry.yarnpkg.com/@types/json-server/-/json-server-0.14.7.tgz#6f1623ce9dc2f95f13329dd34d21f296d3fed7fa"
+  integrity sha512-aE1pKwYE3Y3vtj1IHrZVMP+BSeyP+BFgjGAC+iMTFV/yyLnYRFeX1yqTY1Xh0FyTu+xEpRVpeJupdRACuvi1eg==
   dependencies:
     "@types/connect" "*"
     "@types/express" "*"
@@ -1858,10 +1858,10 @@
   resolved "https://registry.yarnpkg.com/@types/tapable/-/tapable-1.0.12.tgz#bc2cab12e87978eee89fb21576b670350d6d86ab"
   integrity sha512-bTHG8fcxEqv1M9+TD14P8ok8hjxoOCkfKc8XXLaaD05kI7ohpeI956jtDOD3XHKBQrlyPughUtzm1jtVhHpA5Q==
 
-"@types/text-encoding@^0.0.36":
-  version "0.0.36"
-  resolved "https://registry.yarnpkg.com/@types/text-encoding/-/text-encoding-0.0.36.tgz#c1343e35188cb8f8d5f9ada4ff5b72829b29ea19"
-  integrity sha512-LfATA7bH+MtAPlOshYgQ1M3n2r0TSB6Ns5ESvKYlVugkKErQg5oFbR2qO7XrKtNsrtzedDvTeqQfyTjdPJH7jw==
+"@types/text-encoding@^0.0.40":
+  version "0.0.40"
+  resolved "https://registry.yarnpkg.com/@types/text-encoding/-/text-encoding-0.0.40.tgz#3a9d6ec2ae6697fcee8965de4304d9513c0dbb4f"
+  integrity sha512-dHzoIdwBfY7jcSTTt6XBkaeiuFQAQD7r/7aJySKDdHkYBCDOvs9jPVt4NYXuwBMn89PP6gSd29WubIS19wTiXg==
 
 "@types/tough-cookie@*":
   version "4.0.5"
@@ -4890,10 +4890,10 @@ human-signals@^2.1.0:
   resolved "https://registry.yarnpkg.com/human-signals/-/human-signals-2.1.0.tgz#dc91fcba42e4d06e4abaed33b3e7a3c02f514ea0"
   integrity sha512-B4FFZ6q/T2jhhksgkbEW3HBvWIfDW85snkQgawt07S7J5QXTk6BkNV+0yAeZrM5QpMAdYlocGoljn0sJ/WQkFw==
 
-i18next-browser-languagedetector@^8.0.2:
-  version "8.0.2"
-  resolved "https://registry.yarnpkg.com/i18next-browser-languagedetector/-/i18next-browser-languagedetector-8.0.2.tgz#037ca25c26877cad778f060a9e177054d9f8eaa3"
-  integrity sha512-shBvPmnIyZeD2VU5jVGIOWP7u9qNG3Lj7mpaiPFpbJ3LVfHZJvVzKR4v1Cb91wAOFpNw442N+LGPzHOHsten2g==
+i18next-browser-languagedetector@^8.0.3:
+  version "8.0.3"
+  resolved "https://registry.yarnpkg.com/i18next-browser-languagedetector/-/i18next-browser-languagedetector-8.0.3.tgz#489d837b35a0ed59c357f018bd77a1ba3558aee9"
+  integrity sha512-beOOLArattPBc2YZG5IXGJytdYFgUR7cS8Wd6HT4IczIoWKgmTspOQ2yasaGklelVo5seLPmnEKvLHR+E/MdWQ==
   dependencies:
     "@babel/runtime" "^7.23.2"
 
