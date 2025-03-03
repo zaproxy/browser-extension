@@ -94,7 +94,7 @@
     "playwright": "1.37",
     "playwright-webextext": "^0.0.3",
     "postcss": "^8.5.3",
-    "postcss-loader": "^4.3.0",
+    "postcss-loader": "^8.1.1",
     "prettier": "^2.3.0",
     "resolve-url-loader": "^5.0.0",
     "sass": "^1.85.1",
