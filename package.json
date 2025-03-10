@@ -60,7 +60,7 @@
     "@types/jest": "^29.4.0",
     "@types/json-server": "^0.14.7",
     "@types/lodash": "^4.17.16",
-    "@types/node": "^20.1.0",
+    "@types/node": "^22.13.10",
     "@types/text-encoding": "^0.0.40",
     "@types/webextension-polyfill": "^0.12.3",
     "@types/webpack": "^5.28.5",
