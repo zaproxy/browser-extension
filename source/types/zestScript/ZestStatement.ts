@@ -22,6 +22,7 @@ import {
   ZEST_CLIENT_ELEMENT_CLEAR,
   ZEST_CLIENT_ELEMENT_CLICK,
   ZEST_CLIENT_ELEMENT_MOUSE_OVER,
+  ZEST_CLIENT_ELEMENT_SCROLL_TO,
   ZEST_CLIENT_ELEMENT_SEND_KEYS,
   ZEST_CLIENT_ELEMENT_SUBMIT,
   ZEST_CLIENT_LAUNCH,
@@ -128,6 +129,26 @@ class ZestStatementElementClick extends ZestStatementElement {
     windowHandle = DEFAULT_WINDOW_HANDLE
   ) {
     super(ZEST_CLIENT_ELEMENT_CLICK, elementLocator);
+    this.windowHandle = windowHandle;
+  }
+
+  toJSON(): string {
+    return JSON.stringify({
+      windowHandle: this.windowHandle,
+      ...this.elementLocator.toJSON(),
+      index: this.index,
+      enabled: true,
+      elementType: this.elementType,
+    });
+  }
+}
+
+class ZestStatementElementScrollTo extends ZestStatementElement {
+  constructor(
+    elementLocator: ElementLocator,
+    windowHandle = DEFAULT_WINDOW_HANDLE
+  ) {
+    super(ZEST_CLIENT_ELEMENT_SCROLL_TO, elementLocator);
     this.windowHandle = windowHandle;
   }
 
@@ -283,6 +304,7 @@ export {
   ZestStatementElementMouseOver,
   ZestStatementElementClick,
   ZestStatementSwitchToFrame,
+  ZestStatementElementScrollTo,
   ZestStatementElementSendKeys,
   ZestStatementElementSubmit,
   ZestStatementElementClear,
