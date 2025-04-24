@@ -24,7 +24,7 @@ export const ZEST_CLIENT_ELEMENT_SUBMIT = 'ZestClientElementSubmit';
 export const ZEST_CLIENT_LAUNCH = 'ZestClientLaunch';
 export const ZEST_CLIENT_ELEMENT_CLEAR = 'ZestClientElementClear';
 export const ZEST_CLIENT_WINDOW_CLOSE = 'ZestClientWindowClose';
-export const ZEST_CLIENT_ELEMENT_MOUSE_OVER = 'ZestClientMouseOverElement';
+export const ZEST_CLIENT_ELEMENT_MOUSE_OVER = 'ZestClientElementMouseOver';
 export const ZEST_COMMENT = 'ZestComment';
 export const DEFAULT_WINDOW_HANDLE = 'windowHandle1';
 
