@@ -22,6 +22,7 @@ import Browser from 'webextension-polyfill';
 import {
   ZestStatement,
   ZestStatementElementClick,
+  ZestStatementElementScrollTo,
   ZestStatementElementSendKeys,
   ZestStatementElementSubmit,
   ZestStatementLaunchBrowser,
@@ -68,6 +69,10 @@ class Recorder {
 
   handleCachedSubmit(): void {
     if (this.cachedSubmit) {
+      this.sendZestScriptToZAP(
+        new ZestStatementElementScrollTo(this.cachedSubmit.elementLocator),
+        false
+      );
       // console.log('Sending cached submit', this.cachedSubmit);
       this.sendZestScriptToZAP(this.cachedSubmit, false);
       delete this.cachedSubmit;
@@ -104,6 +109,10 @@ class Recorder {
     this.handleFrameSwitches(level, frame);
     console.log(event, 'clicked');
     const elementLocator = getPath(event.target as HTMLElement, element);
+    this.sendZestScriptToZAP(
+      new ZestStatementElementScrollTo(elementLocator),
+      false
+    );
     this.sendZestScriptToZAP(new ZestStatementElementClick(elementLocator));
     // click on target element
   }
@@ -149,6 +158,10 @@ class Recorder {
       // The cached submit was not on the same element, so send it
       this.handleCachedSubmit();
     }
+    this.sendZestScriptToZAP(
+      new ZestStatementElementScrollTo(elementLocator),
+      false
+    );
     this.sendZestScriptToZAP(
       new ZestStatementElementSendKeys(
         elementLocator,
@@ -470,6 +483,9 @@ class Recorder {
 
     if (stmt instanceof ZestStatementElementClick) {
       notifyMessage.title = 'Click';
+      notifyMessage.message = stmt.elementLocator.element;
+    } else if (stmt instanceof ZestStatementElementScrollTo) {
+      notifyMessage.title = 'Scroll To';
       notifyMessage.message = stmt.elementLocator.element;
     } else if (stmt instanceof ZestStatementElementSendKeys) {
       notifyMessage.title = 'Send Keys';

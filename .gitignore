@@ -24,6 +24,24 @@ haters/
 .idea/**/uiDesigner.xml
 .idea/**/dbnavigator.xml
 
+# Eclipse
+.metadata
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.loadpath
+*.classpath
+*.project
+*.settings
+/bin
+RemoteSystemsTempFiles/
+.externalToolBuilders/
+*.launch
+.buildpath
+
 # Gradle
 .idea/**/gradle.xml
 .idea/**/libraries
