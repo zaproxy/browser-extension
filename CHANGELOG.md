@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## Unreleased
 ### Changed
 - When recording scroll to statements will be added prior to and associated with typing, clicks, and submissions.
+- Where practical statements are now recorded including a waitForMsec property value rounded up to the nearest 5sec.
 
 ### Removed
 - Clear statements before inputting text, they were not needed and could cause problems.

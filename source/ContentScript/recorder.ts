@@ -32,6 +32,10 @@ import {getPath} from './util';
 import {STOP_RECORDING, ZEST_SCRIPT} from '../utils/constants';
 
 class Recorder {
+  readonly timeAdjustmentMillis: number = 3000;
+
+  readonly minimumWaitTimeInMillis: number = 5000;
+
   previousDOMState: string;
 
   curLevel = -1;
@@ -52,6 +56,8 @@ class Recorder {
   // We can get duplicate events for the enter key, this allows us to dedup them
   cachedTimeStamp = -1;
 
+  lastStatementTime: number;
+
   async sendZestScriptToZAP(
     zestStatement: ZestStatement,
     sendCache = true
@@ -67,10 +73,27 @@ class Recorder {
     });
   }
 
+  getWaited(): number {
+    if (this.lastStatementTime === undefined || this.lastStatementTime === 0) {
+      this.lastStatementTime = Date.now();
+    }
+    // Adjust start time
+    const lastStmtTime = this.lastStatementTime - this.timeAdjustmentMillis;
+    // Round to nearest minimum (in millis)
+    const waited =
+      Math.ceil((Date.now() - lastStmtTime) / this.minimumWaitTimeInMillis) *
+      this.minimumWaitTimeInMillis;
+    this.lastStatementTime = Date.now();
+    return waited;
+  }
+
   handleCachedSubmit(): void {
     if (this.cachedSubmit) {
       this.sendZestScriptToZAP(
-        new ZestStatementElementScrollTo(this.cachedSubmit.elementLocator),
+        new ZestStatementElementScrollTo(
+          this.cachedSubmit.elementLocator,
+          this.getWaited()
+        ),
         false
       );
       // console.log('Sending cached submit', this.cachedSubmit);
@@ -105,15 +128,18 @@ class Recorder {
     event: Event
   ): void {
     if (!this.shouldRecord(event.target as HTMLElement)) return;
+    const waited: number = this.getWaited();
     const {level, frame, element} = params;
     this.handleFrameSwitches(level, frame);
     console.log(event, 'clicked');
     const elementLocator = getPath(event.target as HTMLElement, element);
     this.sendZestScriptToZAP(
-      new ZestStatementElementScrollTo(elementLocator),
+      new ZestStatementElementScrollTo(elementLocator, this.getWaited()),
       false
     );
-    this.sendZestScriptToZAP(new ZestStatementElementClick(elementLocator));
+    this.sendZestScriptToZAP(
+      new ZestStatementElementClick(elementLocator, waited)
+    );
     // click on target element
   }
 
@@ -147,6 +173,7 @@ class Recorder {
   ): void {
     if (!this.shouldRecord(event.target as HTMLElement)) return;
     const {level, frame, element} = params;
+    const waited: number = this.getWaited();
     this.handleFrameSwitches(level, frame);
     console.log(event, 'change', (event.target as HTMLInputElement).value);
     const elementLocator = getPath(event.target as HTMLElement, element);
@@ -159,13 +186,14 @@ class Recorder {
       this.handleCachedSubmit();
     }
     this.sendZestScriptToZAP(
-      new ZestStatementElementScrollTo(elementLocator),
+      new ZestStatementElementScrollTo(elementLocator, this.getWaited()),
       false
     );
     this.sendZestScriptToZAP(
       new ZestStatementElementSendKeys(
         elementLocator,
-        (event.target as HTMLInputElement).value
+        (event.target as HTMLInputElement).value,
+        waited
       ),
       false
     );
@@ -188,7 +216,10 @@ class Recorder {
       const elementLocator = getPath(event.target as HTMLElement, element);
       // console.log('Enter key pressed', elementLocator, event.timeStamp);
       // Cache the statement as it often occurs before the change event occurs
-      this.cachedSubmit = new ZestStatementElementSubmit(elementLocator);
+      this.cachedSubmit = new ZestStatementElementSubmit(
+        elementLocator,
+        this.getWaited()
+      );
       this.cachedTimeStamp = event.timeStamp;
       // console.log('Caching submit', this.cachedSubmit);
     }
