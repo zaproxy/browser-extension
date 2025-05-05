@@ -3,7 +3,8 @@ All notable changes to this add-on will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## Unreleased
+## 0.0.12 - 2025-05-05
+
 ### Changed
 - When recording scroll to statements will be added prior to and associated with typing, clicks, and submissions.
 - Where practical statements are now recorded including a waitForMsec property value rounded up to the nearest 5sec.
