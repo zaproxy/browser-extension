@@ -124,12 +124,16 @@ abstract class ZestStatementElement extends ZestStatement {
 }
 
 class ZestStatementElementClick extends ZestStatementElement {
+  waitForMsec: number;
+
   constructor(
     elementLocator: ElementLocator,
+    waitForMsec: number,
     windowHandle = DEFAULT_WINDOW_HANDLE
   ) {
     super(ZEST_CLIENT_ELEMENT_CLICK, elementLocator);
     this.windowHandle = windowHandle;
+    this.waitForMsec = waitForMsec;
   }
 
   toJSON(): string {
@@ -137,6 +141,7 @@ class ZestStatementElementClick extends ZestStatementElement {
       windowHandle: this.windowHandle,
       ...this.elementLocator.toJSON(),
       index: this.index,
+      waitForMsec: this.waitForMsec,
       enabled: true,
       elementType: this.elementType,
     });
@@ -144,11 +149,15 @@ class ZestStatementElementClick extends ZestStatementElement {
 }
 
 class ZestStatementElementScrollTo extends ZestStatementElement {
+  waitForMsec: number;
+
   constructor(
     elementLocator: ElementLocator,
+    waitForMsec: number,
     windowHandle = DEFAULT_WINDOW_HANDLE
   ) {
     super(ZEST_CLIENT_ELEMENT_SCROLL_TO, elementLocator);
+    this.waitForMsec = waitForMsec;
     this.windowHandle = windowHandle;
   }
 
@@ -157,6 +166,7 @@ class ZestStatementElementScrollTo extends ZestStatementElement {
       windowHandle: this.windowHandle,
       ...this.elementLocator.toJSON(),
       index: this.index,
+      waitForMsec: this.waitForMsec,
       enabled: true,
       elementType: this.elementType,
     });
@@ -166,13 +176,17 @@ class ZestStatementElementScrollTo extends ZestStatementElement {
 class ZestStatementElementSendKeys extends ZestStatementElement {
   keys: string;
 
+  waitForMsec: number;
+
   constructor(
     elementLocator: ElementLocator,
     keys: string,
+    waitForMsec: number,
     windowHandle = DEFAULT_WINDOW_HANDLE
   ) {
     super(ZEST_CLIENT_ELEMENT_SEND_KEYS, elementLocator);
     this.keys = keys;
+    this.waitForMsec = waitForMsec;
     this.windowHandle = windowHandle;
   }
 
@@ -182,6 +196,7 @@ class ZestStatementElementSendKeys extends ZestStatementElement {
       windowHandle: this.windowHandle,
       ...this.elementLocator.toJSON(),
       index: this.index,
+      waitForMsec: this.waitForMsec,
       enabled: true,
       elementType: this.elementType,
     });
@@ -191,11 +206,15 @@ class ZestStatementElementSendKeys extends ZestStatementElement {
 class ZestStatementElementSubmit extends ZestStatementElement {
   keys: string;
 
+  waitForMsec: number;
+
   constructor(
     elementLocator: ElementLocator,
+    waitForMsec: number,
     windowHandle = DEFAULT_WINDOW_HANDLE
   ) {
     super(ZEST_CLIENT_ELEMENT_SUBMIT, elementLocator);
+    this.waitForMsec = waitForMsec;
     this.windowHandle = windowHandle;
   }
 
@@ -205,6 +224,7 @@ class ZestStatementElementSubmit extends ZestStatementElement {
       windowHandle: this.windowHandle,
       ...this.elementLocator.toJSON(),
       index: this.index,
+      waitForMsec: this.waitForMsec,
       enabled: true,
       elementType: this.elementType,
     });
