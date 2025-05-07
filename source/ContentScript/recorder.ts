@@ -58,7 +58,7 @@ class Recorder {
 
   lastStatementTime: number;
 
-  async sendZestScriptToZAP(
+  sendZestScriptToZAP(
     zestStatement: ZestStatement,
     sendCache = true
   ): Promise<number> {
