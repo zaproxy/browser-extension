@@ -21,6 +21,7 @@ import debounce from 'lodash/debounce';
 import Browser from 'webextension-polyfill';
 import {
   ZestStatement,
+  ZestStatementComment,
   ZestStatementElementClick,
   ZestStatementElementScrollTo,
   ZestStatementElementSendKeys,
@@ -343,10 +344,18 @@ class Recorder {
   }
 
   initializationScript(): void {
-    // send window resize event to ensure same size
-    const browserType = this.getBrowserName();
-    const url = window.location.href;
-    this.sendZestScriptToZAP(new ZestStatementLaunchBrowser(browserType, url));
+    this.sendZestScriptToZAP(
+      new ZestStatementComment(
+        `Recorded by ZAP Extension ` +
+          `${Browser.runtime.getManifest().version} on ${navigator.userAgent}`
+      )
+    );
+    this.sendZestScriptToZAP(
+      new ZestStatementLaunchBrowser(
+        this.getBrowserName(),
+        window.location.href
+      )
+    );
     this.handleResize();
   }
 
