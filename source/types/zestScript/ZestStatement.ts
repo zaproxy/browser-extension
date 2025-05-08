@@ -94,7 +94,7 @@ class ZestStatementLaunchBrowser extends ZestStatement {
   }
 }
 
-class ZestComment extends ZestStatement {
+class ZestStatementComment extends ZestStatement {
   comment: string;
 
   constructor(comment: string) {
@@ -318,8 +318,8 @@ class ZestStatementElementMouseOver extends ZestStatementElement {
 
 export {
   ElementLocator,
-  ZestComment,
   ZestStatement,
+  ZestStatementComment,
   ZestStatementLaunchBrowser,
   ZestStatementElementMouseOver,
   ZestStatementElementClick,
