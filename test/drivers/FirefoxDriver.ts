@@ -34,7 +34,7 @@ class FirefoxDriver {
   }
 
   public async getBrowser(): Promise<Browser> {
-    return withExtension(firefox, `${extensionPath.FIREFOX}`).launch({
+    return withExtension(firefox, `${extensionPath.FIREFOX}-ext`).launch({
       headless: false,
     });
   }

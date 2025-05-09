@@ -346,7 +346,7 @@ class Recorder {
   initializationScript(): void {
     this.sendZestScriptToZAP(
       new ZestStatementComment(
-        `Recorded by ZAP Extension ` +
+        `Recorded by ${Browser.runtime.getManifest().name} ` +
           `${Browser.runtime.getManifest().version} on ${navigator.userAgent}`
       )
     );

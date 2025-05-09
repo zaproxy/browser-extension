@@ -20,7 +20,9 @@
 import Browser from 'webextension-polyfill';
 import './styles.scss';
 import i18n from './i18n';
+
 import {
+  IS_FULL_EXTENSION,
   RESET_ZEST_SCRIPT,
   SAVE_ZEST_SCRIPT,
   SET_SAVE_SCRIPT_ENABLE,
@@ -207,6 +209,13 @@ document.addEventListener('DOMContentLoaded', restoreState);
 document.addEventListener('load', restoreState);
 
 recordButton?.addEventListener('click', toggleRecording);
-configureButton?.addEventListener('click', openOptionsPage);
 saveScript?.addEventListener('click', handleSaveScript);
 scriptNameInput?.addEventListener('input', handleScriptNameChange);
+
+if (configureButton) {
+  if (IS_FULL_EXTENSION) {
+    configureButton.addEventListener('click', openOptionsPage);
+  } else {
+    configureButton.style.visibility = 'hidden';
+  }
+}

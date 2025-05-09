@@ -17,6 +17,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import Browser from 'webextension-polyfill';
+
+// The manifest will be undefined when running the tests
+export const IS_FULL_EXTENSION =
+  typeof Browser.runtime.getManifest === 'undefined' ||
+  Browser.runtime.getManifest().name === 'ZAP by Checkmarx Browser Extension';
+
 export const ZEST_CLIENT_SWITCH_TO_FRAME = 'ZestClientSwitchToFrame';
 export const ZEST_CLIENT_ELEMENT_CLICK = 'ZestClientElementClick';
 export const ZEST_CLIENT_ELEMENT_SCROLL_TO = 'ZestClientElementScrollTo';

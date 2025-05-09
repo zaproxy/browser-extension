@@ -23,6 +23,7 @@ import {ReportedStorage} from '../types/ReportedModel';
 import {ZestScript, ZestScriptMessage} from '../types/zestScript/ZestScript';
 import {ZestStatementWindowClose} from '../types/zestScript/ZestStatement';
 import {
+  IS_FULL_EXTENSION,
   LOCAL_STORAGE,
   REPORT_EVENT,
   REPORT_OBJECT,
@@ -156,17 +157,19 @@ function sendZestScriptToZAP(
   zapkey: string,
   zapurl: string
 ): void {
-  const body = `statementJson=${encodeURIComponent(
-    data
-  )}&apikey=${encodeURIComponent(zapkey)}`;
-  console.log(`body = ${body}`);
-  fetch(zapApiUrl(zapurl, 'reportZestStatement'), {
-    method: 'POST',
-    body,
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-  });
+  if (IS_FULL_EXTENSION) {
+    const body = `statementJson=${encodeURIComponent(
+      data
+    )}&apikey=${encodeURIComponent(zapkey)}`;
+    console.log(`body = ${body}`);
+    fetch(zapApiUrl(zapurl, 'reportZestStatement'), {
+      method: 'POST',
+      body,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    });
+  }
 }
 
 async function handleMessage(
@@ -298,19 +301,22 @@ function cookieChangeHandler(
     });
 }
 
-Browser.action.onClicked.addListener((_tab: Browser.Tabs.Tab) => {
-  Browser.runtime.openOptionsPage();
-});
-
-Browser.cookies.onChanged.addListener(cookieChangeHandler);
 Browser.runtime.onMessage.addListener(onMessageHandler);
 
-Browser.runtime.onInstalled.addListener((): void => {
-  console.emoji('🦄', 'extension installed');
-  Browser.storage.sync.set({
-    zapurl: 'http://zap/',
-    zapkey: 'not set',
+if (IS_FULL_EXTENSION) {
+  Browser.action.onClicked.addListener((_tab: Browser.Tabs.Tab) => {
+    Browser.runtime.openOptionsPage();
   });
-});
+
+  Browser.cookies.onChanged.addListener(cookieChangeHandler);
+
+  Browser.runtime.onInstalled.addListener((): void => {
+    console.emoji('🦄', 'extension installed');
+    Browser.storage.sync.set({
+      zapurl: 'http://zap/',
+      zapkey: 'not set',
+    });
+  });
+}
 
 export {reportCookies};
