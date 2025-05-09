@@ -11,14 +11,28 @@ ZAP by Checkmarx Browser Extension
 
 ## Summary
 
+Note that in the Chrome store the description in the manifest has a limit of 132 characters.
+
+### Extension
+
 A browser extension which allows ZAP to access the client side of a web app.
 
+### Recorder
+
+An extension for recording actions taken in the browser. It can be used to record things like auth scripts to be used in ZAP.
+
 ## Description
+
+### Extension
 
 ZAP by Checkmarx is a free OSS security tool which can be used to test the security of your web apps.
 This browser extension will allow ZAP to gather more information about your app from the browser.
 Most users should not install this extension.
 It will be bundled in a ZAP add-on - this add-on will add the extension to Firefox/Chrome when it is launched from ZAP.
+
+### Recorder
+
+An extension for recording actions taken in the browser. It can be used to record things like auth scripts to be used in ZAP.
 
 ## Category
 

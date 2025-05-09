@@ -10,7 +10,7 @@
     "128": "assets/icons/zap128x128.png",
     "512": "assets/icons/zap512x512.png"
   },
-  "description": "An extension for recording actions taken in the browser. It can be used to record things like authentication scripts to be used in ZAP.",
+  "description": "An extension for recording actions taken in the browser. It can be used to record things like auth scripts to be used in ZAP.",
   "homepage_url": "https://github.com/zaproxy/browser-extension/",
   "short_name": "ZAP Recorder",
   "incognito": "spanning",
