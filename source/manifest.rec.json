@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "ZAP by Checkmarx Browser Extension",
-  "version": "0.0.12",
+  "name": "ZAP by Checkmarx Recorder",
+  "version": "0.0.1",
 
   "icons": {
     "16": "assets/icons/zap16x16.png",
@@ -10,14 +10,12 @@
     "128": "assets/icons/zap128x128.png",
     "512": "assets/icons/zap512x512.png"
   },
-  "description": "A browser extension which allows ZAP to access the client side of a web app.",
+  "description": "An extension for recording actions taken in the browser. It can be used to record things like authentication scripts to be used in ZAP.",
   "homepage_url": "https://github.com/zaproxy/browser-extension/",
-  "short_name": "ZAP by Checkmarx Extension",
+  "short_name": "ZAP Recorder",
   "incognito": "spanning",
 
   "permissions": [
-    "tabs",
-    "cookies",
     "storage"
   ],
 
@@ -37,7 +35,7 @@
 
   "__firefox__browser_specific_settings": {
     "gecko": {
-      "id": "browser-extensionV3@zaproxy.org"
+      "id": "browser-recorder@zaproxy.org"
     }
   },
 
@@ -52,16 +50,10 @@
       "128": "assets/icons/zap128x128.png",
       "512": "assets/icons/zap512x512.png"
     },
-    "default_title": "ZAP by Checkmarx",
+    "default_title": "ZAP by Checkmarx Recorder",
     "default_popup": "popup.html",
     "__chrome|opera__chrome_style": false,
     "__firefox__browser_style": false
-  },
-
-  "__chrome|opera__options_page": "options.html",
-  "options_ui": {
-    "page": "options.html",
-    "open_in_tab": true
   },
 
   "background": {

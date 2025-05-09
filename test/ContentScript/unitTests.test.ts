@@ -320,11 +320,12 @@ test('should generate valid script', () => {
 test('should generate valid click statement', () => {
   const elementLocator = new ElementLocator('id', 'test');
   const zestStatementElementClick = new ZestStatementElementClick(
-    elementLocator
+    elementLocator,
+    1000
   );
 
   expect(zestStatementElementClick.toJSON()).toBe(
-    '{"windowHandle":"windowHandle1","type":"id","element":"test","index":-1,"enabled":true,"elementType":"ZestClientElementClick"}'
+    '{"windowHandle":"windowHandle1","type":"id","element":"test","index":-1,"waitForMsec":1000,"enabled":true,"elementType":"ZestClientElementClick"}'
   );
 });
 
@@ -332,11 +333,12 @@ test('should generate valid send keys statement', () => {
   const elementLocator = new ElementLocator('id', 'test');
   const zestStatementElementSendKeys = new ZestStatementElementSendKeys(
     elementLocator,
-    'testvalue'
+    'testvalue',
+    1000
   );
 
   expect(zestStatementElementSendKeys.toJSON()).toBe(
-    '{"value":"testvalue","windowHandle":"windowHandle1","type":"id","element":"test","index":-1,"enabled":true,"elementType":"ZestClientElementSendKeys"}'
+    '{"value":"testvalue","windowHandle":"windowHandle1","type":"id","element":"test","index":-1,"waitForMsec":1000,"enabled":true,"elementType":"ZestClientElementSendKeys"}'
   );
 });
 
@@ -344,7 +346,8 @@ test('should add zest statement to zest script', () => {
   const script = new ZestScript('recordedScript');
   const elementLocator = new ElementLocator('id', 'test');
   const zestStatementElementClick = new ZestStatementElementClick(
-    elementLocator
+    elementLocator,
+    1000
   );
   script.addStatement(zestStatementElementClick.toJSON());
   const expectedOutcome = `{
@@ -366,6 +369,7 @@ test('should add zest statement to zest script', () => {
       "type": "id",
       "element": "test",
       "index": 1,
+      "waitForMsec": 1000,
       "enabled": true,
       "elementType": "ZestClientElementClick"
     }
@@ -382,7 +386,8 @@ test('should reset zest script', () => {
   const script = new ZestScript('recordedScript');
   const elementLocator = new ElementLocator('id', 'test');
   const zestStatementElementClick = new ZestStatementElementClick(
-    elementLocator
+    elementLocator,
+    1000
   );
   script.addStatement(zestStatementElementClick.toJSON());
   script.reset();

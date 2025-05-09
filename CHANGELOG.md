@@ -1,5 +1,5 @@
 # Changelog
-All notable changes to this add-on will be documented in this file.
+All notable changes to the full browser extension will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 - Zest comment including the extension version when recording.
+- New recorder extension, which is a cut down version of the full one, without the capability to talk to ZAP.
+- Support for incognito mode.
 
 ## 0.0.12 - 2025-05-05
 

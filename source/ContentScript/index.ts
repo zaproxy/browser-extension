@@ -26,6 +26,7 @@ import {
 } from '../types/ReportedModel';
 import Recorder from './recorder';
 import {
+  IS_FULL_EXTENSION,
   LOCAL_STORAGE,
   LOCAL_ZAP_ENABLE,
   LOCAL_ZAP_RECORD,
@@ -49,24 +50,32 @@ function reportStorage(
   storage: Storage,
   fn: (re: ReportedStorage) => void
 ): void {
-  const url = window.location.href;
-  for (const key of Object.keys(storage)) {
-    fn(new ReportedStorage(name, '', key, '', storage.getItem(key), url));
+  if (IS_FULL_EXTENSION) {
+    const url = window.location.href;
+    for (const key of Object.keys(storage)) {
+      fn(new ReportedStorage(name, '', key, '', storage.getItem(key), url));
+    }
   }
 }
 
 async function sendEventToZAP(obj: ReportedEvent): Promise<number> {
-  return Browser.runtime.sendMessage({
-    type: REPORT_EVENT,
-    data: obj.toString(),
-  });
+  if (IS_FULL_EXTENSION) {
+    return Browser.runtime.sendMessage({
+      type: REPORT_EVENT,
+      data: obj.toString(),
+    });
+  }
+  return -1;
 }
 
 async function sendObjectToZAP(obj: ReportedObject): Promise<number> {
-  return Browser.runtime.sendMessage({
-    type: REPORT_OBJECT,
-    data: obj.toString(),
-  });
+  if (IS_FULL_EXTENSION) {
+    return Browser.runtime.sendMessage({
+      type: REPORT_OBJECT,
+      data: obj.toString(),
+    });
+  }
+  return -1;
 }
 
 function reportObject(repObj: ReportedObject): void {

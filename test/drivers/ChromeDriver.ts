@@ -48,8 +48,8 @@ class ChromeDriver {
     this.context = await chromium.launchPersistentContext('', {
       args: [
         `--headless=new`,
-        `--disable-extensions-except=${extensionPath.CHROME}`,
-        `--load-extension=${extensionPath.CHROME}`,
+        `--disable-extensions-except=${extensionPath.CHROME}-ext`,
+        `--load-extension=${extensionPath.CHROME}-ext`,
       ],
     });
     await this.configureExtension(JSONPORT);

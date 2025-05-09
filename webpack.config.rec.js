@@ -26,7 +26,6 @@ const extensionReloaderPlugin =
           // TODO: reload manifest on update
           contentScript: 'contentScript',
           background: 'background',
-          extensionPage: ['options'],
         },
       })
     : () => {
@@ -58,15 +57,14 @@ module.exports = {
   mode: nodeEnv,
 
   entry: {
-    manifest: path.join(sourcePath, 'manifest.json'),
+    manifest: path.join(sourcePath, 'manifest.rec.json'),
     background: path.join(sourcePath, 'Background', 'index.ts'),
     contentScript: path.join(sourcePath, 'ContentScript', 'index.ts'),
-    options: path.join(sourcePath, 'Options', 'index.tsx'),
     popup: path.join(sourcePath, 'Popup', 'index.tsx'),
   },
 
   output: {
-    path: path.join(destPath, `${targetBrowser}-ext`),
+    path: path.join(destPath, `${targetBrowser}-rec`),
     filename: 'js/[name].bundle.js',
   },
 
@@ -83,7 +81,7 @@ module.exports = {
     rules: [
       {
         type: 'javascript/auto', // prevent webpack handling json with its own loaders,
-        test: /manifest\.json$/,
+        test: /manifest\.rec\.json$/,
         use: {
           loader: 'wext-manifest-loader',
           options: {
@@ -142,21 +140,14 @@ module.exports = {
     // delete previous build files
     new CleanWebpackPlugin({
       cleanOnceBeforeBuildPatterns: [
-        path.join(process.cwd(), `extension/${targetBrowser}-ext`),
+        path.join(process.cwd(), `extension/${targetBrowser}-rec`),
         path.join(
           process.cwd(),
-          `extension/${targetBrowser}.ext.${getExtensionFileType(targetBrowser)}`
+          `extension/${targetBrowser}.rec.${getExtensionFileType(targetBrowser)}`
         ),
       ],
       cleanStaleWebpackAssets: false,
       verbose: true,
-    }),
-    new HtmlWebpackPlugin({
-      template: path.join(viewsPath, 'options.html'),
-      inject: 'body',
-      chunks: ['options'],
-      hash: true,
-      filename: 'options.html',
     }),
     new HtmlWebpackPlugin({
       template: path.join(viewsPath, 'popup.html'),
@@ -198,8 +189,8 @@ module.exports = {
             archive: [
               {
                 format: 'zip',
-                source: path.join(destPath, `${targetBrowser}-ext`),
-                destination: `${path.join(destPath, targetBrowser)}.ext.${getExtensionFileType(targetBrowser)}`,
+                source: path.join(destPath, `${targetBrowser}-rec`),
+                destination: `${path.join(destPath, targetBrowser)}.rec.${getExtensionFileType(targetBrowser)}`,
                 options: {zlib: {level: 6}},
               },
             ],
