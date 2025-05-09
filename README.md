@@ -34,7 +34,7 @@ You can use this extension to record Zest scripts on a system on which ZAP is no
 
 The latest published extensions will be available via the relevant stores:
 
-* Firefox - ZAP by Checkmarx Recorder TBA
+* Firefox - [ZAP by Checkmarx Recorder](https://addons.mozilla.org/en-GB/firefox/addon/zap-by-checkmarx-recorder/)
 * Chrome - ZAP by Checkmarx Recorder TBA
 
 ## Quick Start
