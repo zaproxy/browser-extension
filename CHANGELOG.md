@@ -3,7 +3,7 @@ All notable changes to the full browser extension will be documented in this fil
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## Unreleased
+## 0.0.13 - 2025-05-09
 
 ### Added
 - Zest comment including the extension version when recording.
