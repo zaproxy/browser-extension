@@ -32,7 +32,10 @@ It will be bundled in a ZAP add-on - this add-on will add the extension to Firef
 
 ### Recorder
 
-An extension for recording actions taken in the browser. It can be used to record things like auth scripts to be used in ZAP.
+ZAP by Checkmarx is a free OSS security tool which can be used to test the security of your web apps.
+This extension allows you to record all of the actions you take in the browser as a Zest script. 
+It can be used to record things like authentication scripts or other complex interactions.
+Zest scripts can be replayed in ZAP, whether in the desktop or in automation.
 
 ## Category
 
