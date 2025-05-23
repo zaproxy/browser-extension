@@ -61,6 +61,7 @@ Then run the following:
 - `yarn run build` builds and packs both the full and recorder extensions all at once to extension/ directory
 - `yarn run lint` to lint the code
 - `yarn run lint --fix` to fix any lint errors
+- `yarn playwright install` at least once before the tests
 - `yarn run test` to run the test suite (you should not have anything listening on port 8080)
   - Note that individual tests can be run like `yarn run test -t "Should report forms"`
 

@@ -42,6 +42,18 @@ export function getStaticHttpServer(): http.Server {
   });
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getInsertPosition(body: any, actualData: Array<string>): number {
+  const statementJson = body?.statementJson;
+  if (statementJson) {
+    const index = JSON.parse(statementJson)?.index;
+    if (index) {
+      return index - 1;
+    }
+  }
+  return actualData.length;
+}
+
 export function getFakeZapServer(
   actualData: Array<string>,
   JSONPORT: number,
@@ -56,9 +68,9 @@ export function getFakeZapServer(
     const msg = JSON.stringify({action, body});
     if (incZapEvents || msg.indexOf('localzap') === -1) {
       // Ignore localzap events
-      actualData.push(
-        msg.replace(/\\"timestamp\\":\d+/g, 'TIMESTAMP').replace(/[\\]/g, '')
-      );
+      actualData[getInsertPosition(body, actualData)] = msg
+        .replace(/\\"timestamp\\":\d+/g, 'TIMESTAMP')
+        .replace(/[\\]/g, '');
     }
     res.sendStatus(200);
   });

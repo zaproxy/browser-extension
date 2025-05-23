@@ -13,9 +13,6 @@ updates:
       patterns:
       - "*"
   open-pull-requests-limit: 10
-  ignore:
-    # Playwright updates break the tests - TODO fix them!
-    - dependency-name: "playwright*"
 - package-ecosystem: "github-actions"
   directory: "/"
   schedule:

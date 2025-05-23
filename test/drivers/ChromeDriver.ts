@@ -46,8 +46,8 @@ class ChromeDriver {
   ): Promise<BrowserContext> {
     if (this.context) return this.context;
     this.context = await chromium.launchPersistentContext('', {
+      channel: 'chromium',
       args: [
-        `--headless=new`,
         `--disable-extensions-except=${extensionPath.CHROME}-ext`,
         `--load-extension=${extensionPath.CHROME}-ext`,
       ],

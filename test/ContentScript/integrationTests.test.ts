@@ -69,8 +69,8 @@ function integrationTests(
     const expectedData =
       '["{\\"action\\":{\\"action\\":\\"reportEvent\\"},\\"body\\":{\\"eventJson\\":\\"{TIMESTAMP,\\"eventName\\":\\"pageLoad\\",\\"url\\":\\"http://localhost:1801/webpages/integrationTest.html\\",\\"count\\":1}\\",\\"apikey\\":\\"not set\\"}}",' +
       '"{\\"action\\":{\\"action\\":\\"reportObject\\"},\\"body\\":{\\"objectJson\\":\\"{TIMESTAMP,\\"type\\":\\"nodeAdded\\",\\"tagName\\":\\"A\\",\\"id\\":\\"\\",\\"nodeName\\":\\"A\\",\\"url\\":\\"http://localhost:1801/webpages/integrationTest.html\\",\\"href\\":\\"http://localhost:1801/webpages/integrationTest.html#test\\",\\"text\\":\\"Link\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
-      '"{\\"action\\":{\\"action\\":\\"reportObject\\"},\\"body\\":{\\"objectJson\\":\\"{TIMESTAMP,\\"type\\":\\"localStorage\\",\\"tagName\\":\\"\\",\\"id\\":\\"localzapenable\\",\\"nodeName\\":\\"\\",\\"url\\":\\"http://localhost:1801/webpages/integrationTest.html\\",\\"text\\":\\"true\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
-      '"{\\"action\\":{\\"action\\":\\"reportObject\\"},\\"body\\":{\\"objectJson\\":\\"{TIMESTAMP,\\"type\\":\\"localStorage\\",\\"tagName\\":\\"\\",\\"id\\":\\"localzapurl\\",\\"nodeName\\":\\"\\",\\"url\\":\\"http://localhost:1801/webpages/integrationTest.html\\",\\"text\\":\\"http://localhost:8080/\\"}\\",\\"apikey\\":\\"not set\\"}}"]';
+      '"{\\"action\\":{\\"action\\":\\"reportObject\\"},\\"body\\":{\\"objectJson\\":\\"{TIMESTAMP,\\"type\\":\\"localStorage\\",\\"tagName\\":\\"\\",\\"id\\":\\"localzapurl\\",\\"nodeName\\":\\"\\",\\"url\\":\\"http://localhost:1801/webpages/integrationTest.html\\",\\"text\\":\\"http://localhost:8080/\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
+      '"{\\"action\\":{\\"action\\":\\"reportObject\\"},\\"body\\":{\\"objectJson\\":\\"{TIMESTAMP,\\"type\\":\\"localStorage\\",\\"tagName\\":\\"\\",\\"id\\":\\"localzapenable\\",\\"nodeName\\":\\"\\",\\"url\\":\\"http://localhost:1801/webpages/integrationTest.html\\",\\"text\\":\\"true\\"}\\",\\"apikey\\":\\"not set\\"}}"]';
     expect(JSON.stringify(Array.from(actualData))).toBe(expectedData);
   });
 
@@ -323,7 +323,6 @@ function integrationTests(
       // When
       await page.click('#save-script');
       await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(TIMEOUT);
       await page.close();
       // Then
       expect(actualOutcome).toBe('recordedScript.zst');
@@ -403,7 +402,6 @@ function integrationTests(
       // When
       await page.click('#save-script');
       await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(TIMEOUT);
       await page.close();
       // Then
       expect(actualOutcome).toBe('test-name.zst');
