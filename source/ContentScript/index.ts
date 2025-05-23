@@ -275,7 +275,9 @@ function injectScript(): Promise<boolean> {
   return new Promise((resolve) => {
     configureExtension();
     withZapRecordingActive(() => {
-      recorder.recordUserInteractions();
+      Browser.storage.sync.get({initScript: false}).then((items) => {
+        recorder.recordUserInteractions(items.initScript === true);
+      });
     });
     withZapEnableSetting(() => {
       enableExtension();
@@ -297,7 +299,6 @@ Browser.runtime.onMessage.addListener(
     if (message.type === ZAP_START_RECORDING) {
       configureExtension();
       recorder.recordUserInteractions();
-      recorder.initializationScript();
     } else if (message.type === ZAP_STOP_RECORDING) {
       recorder.stopRecordingUserInteractions();
     }

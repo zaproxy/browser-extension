@@ -75,6 +75,52 @@ function integrationTests(
   });
 
   if (browserName !== BROWSERNAME.FIREFOX) {
+    test.skip('Should init script for page accessed before starting recorder', async () => {
+      // Given / When
+      server = getFakeZapServer(actualData, _JSONPORT);
+      const context = await driver.getContext(_JSONPORT);
+      await driver.setEnable(false);
+      const page = await context.newPage();
+      await page.goto(
+        `http://localhost:${_HTTPPORT}/webpages/linkedpage3.html`
+      );
+      await driver.toggleRecording();
+      await page.waitForTimeout(TIMEOUT);
+      await page.close();
+      // Then
+      expect(actualData).toStrictEqual([
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"index":1,"enabled":true,"elementType":"ZestComment","comment":"Recorded by comment"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","browserType":"browser","url":"http://localhost:1801/webpages/linkedpage3.html","capabilities":"","headless":false,"index":2,"enabled":true,"elementType":"ZestClientLaunch"}","apikey":"not set"}}',
+      ]);
+    });
+
+    test('Should init script once for several opened pages', async () => {
+      // Given / When
+      server = getFakeZapServer(actualData, _JSONPORT);
+      const context = await driver.getContext(_JSONPORT, true);
+      await driver.setEnable(false);
+      const page = await context.newPage();
+      await page.goto(
+        `http://localhost:${_HTTPPORT}/webpages/linkedpage1.html`
+      );
+      await page.waitForLoadState('networkidle');
+      await page.click('#click');
+      await page.waitForLoadState('networkidle');
+      await page.click('#click');
+      await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(TIMEOUT);
+      await page.close();
+      // Then
+      expect(actualData).toStrictEqual([
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"index":1,"enabled":true,"elementType":"ZestComment","comment":"Recorded by comment"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","browserType":"browser","url":"http://localhost:1801/webpages/linkedpage1.html","capabilities":"","headless":false,"index":2,"enabled":true,"elementType":"ZestClientLaunch"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"click","index":3,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementScrollTo"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"click","index":4,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementClick"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"click","index":5,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementScrollTo"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"click","index":6,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementClick"}","apikey":"not set"}}',
+      ]);
+    });
+
     test('Should Disable Extension', async () => {
       server = getFakeZapServer(actualData, _JSONPORT);
       const context = await driver.getContext(_JSONPORT);
@@ -87,7 +133,7 @@ function integrationTests(
       await page.waitForTimeout(TIMEOUT);
       await page.close();
       // Then
-      expect(JSON.stringify(Array.from(actualData))).toBe('[]');
+      expect(actualData).toStrictEqual([]);
     });
 
     test('Should record click', async () => {
@@ -104,10 +150,12 @@ function integrationTests(
       await page.waitForTimeout(TIMEOUT);
       await page.close();
       // Then
-      const expectedData =
-        '["{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"click\\",\\"index\\":1,\\"waitForMsec\\":5000,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementScrollTo\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
-        '"{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"click\\",\\"index\\":2,\\"waitForMsec\\":5000,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementClick\\"}\\",\\"apikey\\":\\"not set\\"}}"]';
-      expect(JSON.stringify(Array.from(actualData))).toBe(expectedData);
+      expect(actualData).toStrictEqual([
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"index":1,"enabled":true,"elementType":"ZestComment","comment":"Recorded by comment"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","browserType":"browser","url":"http://localhost:1801/webpages/interactions.html","capabilities":"","headless":false,"index":2,"enabled":true,"elementType":"ZestClientLaunch"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"click","index":3,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementScrollTo"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"click","index":4,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementClick"}","apikey":"not set"}}',
+      ]);
     });
 
     test('Should record send keys', async () => {
@@ -126,12 +174,14 @@ function integrationTests(
       await page.waitForTimeout(TIMEOUT);
       await page.close();
       // Then
-      const expectedData =
-        '["{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"input-1\\",\\"index\\":1,\\"waitForMsec\\":5000,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementScrollTo\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
-        '"{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"value\\":\\"testinput\\",\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"input-1\\",\\"index\\":2,\\"waitForMsec\\":5000,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementSendKeys\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
-        '"{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"click\\",\\"index\\":3,\\"waitForMsec\\":5000,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementScrollTo\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
-        '"{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"click\\",\\"index\\":4,\\"waitForMsec\\":5000,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementClick\\"}\\",\\"apikey\\":\\"not set\\"}}"]';
-      expect(JSON.stringify(Array.from(actualData))).toBe(expectedData);
+      expect(actualData).toStrictEqual([
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"index":1,"enabled":true,"elementType":"ZestComment","comment":"Recorded by comment"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","browserType":"browser","url":"http://localhost:1801/webpages/interactions.html","capabilities":"","headless":false,"index":2,"enabled":true,"elementType":"ZestClientLaunch"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"input-1","index":3,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementScrollTo"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"value":"testinput","windowHandle":"windowHandle1","type":"id","element":"input-1","index":4,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementSendKeys"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"click","index":5,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementScrollTo"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"click","index":6,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementClick"}","apikey":"not set"}}',
+      ]);
     });
 
     test('Should record overwrite existing input text', async () => {
@@ -150,12 +200,14 @@ function integrationTests(
       await page.waitForTimeout(TIMEOUT);
       await page.close();
       // Then
-      const expectedData =
-        '["{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"input-3-filled\\",\\"index\\":1,\\"waitForMsec\\":5000,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementScrollTo\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
-        '"{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"value\\":\\"testinput\\",\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"input-3-filled\\",\\"index\\":2,\\"waitForMsec\\":5000,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementSendKeys\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
-        '"{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"click\\",\\"index\\":3,\\"waitForMsec\\":5000,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementScrollTo\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
-        '"{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"click\\",\\"index\\":4,\\"waitForMsec\\":5000,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementClick\\"}\\",\\"apikey\\":\\"not set\\"}}"]';
-      expect(JSON.stringify(Array.from(actualData))).toBe(expectedData);
+      expect(actualData).toStrictEqual([
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"index":1,"enabled":true,"elementType":"ZestComment","comment":"Recorded by comment"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","browserType":"browser","url":"http://localhost:1801/webpages/interactions.html","capabilities":"","headless":false,"index":2,"enabled":true,"elementType":"ZestClientLaunch"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"input-3-filled","index":3,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementScrollTo"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"value":"testinput","windowHandle":"windowHandle1","type":"id","element":"input-3-filled","index":4,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementSendKeys"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"click","index":5,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementScrollTo"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"click","index":6,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementClick"}","apikey":"not set"}}',
+      ]);
     });
 
     test('Should record inserting before existing input text', async () => {
@@ -177,12 +229,14 @@ function integrationTests(
       await page.waitForTimeout(TIMEOUT);
       await page.close();
       // Then
-      const expectedData =
-        '["{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"input-3-filled\\",\\"index\\":1,\\"waitForMsec\\":5000,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementScrollTo\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
-        '"{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"value\\":\\"testinputExisting text\\",\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"input-3-filled\\",\\"index\\":2,\\"waitForMsec\\":5000,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementSendKeys\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
-        '"{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"click\\",\\"index\\":3,\\"waitForMsec\\":5000,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementScrollTo\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
-        '"{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"click\\",\\"index\\":4,\\"waitForMsec\\":5000,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementClick\\"}\\",\\"apikey\\":\\"not set\\"}}"]';
-      expect(JSON.stringify(Array.from(actualData))).toBe(expectedData);
+      expect(actualData).toStrictEqual([
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"index":1,"enabled":true,"elementType":"ZestComment","comment":"Recorded by comment"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","browserType":"browser","url":"http://localhost:1801/webpages/interactions.html","capabilities":"","headless":false,"index":2,"enabled":true,"elementType":"ZestClientLaunch"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"input-3-filled","index":3,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementScrollTo"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"value":"testinputExisting text","windowHandle":"windowHandle1","type":"id","element":"input-3-filled","index":4,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementSendKeys"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"click","index":5,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementScrollTo"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"click","index":6,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementClick"}","apikey":"not set"}}',
+      ]);
     });
 
     test('Should record overwrite existing input textarea', async () => {
@@ -201,12 +255,14 @@ function integrationTests(
       await page.waitForTimeout(TIMEOUT);
       await page.close();
       // Then
-      const expectedData =
-        '["{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"textarea-1\\",\\"index\\":1,\\"waitForMsec\\":5000,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementScrollTo\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
-        '"{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"value\\":\\"testinput\\",\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"textarea-1\\",\\"index\\":2,\\"waitForMsec\\":5000,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementSendKeys\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
-        '"{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"click\\",\\"index\\":3,\\"waitForMsec\\":5000,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementScrollTo\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
-        '"{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"click\\",\\"index\\":4,\\"waitForMsec\\":5000,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementClick\\"}\\",\\"apikey\\":\\"not set\\"}}"]';
-      expect(JSON.stringify(Array.from(actualData))).toBe(expectedData);
+      expect(actualData).toStrictEqual([
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"index":1,"enabled":true,"elementType":"ZestComment","comment":"Recorded by comment"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","browserType":"browser","url":"http://localhost:1801/webpages/interactions.html","capabilities":"","headless":false,"index":2,"enabled":true,"elementType":"ZestClientLaunch"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"textarea-1","index":3,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementScrollTo"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"value":"testinput","windowHandle":"windowHandle1","type":"id","element":"textarea-1","index":4,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementSendKeys"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"click","index":5,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementScrollTo"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"click","index":6,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementClick"}","apikey":"not set"}}',
+      ]);
     });
 
     test('Should record inserting before existing input textarea', async () => {
@@ -228,12 +284,14 @@ function integrationTests(
       await page.waitForTimeout(TIMEOUT);
       await page.close();
       // Then
-      const expectedData =
-        '["{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"textarea-1\\",\\"index\\":1,\\"waitForMsec\\":5000,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementScrollTo\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
-        '"{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"value\\":\\"testinputExisting text\\",\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"textarea-1\\",\\"index\\":2,\\"waitForMsec\\":5000,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementSendKeys\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
-        '"{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"click\\",\\"index\\":3,\\"waitForMsec\\":5000,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementScrollTo\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
-        '"{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"click\\",\\"index\\":4,\\"waitForMsec\\":5000,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementClick\\"}\\",\\"apikey\\":\\"not set\\"}}"]';
-      expect(JSON.stringify(Array.from(actualData))).toBe(expectedData);
+      expect(actualData).toStrictEqual([
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"index":1,"enabled":true,"elementType":"ZestComment","comment":"Recorded by comment"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","browserType":"browser","url":"http://localhost:1801/webpages/interactions.html","capabilities":"","headless":false,"index":2,"enabled":true,"elementType":"ZestClientLaunch"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"textarea-1","index":3,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementScrollTo"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"value":"testinputExisting text","windowHandle":"windowHandle1","type":"id","element":"textarea-1","index":4,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementSendKeys"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"click","index":5,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementScrollTo"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"click","index":6,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementClick"}","apikey":"not set"}}',
+      ]);
     });
 
     test('Should record option select', async () => {
@@ -252,12 +310,14 @@ function integrationTests(
       await page.waitForTimeout(TIMEOUT);
       await page.close();
       // Then
-      const expectedData =
-        '["{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"cars\\",\\"index\\":1,\\"waitForMsec\\":5000,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementScrollTo\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
-        '"{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"value\\":\\"audi\\",\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"cars\\",\\"index\\":2,\\"waitForMsec\\":5000,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementSendKeys\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
-        '"{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"click\\",\\"index\\":3,\\"waitForMsec\\":5000,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementScrollTo\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
-        '"{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"click\\",\\"index\\":4,\\"waitForMsec\\":5000,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementClick\\"}\\",\\"apikey\\":\\"not set\\"}}"]';
-      expect(JSON.stringify(Array.from(actualData))).toBe(expectedData);
+      expect(actualData).toStrictEqual([
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"index":1,"enabled":true,"elementType":"ZestComment","comment":"Recorded by comment"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","browserType":"browser","url":"http://localhost:1801/webpages/interactions.html","capabilities":"","headless":false,"index":2,"enabled":true,"elementType":"ZestClientLaunch"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"cars","index":3,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementScrollTo"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"value":"audi","windowHandle":"windowHandle1","type":"id","element":"cars","index":4,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementSendKeys"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"click","index":5,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementScrollTo"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"click","index":6,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementClick"}","apikey":"not set"}}',
+      ]);
     });
 
     test('Should record return key', async () => {
@@ -275,12 +335,14 @@ function integrationTests(
       await page.waitForTimeout(TIMEOUT);
       await page.close();
       // Then
-      const expectedData =
-        '["{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"input-1\\",\\"index\\":1,\\"waitForMsec\\":5000,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementScrollTo\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
-        '"{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"value\\":\\"testinput\\",\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"input-1\\",\\"index\\":2,\\"waitForMsec\\":5000,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementSendKeys\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
-        '"{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"input-1\\",\\"index\\":3,\\"waitForMsec\\":5000,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementScrollTo\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
-        '"{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"input-1\\",\\"index\\":4,\\"waitForMsec\\":5000,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementSubmit\\"}\\",\\"apikey\\":\\"not set\\"}}"]';
-      expect(JSON.stringify(Array.from(actualData))).toBe(expectedData);
+      expect(actualData).toStrictEqual([
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"index":1,"enabled":true,"elementType":"ZestComment","comment":"Recorded by comment"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","browserType":"browser","url":"http://localhost:1801/webpages/interactions.html","capabilities":"","headless":false,"index":2,"enabled":true,"elementType":"ZestClientLaunch"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"input-1","index":3,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementScrollTo"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"value":"testinput","windowHandle":"windowHandle1","type":"id","element":"input-1","index":4,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementSendKeys"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"input-1","index":5,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementScrollTo"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"input-1","index":6,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementSubmit"}","apikey":"not set"}}',
+      ]);
     });
 
     test('Should stop recording', async () => {
@@ -299,7 +361,7 @@ function integrationTests(
       await page.waitForTimeout(TIMEOUT);
       await page.close();
       // Then
-      expect(JSON.stringify(Array.from(actualData))).toBe('[]');
+      expect(actualData).toStrictEqual([]);
     });
 
     test('Should download the script', async () => {
@@ -345,14 +407,15 @@ function integrationTests(
       await page.waitForTimeout(TIMEOUT);
       await page.close();
       // Then
-      const expectedData =
-        '["{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"input-1\\",\\"index\\":1,\\"waitForMsec\\":5000,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementScrollTo\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
-        '"{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"value\\":\\"testinput\\",\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"input-1\\",\\"index\\":2,\\"waitForMsec\\":5000,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementSendKeys\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
-        '"{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"click\\",\\"index\\":3,\\"waitForMsec\\":5000,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementScrollTo\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
-        '"{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"click\\",\\"index\\":4,\\"waitForMsec\\":5000,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementClick\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
-        '"{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"index\\":5,\\"sleepInSeconds\\":0,\\"enabled\\":true,\\"elementType\\":\\"ZestClientWindowClose\\"}\\",\\"apikey\\":\\"not set\\"}}"]';
-      expect(Array.from(actualData).length).toBe(5);
-      expect(JSON.stringify(Array.from(actualData))).toBe(expectedData);
+      expect(actualData).toStrictEqual([
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"index":1,"enabled":true,"elementType":"ZestComment","comment":"Recorded by comment"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","browserType":"browser","url":"http://localhost:1801/webpages/interactions.html","capabilities":"","headless":false,"index":2,"enabled":true,"elementType":"ZestClientLaunch"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"input-1","index":3,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementScrollTo"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"value":"testinput","windowHandle":"windowHandle1","type":"id","element":"input-1","index":4,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementSendKeys"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"click","index":5,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementScrollTo"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"click","index":6,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementClick"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","index":7,"sleepInSeconds":0,"enabled":true,"elementType":"ZestClientWindowClose"}","apikey":"not set"}}',
+      ]);
     });
 
     test('Should send window handle close script when directly pressed save script', async () => {
@@ -372,14 +435,15 @@ function integrationTests(
       await page.waitForTimeout(TIMEOUT);
       await page.close();
       // Then
-      const expectedData =
-        '["{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"input-1\\",\\"index\\":1,\\"waitForMsec\\":5000,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementScrollTo\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
-        '"{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"value\\":\\"testinput\\",\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"input-1\\",\\"index\\":2,\\"waitForMsec\\":5000,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementSendKeys\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
-        '"{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"click\\",\\"index\\":3,\\"waitForMsec\\":5000,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementScrollTo\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
-        '"{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"click\\",\\"index\\":4,\\"waitForMsec\\":5000,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementClick\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
-        '"{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"index\\":5,\\"sleepInSeconds\\":0,\\"enabled\\":true,\\"elementType\\":\\"ZestClientWindowClose\\"}\\",\\"apikey\\":\\"not set\\"}}"]';
-      expect(Array.from(actualData).length).toBe(5);
-      expect(JSON.stringify(Array.from(actualData))).toBe(expectedData);
+      expect(actualData).toStrictEqual([
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"index":1,"enabled":true,"elementType":"ZestComment","comment":"Recorded by comment"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","browserType":"browser","url":"http://localhost:1801/webpages/interactions.html","capabilities":"","headless":false,"index":2,"enabled":true,"elementType":"ZestClientLaunch"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"input-1","index":3,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementScrollTo"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"value":"testinput","windowHandle":"windowHandle1","type":"id","element":"input-1","index":4,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementSendKeys"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"click","index":5,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementScrollTo"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"click","index":6,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementClick"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","index":7,"sleepInSeconds":0,"enabled":true,"elementType":"ZestClientWindowClose"}","apikey":"not set"}}',
+      ]);
     });
 
     test('Should configure downloaded script name', async () => {
@@ -422,11 +486,13 @@ function integrationTests(
       await page.waitForTimeout(TIMEOUT);
       await page.close();
       // Then
-      expect(JSON.stringify(Array.from(actualData))).toBe(
-        '["{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"frameIndex\\":0,\\"frameName\\":\\"\\",\\"parent\\":false,\\"index\\":1,\\"enabled\\":true,\\"elementType\\":\\"ZestClientSwitchToFrame\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
-          '"{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"test-btn\\",\\"index\\":2,\\"waitForMsec\\":5000,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementScrollTo\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
-          '"{\\"action\\":{\\"action\\":\\"reportZestStatement\\"},\\"body\\":{\\"statementJson\\":\\"{\\"windowHandle\\":\\"windowHandle1\\",\\"type\\":\\"id\\",\\"element\\":\\"test-btn\\",\\"index\\":3,\\"waitForMsec\\":5000,\\"enabled\\":true,\\"elementType\\":\\"ZestClientElementClick\\"}\\",\\"apikey\\":\\"not set\\"}}"]'
-      );
+      expect(actualData).toStrictEqual([
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"index":1,"enabled":true,"elementType":"ZestComment","comment":"Recorded by comment"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","browserType":"browser","url":"http://localhost:1801/webpages/interactions.html","capabilities":"","headless":false,"index":2,"enabled":true,"elementType":"ZestClientLaunch"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","frameIndex":0,"frameName":"","parent":false,"index":3,"enabled":true,"elementType":"ZestClientSwitchToFrame"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"test-btn","index":4,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementScrollTo"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"test-btn","index":5,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementClick"}","apikey":"not set"}}',
+      ]);
     });
 
     test('Should not record interactions on floating container', async () => {
@@ -443,7 +509,11 @@ function integrationTests(
       await page.waitForTimeout(TIMEOUT);
       await page.close();
       // Then
-      expect(JSON.stringify(Array.from(actualData))).toBe('[]');
+      expect(actualData).toStrictEqual([
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"index":1,"enabled":true,"elementType":"ZestComment","comment":"Recorded by comment"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","browserType":"browser","url":"http://localhost:1801/webpages/interactions.html","capabilities":"","headless":false,"index":2,"enabled":true,"elementType":"ZestClientLaunch"}","apikey":"not set"}}',
+        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","index":3,"sleepInSeconds":0,"enabled":true,"elementType":"ZestClientWindowClose"}","apikey":"not set"}}',
+      ]);
     });
 
     test('Should record set localStorage', async () => {

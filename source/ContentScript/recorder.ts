@@ -344,6 +344,8 @@ class Recorder {
   }
 
   initializationScript(): void {
+    Browser.storage.sync.set({initScript: false});
+
     this.sendZestScriptToZAP(
       new ZestStatementComment(
         `Recorded by ${Browser.runtime.getManifest().name} ` +
@@ -359,8 +361,11 @@ class Recorder {
     this.handleResize();
   }
 
-  recordUserInteractions(): void {
+  recordUserInteractions(initScript = true): void {
     console.log('user interactions');
+    if (initScript) {
+      this.initializationScript();
+    }
     this.active = true;
     this.previousDOMState = document.documentElement.outerHTML;
     if (this.haveListenersBeenAdded) {

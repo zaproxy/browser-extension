@@ -70,7 +70,9 @@ export function getFakeZapServer(
       // Ignore localzap events
       actualData[getInsertPosition(body, actualData)] = msg
         .replace(/\\"timestamp\\":\d+/g, 'TIMESTAMP')
-        .replace(/[\\]/g, '');
+        .replace(/[\\]/g, '')
+        .replace(/Recorded by [^\\]+?"/g, 'Recorded by comment"')
+        .replace(/browserType":"[^\\]+?"/g, 'browserType":"browser"');
     }
     res.sendStatus(200);
   });
