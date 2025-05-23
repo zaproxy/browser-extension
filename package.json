@@ -26,13 +26,11 @@
     "build:ext:firefox": "cross-env NODE_ENV=production cross-env TARGET_BROWSER=firefox webpack",
     "build:ext:opera": "cross-env NODE_ENV=production cross-env TARGET_BROWSER=opera webpack",
     "build:ext": "yarn run build:ext:chrome && yarn run build:ext:firefox && yarn run build:ext:opera",
-
     "build:rec:chrome": "cross-env NODE_ENV=production cross-env TARGET_BROWSER=chrome webpack --config webpack.config.rec.js",
     "build:rec:firefox": "cross-env NODE_ENV=production cross-env TARGET_BROWSER=firefox webpack --config webpack.config.rec.js",
     "build:rec:opera": "cross-env NODE_ENV=production cross-env TARGET_BROWSER=opera webpack --config webpack.config.rec.js",
     "build:rec": "yarn run build:rec:chrome && yarn run build:rec:firefox && yarn run build:rec:opera",
     "build": "yarn run build:ext && yarn run build:rec",
-
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "test": "jest --coverage --testTimeout=10000",
