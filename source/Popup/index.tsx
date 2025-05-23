@@ -132,6 +132,9 @@ function stopRecording(): void {
 
 function startRecording(): void {
   startedAnimation();
+  Browser.storage.sync.set({
+    initScript: true,
+  });
   sendMessageToContentScript(ZAP_START_RECORDING);
   Browser.runtime.sendMessage({type: RESET_ZEST_SCRIPT});
   Browser.storage.sync.set({
