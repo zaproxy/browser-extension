@@ -21,7 +21,21 @@ import * as http from 'http';
 import {HTTPPORT, JSONPORT, BROWSERNAME} from './constants';
 import {ChromeDriver} from '../drivers/ChromeDriver';
 import {FirefoxDriver} from '../drivers/FirefoxDriver';
-import {getFakeZapServer, getStaticHttpServer, closeServer} from './utils';
+import {
+  closeServer,
+  getFakeZapServer,
+  getStaticHttpServer,
+  reportEvent,
+  reportObject,
+  reportZestStatementClick,
+  reportZestStatementClose,
+  reportZestStatementComment,
+  reportZestStatementLaunch,
+  reportZestStatementScrollTo,
+  reportZestStatementSendKeys,
+  reportZestStatementSubmit,
+  reportZestStatementSwitchToFrame,
+} from './utils';
 
 const TIMEOUT = 2000;
 
@@ -32,7 +46,7 @@ function integrationTests(
 ): void {
   let server: http.Server;
   let httpServer: http.Server;
-  const actualData = new Array<string>();
+  const actualData = new Array<object>();
   let driver: ChromeDriver | FirefoxDriver;
 
   beforeEach(async () => {
@@ -66,12 +80,39 @@ function integrationTests(
     await page.waitForTimeout(TIMEOUT);
     await page.close();
     // Then
-    const expectedData =
-      '["{\\"action\\":{\\"action\\":\\"reportEvent\\"},\\"body\\":{\\"eventJson\\":\\"{TIMESTAMP,\\"eventName\\":\\"pageLoad\\",\\"url\\":\\"http://localhost:1801/webpages/integrationTest.html\\",\\"count\\":1}\\",\\"apikey\\":\\"not set\\"}}",' +
-      '"{\\"action\\":{\\"action\\":\\"reportObject\\"},\\"body\\":{\\"objectJson\\":\\"{TIMESTAMP,\\"type\\":\\"nodeAdded\\",\\"tagName\\":\\"A\\",\\"id\\":\\"\\",\\"nodeName\\":\\"A\\",\\"url\\":\\"http://localhost:1801/webpages/integrationTest.html\\",\\"href\\":\\"http://localhost:1801/webpages/integrationTest.html#test\\",\\"text\\":\\"Link\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
-      '"{\\"action\\":{\\"action\\":\\"reportObject\\"},\\"body\\":{\\"objectJson\\":\\"{TIMESTAMP,\\"type\\":\\"localStorage\\",\\"tagName\\":\\"\\",\\"id\\":\\"localzapurl\\",\\"nodeName\\":\\"\\",\\"url\\":\\"http://localhost:1801/webpages/integrationTest.html\\",\\"text\\":\\"http://localhost:8080/\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
-      '"{\\"action\\":{\\"action\\":\\"reportObject\\"},\\"body\\":{\\"objectJson\\":\\"{TIMESTAMP,\\"type\\":\\"localStorage\\",\\"tagName\\":\\"\\",\\"id\\":\\"localzapenable\\",\\"nodeName\\":\\"\\",\\"url\\":\\"http://localhost:1801/webpages/integrationTest.html\\",\\"text\\":\\"true\\"}\\",\\"apikey\\":\\"not set\\"}}"]';
-    expect(JSON.stringify(Array.from(actualData))).toBe(expectedData);
+    expect(actualData).toEqual([
+      reportEvent(
+        'pageLoad',
+        'http://localhost:1801/webpages/integrationTest.html'
+      ),
+      reportObject(
+        'nodeAdded',
+        'A',
+        '',
+        'A',
+        'http://localhost:1801/webpages/integrationTest.html',
+        'http://localhost:1801/webpages/integrationTest.html#test',
+        'Link'
+      ),
+      reportObject(
+        'localStorage',
+        '',
+        'localzapurl',
+        '',
+        'http://localhost:1801/webpages/integrationTest.html',
+        undefined,
+        'http://localhost:8080/'
+      ),
+      reportObject(
+        'localStorage',
+        '',
+        'localzapenable',
+        '',
+        'http://localhost:1801/webpages/integrationTest.html',
+        undefined,
+        'true'
+      ),
+    ]);
   });
 
   if (browserName !== BROWSERNAME.FIREFOX) {
@@ -88,9 +129,11 @@ function integrationTests(
       await page.waitForTimeout(TIMEOUT);
       await page.close();
       // Then
-      expect(actualData).toStrictEqual([
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"index":1,"enabled":true,"elementType":"ZestComment","comment":"Recorded by comment"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","browserType":"browser","url":"http://localhost:1801/webpages/linkedpage3.html","capabilities":"","headless":false,"index":2,"enabled":true,"elementType":"ZestClientLaunch"}","apikey":"not set"}}',
+      expect(actualData).toEqual([
+        reportZestStatementComment(),
+        reportZestStatementLaunch(
+          'http://localhost:1801/webpages/linkedpage3.html'
+        ),
       ]);
     });
 
@@ -111,13 +154,15 @@ function integrationTests(
       await page.waitForTimeout(TIMEOUT);
       await page.close();
       // Then
-      expect(actualData).toStrictEqual([
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"index":1,"enabled":true,"elementType":"ZestComment","comment":"Recorded by comment"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","browserType":"browser","url":"http://localhost:1801/webpages/linkedpage1.html","capabilities":"","headless":false,"index":2,"enabled":true,"elementType":"ZestClientLaunch"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"click","index":3,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementScrollTo"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"click","index":4,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementClick"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"click","index":5,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementScrollTo"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"click","index":6,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementClick"}","apikey":"not set"}}',
+      expect(actualData).toEqual([
+        reportZestStatementComment(),
+        reportZestStatementLaunch(
+          'http://localhost:1801/webpages/linkedpage1.html'
+        ),
+        reportZestStatementScrollTo(3, 'click'),
+        reportZestStatementClick(4, 'click'),
+        reportZestStatementScrollTo(5, 'click'),
+        reportZestStatementClick(6, 'click'),
       ]);
     });
 
@@ -150,11 +195,13 @@ function integrationTests(
       await page.waitForTimeout(TIMEOUT);
       await page.close();
       // Then
-      expect(actualData).toStrictEqual([
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"index":1,"enabled":true,"elementType":"ZestComment","comment":"Recorded by comment"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","browserType":"browser","url":"http://localhost:1801/webpages/interactions.html","capabilities":"","headless":false,"index":2,"enabled":true,"elementType":"ZestClientLaunch"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"click","index":3,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementScrollTo"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"click","index":4,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementClick"}","apikey":"not set"}}',
+      expect(actualData).toEqual([
+        reportZestStatementComment(),
+        reportZestStatementLaunch(
+          'http://localhost:1801/webpages/interactions.html'
+        ),
+        reportZestStatementScrollTo(3, 'click'),
+        reportZestStatementClick(4, 'click'),
       ]);
     });
 
@@ -174,13 +221,15 @@ function integrationTests(
       await page.waitForTimeout(TIMEOUT);
       await page.close();
       // Then
-      expect(actualData).toStrictEqual([
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"index":1,"enabled":true,"elementType":"ZestComment","comment":"Recorded by comment"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","browserType":"browser","url":"http://localhost:1801/webpages/interactions.html","capabilities":"","headless":false,"index":2,"enabled":true,"elementType":"ZestClientLaunch"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"input-1","index":3,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementScrollTo"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"value":"testinput","windowHandle":"windowHandle1","type":"id","element":"input-1","index":4,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementSendKeys"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"click","index":5,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementScrollTo"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"click","index":6,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementClick"}","apikey":"not set"}}',
+      expect(actualData).toEqual([
+        reportZestStatementComment(),
+        reportZestStatementLaunch(
+          'http://localhost:1801/webpages/interactions.html'
+        ),
+        reportZestStatementScrollTo(3, 'input-1'),
+        reportZestStatementSendKeys(4, 'input-1', 'testinput'),
+        reportZestStatementScrollTo(5, 'click'),
+        reportZestStatementClick(6, 'click'),
       ]);
     });
 
@@ -200,13 +249,15 @@ function integrationTests(
       await page.waitForTimeout(TIMEOUT);
       await page.close();
       // Then
-      expect(actualData).toStrictEqual([
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"index":1,"enabled":true,"elementType":"ZestComment","comment":"Recorded by comment"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","browserType":"browser","url":"http://localhost:1801/webpages/interactions.html","capabilities":"","headless":false,"index":2,"enabled":true,"elementType":"ZestClientLaunch"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"input-3-filled","index":3,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementScrollTo"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"value":"testinput","windowHandle":"windowHandle1","type":"id","element":"input-3-filled","index":4,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementSendKeys"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"click","index":5,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementScrollTo"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"click","index":6,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementClick"}","apikey":"not set"}}',
+      expect(actualData).toEqual([
+        reportZestStatementComment(),
+        reportZestStatementLaunch(
+          'http://localhost:1801/webpages/interactions.html'
+        ),
+        reportZestStatementScrollTo(3, 'input-3-filled'),
+        reportZestStatementSendKeys(4, 'input-3-filled', 'testinput'),
+        reportZestStatementScrollTo(5, 'click'),
+        reportZestStatementClick(6, 'click'),
       ]);
     });
 
@@ -229,13 +280,19 @@ function integrationTests(
       await page.waitForTimeout(TIMEOUT);
       await page.close();
       // Then
-      expect(actualData).toStrictEqual([
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"index":1,"enabled":true,"elementType":"ZestComment","comment":"Recorded by comment"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","browserType":"browser","url":"http://localhost:1801/webpages/interactions.html","capabilities":"","headless":false,"index":2,"enabled":true,"elementType":"ZestClientLaunch"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"input-3-filled","index":3,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementScrollTo"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"value":"testinputExisting text","windowHandle":"windowHandle1","type":"id","element":"input-3-filled","index":4,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementSendKeys"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"click","index":5,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementScrollTo"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"click","index":6,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementClick"}","apikey":"not set"}}',
+      expect(actualData).toEqual([
+        reportZestStatementComment(),
+        reportZestStatementLaunch(
+          'http://localhost:1801/webpages/interactions.html'
+        ),
+        reportZestStatementScrollTo(3, 'input-3-filled'),
+        reportZestStatementSendKeys(
+          4,
+          'input-3-filled',
+          'testinputExisting text'
+        ),
+        reportZestStatementScrollTo(5, 'click'),
+        reportZestStatementClick(6, 'click'),
       ]);
     });
 
@@ -255,13 +312,15 @@ function integrationTests(
       await page.waitForTimeout(TIMEOUT);
       await page.close();
       // Then
-      expect(actualData).toStrictEqual([
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"index":1,"enabled":true,"elementType":"ZestComment","comment":"Recorded by comment"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","browserType":"browser","url":"http://localhost:1801/webpages/interactions.html","capabilities":"","headless":false,"index":2,"enabled":true,"elementType":"ZestClientLaunch"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"textarea-1","index":3,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementScrollTo"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"value":"testinput","windowHandle":"windowHandle1","type":"id","element":"textarea-1","index":4,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementSendKeys"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"click","index":5,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementScrollTo"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"click","index":6,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementClick"}","apikey":"not set"}}',
+      expect(actualData).toEqual([
+        reportZestStatementComment(),
+        reportZestStatementLaunch(
+          'http://localhost:1801/webpages/interactions.html'
+        ),
+        reportZestStatementScrollTo(3, 'textarea-1'),
+        reportZestStatementSendKeys(4, 'textarea-1', 'testinput'),
+        reportZestStatementScrollTo(5, 'click'),
+        reportZestStatementClick(6, 'click'),
       ]);
     });
 
@@ -284,13 +343,15 @@ function integrationTests(
       await page.waitForTimeout(TIMEOUT);
       await page.close();
       // Then
-      expect(actualData).toStrictEqual([
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"index":1,"enabled":true,"elementType":"ZestComment","comment":"Recorded by comment"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","browserType":"browser","url":"http://localhost:1801/webpages/interactions.html","capabilities":"","headless":false,"index":2,"enabled":true,"elementType":"ZestClientLaunch"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"textarea-1","index":3,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementScrollTo"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"value":"testinputExisting text","windowHandle":"windowHandle1","type":"id","element":"textarea-1","index":4,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementSendKeys"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"click","index":5,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementScrollTo"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"click","index":6,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementClick"}","apikey":"not set"}}',
+      expect(actualData).toEqual([
+        reportZestStatementComment(),
+        reportZestStatementLaunch(
+          'http://localhost:1801/webpages/interactions.html'
+        ),
+        reportZestStatementScrollTo(3, 'textarea-1'),
+        reportZestStatementSendKeys(4, 'textarea-1', 'testinputExisting text'),
+        reportZestStatementScrollTo(5, 'click'),
+        reportZestStatementClick(6, 'click'),
       ]);
     });
 
@@ -310,13 +371,15 @@ function integrationTests(
       await page.waitForTimeout(TIMEOUT);
       await page.close();
       // Then
-      expect(actualData).toStrictEqual([
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"index":1,"enabled":true,"elementType":"ZestComment","comment":"Recorded by comment"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","browserType":"browser","url":"http://localhost:1801/webpages/interactions.html","capabilities":"","headless":false,"index":2,"enabled":true,"elementType":"ZestClientLaunch"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"cars","index":3,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementScrollTo"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"value":"audi","windowHandle":"windowHandle1","type":"id","element":"cars","index":4,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementSendKeys"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"click","index":5,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementScrollTo"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"click","index":6,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementClick"}","apikey":"not set"}}',
+      expect(actualData).toEqual([
+        reportZestStatementComment(),
+        reportZestStatementLaunch(
+          'http://localhost:1801/webpages/interactions.html'
+        ),
+        reportZestStatementScrollTo(3, 'cars'),
+        reportZestStatementSendKeys(4, 'cars', 'audi'),
+        reportZestStatementScrollTo(5, 'click'),
+        reportZestStatementClick(6, 'click'),
       ]);
     });
 
@@ -335,13 +398,15 @@ function integrationTests(
       await page.waitForTimeout(TIMEOUT);
       await page.close();
       // Then
-      expect(actualData).toStrictEqual([
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"index":1,"enabled":true,"elementType":"ZestComment","comment":"Recorded by comment"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","browserType":"browser","url":"http://localhost:1801/webpages/interactions.html","capabilities":"","headless":false,"index":2,"enabled":true,"elementType":"ZestClientLaunch"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"input-1","index":3,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementScrollTo"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"value":"testinput","windowHandle":"windowHandle1","type":"id","element":"input-1","index":4,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementSendKeys"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"input-1","index":5,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementScrollTo"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"input-1","index":6,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementSubmit"}","apikey":"not set"}}',
+      expect(actualData).toEqual([
+        reportZestStatementComment(),
+        reportZestStatementLaunch(
+          'http://localhost:1801/webpages/interactions.html'
+        ),
+        reportZestStatementScrollTo(3, 'input-1'),
+        reportZestStatementSendKeys(4, 'input-1', 'testinput'),
+        reportZestStatementScrollTo(5, 'input-1'),
+        reportZestStatementSubmit(6, 'input-1'),
       ]);
     });
 
@@ -407,14 +472,16 @@ function integrationTests(
       await page.waitForTimeout(TIMEOUT);
       await page.close();
       // Then
-      expect(actualData).toStrictEqual([
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"index":1,"enabled":true,"elementType":"ZestComment","comment":"Recorded by comment"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","browserType":"browser","url":"http://localhost:1801/webpages/interactions.html","capabilities":"","headless":false,"index":2,"enabled":true,"elementType":"ZestClientLaunch"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"input-1","index":3,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementScrollTo"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"value":"testinput","windowHandle":"windowHandle1","type":"id","element":"input-1","index":4,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementSendKeys"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"click","index":5,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementScrollTo"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"click","index":6,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementClick"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","index":7,"sleepInSeconds":0,"enabled":true,"elementType":"ZestClientWindowClose"}","apikey":"not set"}}',
+      expect(actualData).toEqual([
+        reportZestStatementComment(),
+        reportZestStatementLaunch(
+          'http://localhost:1801/webpages/interactions.html'
+        ),
+        reportZestStatementScrollTo(3, 'input-1'),
+        reportZestStatementSendKeys(4, 'input-1', 'testinput'),
+        reportZestStatementScrollTo(5, 'click'),
+        reportZestStatementClick(6, 'click'),
+        reportZestStatementClose(7),
       ]);
     });
 
@@ -435,14 +502,16 @@ function integrationTests(
       await page.waitForTimeout(TIMEOUT);
       await page.close();
       // Then
-      expect(actualData).toStrictEqual([
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"index":1,"enabled":true,"elementType":"ZestComment","comment":"Recorded by comment"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","browserType":"browser","url":"http://localhost:1801/webpages/interactions.html","capabilities":"","headless":false,"index":2,"enabled":true,"elementType":"ZestClientLaunch"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"input-1","index":3,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementScrollTo"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"value":"testinput","windowHandle":"windowHandle1","type":"id","element":"input-1","index":4,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementSendKeys"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"click","index":5,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementScrollTo"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"click","index":6,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementClick"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","index":7,"sleepInSeconds":0,"enabled":true,"elementType":"ZestClientWindowClose"}","apikey":"not set"}}',
+      expect(actualData).toEqual([
+        reportZestStatementComment(),
+        reportZestStatementLaunch(
+          'http://localhost:1801/webpages/interactions.html'
+        ),
+        reportZestStatementScrollTo(3, 'input-1'),
+        reportZestStatementSendKeys(4, 'input-1', 'testinput'),
+        reportZestStatementScrollTo(5, 'click'),
+        reportZestStatementClick(6, 'click'),
+        reportZestStatementClose(7),
       ]);
     });
 
@@ -486,12 +555,14 @@ function integrationTests(
       await page.waitForTimeout(TIMEOUT);
       await page.close();
       // Then
-      expect(actualData).toStrictEqual([
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"index":1,"enabled":true,"elementType":"ZestComment","comment":"Recorded by comment"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","browserType":"browser","url":"http://localhost:1801/webpages/interactions.html","capabilities":"","headless":false,"index":2,"enabled":true,"elementType":"ZestClientLaunch"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","frameIndex":0,"frameName":"","parent":false,"index":3,"enabled":true,"elementType":"ZestClientSwitchToFrame"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"test-btn","index":4,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementScrollTo"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","type":"id","element":"test-btn","index":5,"waitForMsec":5000,"enabled":true,"elementType":"ZestClientElementClick"}","apikey":"not set"}}',
+      expect(actualData).toEqual([
+        reportZestStatementComment(),
+        reportZestStatementLaunch(
+          'http://localhost:1801/webpages/interactions.html'
+        ),
+        reportZestStatementSwitchToFrame(3, 0, ''),
+        reportZestStatementScrollTo(4, 'test-btn'),
+        reportZestStatementClick(5, 'test-btn'),
       ]);
     });
 
@@ -509,10 +580,12 @@ function integrationTests(
       await page.waitForTimeout(TIMEOUT);
       await page.close();
       // Then
-      expect(actualData).toStrictEqual([
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"index":1,"enabled":true,"elementType":"ZestComment","comment":"Recorded by comment"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","browserType":"browser","url":"http://localhost:1801/webpages/interactions.html","capabilities":"","headless":false,"index":2,"enabled":true,"elementType":"ZestClientLaunch"}","apikey":"not set"}}',
-        '{"action":{"action":"reportZestStatement"},"body":{"statementJson":"{"windowHandle":"windowHandle1","index":3,"sleepInSeconds":0,"enabled":true,"elementType":"ZestClientWindowClose"}","apikey":"not set"}}',
+      expect(actualData).toEqual([
+        reportZestStatementComment(),
+        reportZestStatementLaunch(
+          'http://localhost:1801/webpages/interactions.html'
+        ),
+        reportZestStatementClose(3),
       ]);
     });
 
@@ -528,9 +601,17 @@ function integrationTests(
       await page.waitForTimeout(TIMEOUT);
       await page.close();
       // Then
-      const expectedData =
-        '"{\\"action\\":{\\"action\\":\\"reportObject\\"},\\"body\\":{\\"objectJson\\":\\"{TIMESTAMP,\\"type\\":\\"localStorage\\",\\"tagName\\":\\"\\",\\"id\\":\\"test\\",\\"nodeName\\":\\"\\",\\"url\\":\\"http://localhost:1801/webpages/localStorage.html\\",\\"text\\":\\"localData\\"}\\",\\"apikey\\":\\"not set\\"}}"';
-      expect(JSON.stringify(Array.from(actualData))).toContain(expectedData);
+      expect(actualData).toContainEqual(
+        reportObject(
+          'localStorage',
+          '',
+          'test',
+          '',
+          'http://localhost:1801/webpages/localStorage.html',
+          undefined,
+          'localData'
+        )
+      );
     });
 
     test('Should record set sessionStorage', async () => {
@@ -545,9 +626,17 @@ function integrationTests(
       await page.waitForTimeout(TIMEOUT);
       await page.close();
       // Then
-      const expectedData =
-        '"{\\"action\\":{\\"action\\":\\"reportObject\\"},\\"body\\":{\\"objectJson\\":\\"{TIMESTAMP,\\"type\\":\\"sessionStorage\\",\\"tagName\\":\\"\\",\\"id\\":\\"test\\",\\"nodeName\\":\\"\\",\\"url\\":\\"http://localhost:1801/webpages/sessionStorage.html\\",\\"text\\":\\"sessionData\\"}\\",\\"apikey\\":\\"not set\\"}}"';
-      expect(JSON.stringify(Array.from(actualData))).toContain(expectedData);
+      expect(actualData).toContainEqual(
+        reportObject(
+          'sessionStorage',
+          '',
+          'test',
+          '',
+          'http://localhost:1801/webpages/sessionStorage.html',
+          undefined,
+          'sessionData'
+        )
+      );
     });
 
     test('Should record set localStorage with page open', async () => {
@@ -561,9 +650,17 @@ function integrationTests(
       await page.waitForLoadState('networkidle');
       await page.waitForTimeout(TIMEOUT);
       // Then
-      const expectedData =
-        '"{\\"action\\":{\\"action\\":\\"reportObject\\"},\\"body\\":{\\"objectJson\\":\\"{TIMESTAMP,\\"type\\":\\"localStorage\\",\\"tagName\\":\\"\\",\\"id\\":\\"test\\",\\"nodeName\\":\\"\\",\\"url\\":\\"http://localhost:1801/webpages/localStorageDelay.html\\",\\"text\\":\\"localData\\"}\\",\\"apikey\\":\\"not set\\"}}"';
-      expect(JSON.stringify(Array.from(actualData))).toContain(expectedData);
+      expect(actualData).toContainEqual(
+        reportObject(
+          'localStorage',
+          '',
+          'test',
+          '',
+          'http://localhost:1801/webpages/localStorageDelay.html',
+          undefined,
+          'localData'
+        )
+      );
       // Tidy up
       await page.close();
     });
@@ -579,9 +676,17 @@ function integrationTests(
       await page.waitForLoadState('networkidle');
       await page.waitForTimeout(TIMEOUT);
       // Then
-      const expectedData =
-        '"{\\"action\\":{\\"action\\":\\"reportObject\\"},\\"body\\":{\\"objectJson\\":\\"{TIMESTAMP,\\"type\\":\\"sessionStorage\\",\\"tagName\\":\\"\\",\\"id\\":\\"test\\",\\"nodeName\\":\\"\\",\\"url\\":\\"http://localhost:1801/webpages/sessionStorageDelay.html\\",\\"text\\":\\"sessionData\\"}\\",\\"apikey\\":\\"not set\\"}}"';
-      expect(JSON.stringify(Array.from(actualData))).toContain(expectedData);
+      expect(actualData).toContainEqual(
+        reportObject(
+          'sessionStorage',
+          '',
+          'test',
+          '',
+          'http://localhost:1801/webpages/sessionStorageDelay.html',
+          undefined,
+          'sessionData'
+        )
+      );
       // Tidy up
       await page.close();
     });
@@ -611,12 +716,34 @@ function integrationTests(
       await page.waitForTimeout(TIMEOUT);
       await page.close();
       // Then
-      const expectedData =
-        '["{\\"action\\":{\\"action\\":\\"reportEvent\\"},\\"body\\":{\\"eventJson\\":\\"{TIMESTAMP,\\"eventName\\":\\"pageLoad\\",\\"url\\":\\"http://localhost:1801/webpages/integrationTest.html\\",\\"count\\":1}\\",\\"apikey\\":\\"not set\\"}}",' +
-        '"{\\"action\\":{\\"action\\":\\"reportObject\\"},\\"body\\":{\\"objectJson\\":\\"{TIMESTAMP,\\"type\\":\\"nodeAdded\\",\\"tagName\\":\\"A\\",\\"id\\":\\"\\",\\"nodeName\\":\\"A\\",\\"url\\":\\"http://localhost:1801/webpages/integrationTest.html\\",\\"href\\":\\"http://localhost:1801/webpages/integrationTest.html#test\\",\\"text\\":\\"Link\\"}\\",\\"apikey\\":\\"not set\\"}}",' +
-        '"{\\"action\\":{\\"action\\":\\"reportEvent\\"},\\"body\\":{\\"eventJson\\":\\"{TIMESTAMP,\\"eventName\\":\\"domMutation\\",\\"url\\":\\"http://localhost:1801/webpages/integrationTest.html\\",\\"count\\":1}\\",\\"apikey\\":\\"not set\\"}}",' +
-        '"{\\"action\\":{\\"action\\":\\"reportObject\\"},\\"body\\":{\\"objectJson\\":\\"{TIMESTAMP,\\"type\\":\\"nodeAdded\\",\\"tagName\\":\\"A\\",\\"id\\":\\"\\",\\"nodeName\\":\\"A\\",\\"url\\":\\"http://localhost:1801/webpages/integrationTest.html\\",\\"href\\":\\"https://www.example.com/\\",\\"text\\":\\"Test link\\"}\\",\\"apikey\\":\\"not set\\"}}"]';
-      expect(JSON.stringify(Array.from(actualData))).toBe(expectedData);
+      expect(actualData).toEqual([
+        reportEvent(
+          'pageLoad',
+          'http://localhost:1801/webpages/integrationTest.html'
+        ),
+        reportObject(
+          'nodeAdded',
+          'A',
+          '',
+          'A',
+          'http://localhost:1801/webpages/integrationTest.html',
+          'http://localhost:1801/webpages/integrationTest.html#test',
+          'Link'
+        ),
+        reportEvent(
+          'domMutation',
+          'http://localhost:1801/webpages/integrationTest.html'
+        ),
+        reportObject(
+          'nodeAdded',
+          'A',
+          '',
+          'A',
+          'http://localhost:1801/webpages/integrationTest.html',
+          'https://www.example.com/',
+          'Test link'
+        ),
+      ]);
     });
   }
 }
