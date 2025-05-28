@@ -275,9 +275,14 @@ function injectScript(): Promise<boolean> {
   return new Promise((resolve) => {
     configureExtension();
     withZapRecordingActive(() => {
-      Browser.storage.sync.get({initScript: false}).then((items) => {
-        recorder.recordUserInteractions(items.initScript === true);
-      });
+      Browser.storage.sync
+        .get({initScript: false, loginUrl: ''})
+        .then((items) => {
+          recorder.recordUserInteractions(
+            items.initScript === true,
+            items.loginUrl as string
+          );
+        });
     });
     withZapEnableSetting(() => {
       enableExtension();

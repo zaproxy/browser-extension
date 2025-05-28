@@ -343,8 +343,8 @@ class Recorder {
     return browserName;
   }
 
-  initializationScript(): void {
-    Browser.storage.sync.set({initScript: false});
+  initializationScript(loginUrl = ''): void {
+    Browser.storage.sync.set({initScript: false, loginUrl: ''});
 
     this.sendZestScriptToZAP(
       new ZestStatementComment(
@@ -355,16 +355,16 @@ class Recorder {
     this.sendZestScriptToZAP(
       new ZestStatementLaunchBrowser(
         this.getBrowserName(),
-        window.location.href
+        loginUrl !== '' ? loginUrl : window.location.href
       )
     );
     this.handleResize();
   }
 
-  recordUserInteractions(initScript = true): void {
+  recordUserInteractions(initScript = true, loginUrl = ''): void {
     console.log('user interactions');
     if (initScript) {
-      this.initializationScript();
+      this.initializationScript(loginUrl);
     }
     this.active = true;
     this.previousDOMState = document.documentElement.outerHTML;

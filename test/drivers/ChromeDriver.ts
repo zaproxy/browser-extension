@@ -17,7 +17,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {BrowserContext, chromium} from 'playwright';
+import {BrowserContext, chromium, Page} from 'playwright';
 import {extensionPath} from '../ContentScript/constants';
 
 class ChromeDriver {
@@ -71,11 +71,15 @@ class ChromeDriver {
     await page.close();
   }
 
-  public async toggleRecording(): Promise<void> {
+  public async toggleRecording(loginUrl = ''): Promise<Page | undefined> {
     const page = await this.context.newPage();
     await page.goto(await this.getPopupURL());
+    if (loginUrl !== '') {
+      await page.fill('#login-url-input', loginUrl);
+    }
     await page.click('#record-btn');
     await page.close();
+    return loginUrl !== '' ? (this.context.pages().at(-1) as Page) : undefined;
   }
 
   public async close(): Promise<void> {
