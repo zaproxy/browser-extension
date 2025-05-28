@@ -49,6 +49,9 @@ const downloadIcon = document.querySelector('.download') as HTMLImageElement;
 const recordButton = document.getElementById('record-btn');
 const configureButton = document.getElementById('configure-btn');
 const saveScript = document.getElementById('save-script');
+const loginUrlInput = document.getElementById(
+  'login-url-input'
+) as HTMLInputElement;
 const scriptNameInput = document.getElementById(
   'script-name-input'
 ) as HTMLInputElement;
@@ -134,6 +137,7 @@ function startRecording(): void {
   startedAnimation();
   Browser.storage.sync.set({
     initScript: true,
+    loginUrl: loginUrlInput.value,
   });
   sendMessageToContentScript(ZAP_START_RECORDING);
   Browser.runtime.sendMessage({type: RESET_ZEST_SCRIPT});
@@ -149,8 +153,26 @@ function toggleRecording(e: Event): void {
       stopRecording();
       console.log('active');
     } else {
-      startRecording();
-      closePopup();
+      const loginUrl = loginUrlInput.value;
+      if (loginUrl !== '') {
+        Browser.tabs
+          .create({
+            active: true,
+            url: loginUrl,
+          })
+          .then(
+            (_) => {
+              startRecording();
+              closePopup();
+            },
+            (error) => {
+              console.log(`Error: ${error}`);
+            }
+          );
+      } else {
+        startRecording();
+        closePopup();
+      }
     }
   });
 }

@@ -18,6 +18,7 @@
  * limitations under the License.
  */
 import * as http from 'http';
+import {Page} from 'playwright';
 import {HTTPPORT, JSONPORT, BROWSERNAME} from './constants';
 import {ChromeDriver} from '../drivers/ChromeDriver';
 import {FirefoxDriver} from '../drivers/FirefoxDriver';
@@ -179,6 +180,60 @@ function integrationTests(
       await page.close();
       // Then
       expect(actualData).toStrictEqual([]);
+    });
+
+    test('Should miss redirection', async () => {
+      // Given / When
+      server = getFakeZapServer(actualData, _JSONPORT);
+      const context = await driver.getContext(_JSONPORT, true);
+      await driver.setEnable(false);
+      const page = await context.newPage();
+      await page.goto(`http://localhost:${_HTTPPORT}/redirect/`);
+      await page.waitForTimeout(TIMEOUT);
+      await page.close();
+      // Then
+      expect(actualData).toEqual([
+        reportZestStatementComment(),
+        reportZestStatementLaunch(
+          'http://localhost:1801/webpages/interactions.html'
+        ),
+      ]);
+    });
+
+    test('Should record login URL', async () => {
+      // Given / When
+      server = getFakeZapServer(actualData, _JSONPORT);
+      await driver.getContext(_JSONPORT, false);
+      await driver.setEnable(false);
+      const page = (await driver.toggleRecording(
+        `http://localhost:${_HTTPPORT}/webpages/interactions.html`
+      )) as Page;
+      await page.waitForTimeout(TIMEOUT);
+      await page.close();
+      // Then
+      expect(actualData).toEqual([
+        reportZestStatementComment(),
+        reportZestStatementLaunch(
+          'http://localhost:1801/webpages/interactions.html'
+        ),
+      ]);
+    });
+
+    test('Should record login URL even if redirection', async () => {
+      // Given / When
+      server = getFakeZapServer(actualData, _JSONPORT);
+      await driver.getContext(_JSONPORT, false);
+      await driver.setEnable(false);
+      const page = (await driver.toggleRecording(
+        `http://localhost:${_HTTPPORT}/redirect/`
+      )) as Page;
+      await page.waitForTimeout(TIMEOUT);
+      await page.close();
+      // Then
+      expect(actualData).toEqual([
+        reportZestStatementComment(),
+        reportZestStatementLaunch('http://localhost:1801/redirect/'),
+      ]);
     });
 
     test('Should record click', async () => {

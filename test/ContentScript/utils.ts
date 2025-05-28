@@ -26,6 +26,13 @@ import JsonServer from 'json-server';
 export function getStaticHttpServer(): http.Server {
   return http.createServer((request, response) => {
     const url = `${request.url}`;
+
+    if (url.startsWith('/redirect/')) {
+      response.writeHead(302, {Location: '/webpages/interactions.html'});
+      response.end();
+      return;
+    }
+
     const filePath = path.join(__dirname, url);
 
     fs.promises

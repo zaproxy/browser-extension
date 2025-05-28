@@ -178,6 +178,7 @@ html {
   grid-row: 4 / 5 ;
   align-self: center;
   display: flex;
+  flex-wrap: wrap;
   justify-content:space-between;
   color: var(--text-color);
 
@@ -191,6 +192,10 @@ html {
     box-shadow: $inner-shadow;
     background: none;
     font-family: inherit;
+
+    &.flex1 {
+      flex: 1;
+    }
 
     &::placeholder { color: var(--greyLight-3); }
     &:focus { outline: none; box-shadow: $shadow; }
