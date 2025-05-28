@@ -229,9 +229,31 @@ html {
     }
     &:hover {color: var(--primary);}
   }
-  
 }
 
+.help-icon {
+  grid-column: 5;
+  grid-row: 1;
+  &__settings {
+    width: 4rem;
+    height: 4rem;
+    border-radius: 50%;
+    box-shadow: $shadow;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2rem;
+    cursor: pointer;
+    color: var(--greyDark);
+    transition: all .5s ease;
+
+    &:active {
+      box-shadow: $inner-shadow;
+      color: var(--primary);
+    }
+    &:hover {color: var(--primary);}
+  }
+}
 
 /*  ICONS  */
 
@@ -280,6 +302,6 @@ html {
   width: 3rem;
 }
 
-.download, .settings , .done{
+.download, .settings, .help, .done{
   width: 2rem;
 }

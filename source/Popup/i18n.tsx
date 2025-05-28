@@ -28,6 +28,7 @@ i18n.use(LanguageDetector).init({
         stop: 'Stop Recording',
         download: 'Download Script',
         options: 'Options',
+        help: 'Help',
       },
     },
   },
