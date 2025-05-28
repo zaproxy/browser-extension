@@ -48,6 +48,7 @@ const downloadIcon = document.querySelector('.download') as HTMLImageElement;
 
 const recordButton = document.getElementById('record-btn');
 const configureButton = document.getElementById('configure-btn');
+const helpButton = document.getElementById('help-btn');
 const saveScript = document.getElementById('save-script');
 const loginUrlInput = document.getElementById(
   'login-url-input'
@@ -178,9 +179,12 @@ function toggleRecording(e: Event): void {
 }
 
 function openOptionsPage(): void {
-  Browser.tabs.create({url: 'options.html'}).then((tab) => {
-    Browser.tabs.update(tab.id, {active: true});
-  });
+  Browser.tabs.create({url: 'options.html', active: true});
+  closePopup();
+}
+
+function openHelpPage(): void {
+  Browser.tabs.create({url: 'help.html', active: true});
   closePopup();
 }
 
@@ -243,4 +247,7 @@ if (configureButton) {
   } else {
     configureButton.style.visibility = 'hidden';
   }
+}
+if (helpButton) {
+  helpButton.addEventListener('click', openHelpPage);
 }

@@ -159,6 +159,13 @@ module.exports = {
       filename: 'options.html',
     }),
     new HtmlWebpackPlugin({
+      template: path.join(viewsPath, 'help.html'),
+      inject: 'body',
+      chunks: ['help'],
+      hash: true,
+      filename: 'help.html',
+    }),
+    new HtmlWebpackPlugin({
       template: path.join(viewsPath, 'popup.html'),
       inject: 'body',
       chunks: ['popup'],
@@ -167,6 +174,7 @@ module.exports = {
     }),
     // write css file(s) to build folder
     new MiniCssExtractPlugin({filename: 'css/[name].css'}),
+    new MiniCssExtractPlugin({filename: 'basic.css'}),
     // copy static assets
     new CopyWebpackPlugin({
       patterns: [{from: 'source/assets', to: 'assets'}],
