@@ -41,9 +41,10 @@ export const ZAP_START_RECORDING = 'zapStartRecording';
 export const SET_SAVE_SCRIPT_ENABLE = 'setSaveScriptEnable';
 export const ZEST_SCRIPT = 'zestScript';
 
+export const DOWNLOAD_RECORDING = 'downloadRecording';
 export const STOP_RECORDING = 'stopRecording';
 export const RESET_ZEST_SCRIPT = 'resetZestScript';
-export const SAVE_ZEST_SCRIPT = 'saveZestScript';
+export const GET_ZEST_SCRIPT = 'getZestScript';
 export const UPDATE_TITLE = 'updateTitle';
 
 export const REPORT_EVENT = 'reportEvent';
