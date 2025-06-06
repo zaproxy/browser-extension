@@ -30,7 +30,14 @@ import {
   ZestStatementSwitchToFrame,
 } from '../types/zestScript/ZestStatement';
 import {getPath} from './util';
-import {STOP_RECORDING, ZEST_SCRIPT} from '../utils/constants';
+import {
+  DOWNLOAD_RECORDING,
+  STOP_RECORDING,
+  ZEST_SCRIPT,
+} from '../utils/constants';
+
+const STOP_RECORDING_ID = 'ZAP-stop-recording-button';
+const STOP_RECORDING_TEXT = 'Stop and Download Recording';
 
 class Recorder {
   readonly timeAdjustmentMillis: number = 3000;
@@ -344,7 +351,16 @@ class Recorder {
   }
 
   initializationScript(loginUrl = ''): void {
-    Browser.storage.sync.set({initScript: false, loginUrl: ''});
+    Browser.storage.sync.set({
+      initScript: false,
+      loginUrl: '',
+      downloadScript: true,
+    });
+    const stopRecordingButton = document.getElementById(STOP_RECORDING_ID);
+    if (stopRecordingButton) {
+      // Can happen if recording restarted in browser launched from ZAP recorder
+      stopRecordingButton.textContent = STOP_RECORDING_TEXT;
+    }
 
     this.sendZestScriptToZAP(
       new ZestStatementComment(
@@ -445,6 +461,7 @@ class Recorder {
     textElement.textContent = 'ZAP Browser Extension is Recording...';
 
     const buttonElement = document.createElement('button');
+    buttonElement.id = STOP_RECORDING_ID;
     buttonElement.style.all = 'initial';
     buttonElement.className = 'ZapfloatingDivElements';
     buttonElement.style.marginTop = '10px';
@@ -457,10 +474,32 @@ class Recorder {
     buttonElement.style.cursor = 'pointer';
     buttonElement.style.fontFamily = 'Roboto';
     buttonElement.textContent = 'Stop Recording';
+    Browser.storage.sync
+      .get({
+        downloadScript: false,
+      })
+      .then((items) => {
+        if (items.downloadScript) {
+          buttonElement.textContent = STOP_RECORDING_TEXT;
+        }
+      });
 
     buttonElement.addEventListener('click', () => {
       this.stopRecordingUserInteractions();
       Browser.runtime.sendMessage({type: STOP_RECORDING});
+      Browser.storage.sync
+        .get({
+          downloadScript: false,
+        })
+        .then((items) => {
+          if (items.downloadScript) {
+            Browser.runtime.sendMessage({
+              type: DOWNLOAD_RECORDING,
+              data: window.location.hostname,
+            });
+            Browser.storage.sync.set({downloadScript: false});
+          }
+        });
     });
 
     floatingDiv.appendChild(textElement);

@@ -13,6 +13,15 @@
     This extension allows you to record all of the actions you take in the browser as a Zest script. 
 	It can be used to record things like authentication scripts or other complex interactions.
 	Zest scripts can be replayed in ZAP, whether in the desktop or in automation.
+	<p>
+	When the extension is recording then a notification panel will be shown at the bottom of the page.
+	Clicking on the "Stop and Download Recording" button will stop the recording and automatically download the
+	recording using a filename based on the hostname of the current page and the current date / time.
+	<p>
+	You can also stop the recording via the extension dialog and then download the recording using a filename you specify.
+	<p>
+	If you are using the full ZAP extension and start recording in ZAP then the Zest script will be automatically updated in
+	the ZAP Script Console so you do not need to download it manually.
 
     <h2>Recorder Advice and Guidance</h2>
     If you are going to use the recorded script for authentication then you need to make sure that the browser
@@ -27,6 +36,9 @@
     <p>
     It is often better to use private/incognito mode when recording so that the browser will not have any existing 
     application state.
+    <p>
+    The 'buttons' on some modern web apps can be complicated HTML components that are sometimes hard to click on using automation.
+    If your forms can be submitted using the RETURN key then that is often a better option to use when recording.
 
     <h2>Recorder Dialog</h2>
     Clicking on the ZAP Extension icon will display the Recorder Dialog.<br>
@@ -45,7 +57,10 @@
 	the URL you have given and open it in a new tab.
 
     <h3>Script Name Field</h3>
-	The name of the script that the recorder will download.
+	The name of the script that the recorder will download from this dialog.
+	<p>
+	If you stop recording via the "Stop and Download Recording" button in the notification panel then the extension will
+	automatically download the recording using an auto-generated filename.
 
     <h3>Download Script Button</h3>
 	Clicking on this button will download any recorded script using the name in the above field.

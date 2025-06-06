@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Added
 - Help screen
 
+### Changed
+- Auto-download the script if stopped from the notification panel.
+
 ## 0.0.3 - 2025-05-28
 
 ### Added

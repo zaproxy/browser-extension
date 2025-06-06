@@ -22,9 +22,9 @@ import './styles.scss';
 import i18n from './i18n';
 
 import {
+  GET_ZEST_SCRIPT,
   IS_FULL_EXTENSION,
   RESET_ZEST_SCRIPT,
-  SAVE_ZEST_SCRIPT,
   SET_SAVE_SCRIPT_ENABLE,
   STOP_RECORDING,
   UPDATE_TITLE,
@@ -220,7 +220,7 @@ async function handleSaveScript(): Promise<void> {
   if (storageItems.zaprecordingactive) {
     await Browser.runtime.sendMessage({type: STOP_RECORDING});
   }
-  Browser.runtime.sendMessage({type: SAVE_ZEST_SCRIPT}).then((items) => {
+  Browser.runtime.sendMessage({type: GET_ZEST_SCRIPT}).then((items) => {
     const msg = items as ZestScriptMessage;
     downloadZestScript(msg.script, msg.title);
   });
