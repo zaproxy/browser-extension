@@ -39,7 +39,7 @@
     "buildAndTest": "yarn run build && yarn test"
   },
   "dependencies": {
-    "@babel/runtime": "^7.27.4",
+    "@babel/runtime": "^7.27.6",
     "advanced-css-reset": "^2.1.3",
     "emoji-log": "^1.0.2",
     "i18next": "^25.2.1",
@@ -54,7 +54,7 @@
     "@abhijithvijayan/eslint-config-airbnb": "^1.0.2",
     "@abhijithvijayan/tsconfig": "^1.3.0",
     "@babel/core": "^7.27.4",
-    "@babel/eslint-parser": "^7.27.1",
+    "@babel/eslint-parser": "^7.27.5",
     "@babel/plugin-proposal-class-properties": "^7.13.0",
     "@babel/plugin-proposal-object-rest-spread": "^7.14.2",
     "@babel/plugin-transform-destructuring": "^7.27.3",
@@ -67,7 +67,7 @@
     "@types/jest": "^29.4.0",
     "@types/json-server": "^0.14.8",
     "@types/lodash": "^4.17.17",
-    "@types/node": "^22.15.29",
+    "@types/node": "^22.15.30",
     "@types/text-encoding": "^0.0.40",
     "@types/webextension-polyfill": "^0.12.3",
     "@types/webpack": "^5.28.5",
