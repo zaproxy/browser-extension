@@ -18,6 +18,7 @@
  * limitations under the License.
  */
 import {ElementLocator} from '../types/zestScript/ZestStatement';
+import {ZAP_FLOATING_DIV} from '../utils/constants';
 
 function isElementPathUnique(path: string, documentElement: Document): boolean {
   const elements = documentElement.querySelectorAll(path);
@@ -57,6 +58,13 @@ function getCSSSelector(
   return selector;
 }
 
+function isZapDiv(node: ChildNode): boolean {
+  if (node instanceof Element) {
+    return (node as Element).getAttribute('id') === ZAP_FLOATING_DIV;
+  }
+  return false;
+}
+
 function getXPath(element: HTMLElement, documentElement: Document): string {
   if (!element.tagName) {
     return '';
@@ -73,7 +81,8 @@ function getXPath(element: HTMLElement, documentElement: Document): string {
     while (sibling) {
       if (
         sibling.nodeType === Node.ELEMENT_NODE &&
-        sibling.nodeName === element.nodeName
+        sibling.nodeName === element.nodeName &&
+        !isZapDiv(sibling)
       ) {
         index += 1;
         isUnique = false;

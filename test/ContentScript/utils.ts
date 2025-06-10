@@ -214,17 +214,19 @@ function reportZestStatement(
   index: number,
   elementType: string,
   element: string,
-  value: string | undefined = undefined
+  value: string | undefined = undefined,
+  statementType = 'id',
+  wait = 5000
 ): object {
   const data = {
     action: {action: 'reportZestStatement'},
     body: {
       statementJson: {
         windowHandle: 'windowHandle1',
-        type: 'id',
+        type: statementType,
         element,
         index,
-        waitForMsec: 5000,
+        waitForMsec: wait,
         enabled: true,
         elementType,
         value,
@@ -240,25 +242,33 @@ function reportZestStatement(
 
 export function reportZestStatementScrollTo(
   index: number,
-  element: string
+  element: string,
+  statementType = 'id',
+  wait = 5000
 ): object {
   return reportZestStatement(
     index,
     'ZestClientElementScrollTo',
     element,
-    undefined
+    undefined,
+    statementType,
+    wait
   );
 }
 
 export function reportZestStatementClick(
   index: number,
-  element: string
+  element: string,
+  statementType = 'id',
+  wait = 5000
 ): object {
   return reportZestStatement(
     index,
     'ZestClientElementClick',
     element,
-    undefined
+    undefined,
+    statementType,
+    wait
   );
 }
 

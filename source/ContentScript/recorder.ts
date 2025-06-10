@@ -33,6 +33,8 @@ import {getPath} from './util';
 import {
   DOWNLOAD_RECORDING,
   STOP_RECORDING,
+  ZAP_FLOATING_DIV,
+  ZAP_FLOATING_DIV_ELEMENTS,
   ZEST_SCRIPT,
 } from '../utils/constants';
 
@@ -335,7 +337,7 @@ class Recorder {
 
   shouldRecord(element: HTMLElement): boolean {
     if (!this.active) return this.active;
-    if (element.className === 'ZapfloatingDivElements') return false;
+    if (element.className === ZAP_FLOATING_DIV_ELEMENTS) return false;
     return true;
   }
 
@@ -404,7 +406,7 @@ class Recorder {
     this.handleCachedSubmit();
     Browser.storage.sync.set({zaprecordingactive: false});
     this.active = false;
-    const floatingDiv = document.getElementById('ZapfloatingDiv');
+    const floatingDiv = document.getElementById(ZAP_FLOATING_DIV);
     if (floatingDiv) {
       floatingDiv.style.display = 'none';
     }
@@ -412,7 +414,7 @@ class Recorder {
 
   insertFloatingPopup(): void {
     if (this.floatingWindowInserted) {
-      const floatingDiv = document.getElementById('ZapfloatingDiv');
+      const floatingDiv = document.getElementById(ZAP_FLOATING_DIV);
       if (floatingDiv) {
         floatingDiv.style.display = 'flex';
         return;
@@ -430,8 +432,8 @@ class Recorder {
 
     const floatingDiv = document.createElement('div');
     floatingDiv.style.all = 'initial';
-    floatingDiv.className = 'ZapfloatingDivElements';
-    floatingDiv.id = 'ZapfloatingDiv';
+    floatingDiv.className = ZAP_FLOATING_DIV_ELEMENTS;
+    floatingDiv.id = ZAP_FLOATING_DIV;
     floatingDiv.style.position = 'fixed';
     floatingDiv.style.top = '100%';
     floatingDiv.style.left = '50%';
@@ -452,7 +454,7 @@ class Recorder {
 
     const textElement = document.createElement('p');
     textElement.style.all = 'initial';
-    textElement.className = 'ZapfloatingDivElements';
+    textElement.className = ZAP_FLOATING_DIV_ELEMENTS;
     textElement.style.margin = '0';
     textElement.style.zIndex = '999999';
     textElement.style.fontSize = '16px';
@@ -463,7 +465,7 @@ class Recorder {
     const buttonElement = document.createElement('button');
     buttonElement.id = STOP_RECORDING_ID;
     buttonElement.style.all = 'initial';
-    buttonElement.className = 'ZapfloatingDivElements';
+    buttonElement.className = ZAP_FLOATING_DIV_ELEMENTS;
     buttonElement.style.marginTop = '10px';
     buttonElement.style.padding = '8px 15px';
     buttonElement.style.background = '#e74c3c';
@@ -589,7 +591,7 @@ class Recorder {
     if (this.isNotificationRaised) {
       await this.waitForNotificationToClear();
     }
-    const floatingDiv = document.getElementById('ZapfloatingDiv');
+    const floatingDiv = document.getElementById(ZAP_FLOATING_DIV);
     if (!floatingDiv) {
       console.log('Floating Div Not Found !');
       return;
@@ -597,7 +599,7 @@ class Recorder {
 
     this.isNotificationRaised = true;
     const messageElement = document.createElement('p');
-    messageElement.className = 'ZapfloatingDivElements';
+    messageElement.className = ZAP_FLOATING_DIV_ELEMENTS;
     messageElement.textContent = `${notifyMessage.title}: ${notifyMessage.message}`;
     messageElement.style.all = 'initial';
     messageElement.style.fontSize = '20px';

@@ -800,6 +800,37 @@ function integrationTests(
         ),
       ]);
     });
+
+    test('Should ignore ZAP div', async () => {
+      // Given / When
+      server = getFakeZapServer(actualData, _JSONPORT);
+      const context = await driver.getContext(_JSONPORT, true);
+      await driver.setEnable(false);
+      const page = await context.newPage();
+      await page.goto(`http://localhost:${_HTTPPORT}/webpages/divtest.html`);
+      await page.click('#btn');
+      await page.waitForTimeout(TIMEOUT);
+      await page.click('xpath=/html/body/div[3]/button');
+      await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(TIMEOUT);
+      await page.close();
+      // Then
+      expect(actualData).toEqual([
+        reportZestStatementComment(),
+        reportZestStatementLaunch(
+          'http://localhost:1801/webpages/divtest.html'
+        ),
+        reportZestStatementScrollTo(3, 'btn'),
+        reportZestStatementClick(4, 'btn'),
+        reportZestStatementScrollTo(
+          5,
+          '/html/body/div[2]/button',
+          'xpath',
+          5000
+        ),
+        reportZestStatementClick(6, '/html/body/div[2]/button', 'xpath', 10000),
+      ]);
+    });
   }
 }
 
