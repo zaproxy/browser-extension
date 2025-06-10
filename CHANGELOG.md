@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Added
 - Help for the notification panel.
 
+### Fixed
+- Ignore the ZAP notification panel when calculating xpaths of interacted elements.
+
 ## 0.1.0 - 2025-06-06
 
 ### Added

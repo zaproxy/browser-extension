@@ -61,3 +61,6 @@ export const URL_ZAP_RECORD = 'zaprecord';
 export const ZAP_URL = 'zapurl';
 export const ZAP_KEY = 'zapkey';
 export const ZAP_ENABLE = 'zapenable';
+
+export const ZAP_FLOATING_DIV = 'ZapfloatingDiv';
+export const ZAP_FLOATING_DIV_ELEMENTS = 'ZapfloatingDivElements';
