@@ -93,6 +93,7 @@ function reportAllStorage(): void {
 
 function withZapEnableSetting(fn: () => void): void {
   Browser.storage.sync.get({zapenable: false}).then((items) => {
+    console.log(`ZAP withZapEnableSetting ${items.zapenable}`);
     if (items.zapenable) {
       fn();
     }
@@ -101,6 +102,7 @@ function withZapEnableSetting(fn: () => void): void {
 
 function withZapRecordingActive(fn: () => void): void {
   Browser.storage.sync.get({zaprecordingactive: false}).then((items) => {
+    console.log(`ZAP withZapRecordingActive ${items.zaprecordingactive}`);
     if (items.zaprecordingactive) {
       fn();
     }
@@ -221,7 +223,6 @@ function isConfigurationRequest(): boolean {
 }
 
 function onLoadEventListener(): void {
-  Browser.storage.sync.set({zaprecordingactive: false});
   if (isConfigurationRequest()) {
     return;
   }
@@ -278,6 +279,9 @@ function injectScript(): Promise<boolean> {
       Browser.storage.sync
         .get({initScript: false, loginUrl: ''})
         .then((items) => {
+          console.log(
+            `ZAP injectScript items ${items.initScript} ${items.loginUrl}`
+          );
           recorder.recordUserInteractions(
             items.initScript === true,
             items.loginUrl as string
