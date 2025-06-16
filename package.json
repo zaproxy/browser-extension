@@ -62,7 +62,7 @@
     "@babel/preset-env": "^7.27.2",
     "@babel/preset-react": "^7.27.1",
     "@babel/preset-typescript": "^7.27.1",
-    "@jest/globals": "^29.4.3",
+    "@jest/globals": "^30.0.0",
     "@playwright/test": "^1.53.0",
     "@types/jest": "^29.4.0",
     "@types/json-server": "^0.14.8",
