@@ -5,6 +5,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
 
+### Added
+- 'ZAP' prefix to all content script console.log messages.
+
+### Fixed
+- Recording could break when launched from ZAP.
+
 ## 0.1.1 - 2025-06-10
 
 ### Added

@@ -75,7 +75,7 @@ class Recorder {
     if (sendCache) {
       this.handleCachedSubmit();
     }
-    // console.log('Sending statement', zestStatement);
+    // console.log('ZAP Sending statement', zestStatement);
     this.notify(zestStatement);
     return Browser.runtime.sendMessage({
       type: ZEST_SCRIPT,
@@ -106,7 +106,7 @@ class Recorder {
         ),
         false
       );
-      // console.log('Sending cached submit', this.cachedSubmit);
+      // console.log('ZAP Sending cached submit', this.cachedSubmit);
       this.sendZestScriptToZAP(this.cachedSubmit, false);
       delete this.cachedSubmit;
       this.cachedTimeStamp = -1;
@@ -129,7 +129,7 @@ class Recorder {
       this.sendZestScriptToZAP(new ZestStatementSwitchToFrame(frameIndex));
     }
     if (this.curLevel !== level) {
-      console.log('Error in switching frames');
+      console.log('ZAP Error in switching frames');
     }
   }
 
@@ -141,7 +141,7 @@ class Recorder {
     const waited: number = this.getWaited();
     const {level, frame, element} = params;
     this.handleFrameSwitches(level, frame);
-    console.log(event, 'clicked');
+    console.log(event, 'ZAP clicked');
     const elementLocator = getPath(event.target as HTMLElement, element);
     this.sendZestScriptToZAP(
       new ZestStatementElementScrollTo(elementLocator, this.getWaited()),
@@ -157,7 +157,7 @@ class Recorder {
     if (!this.shouldRecord(event.target as HTMLElement)) return;
     const {level, frame} = params;
     this.handleFrameSwitches(level, frame);
-    console.log(event, 'scrolling.. ');
+    console.log(event, 'ZAP scrolling.. ');
     // scroll the nearest ancestor with scrolling ability
   }
 
@@ -173,7 +173,7 @@ class Recorder {
     }
     this.previousDOMState = currentDOMState;
     this.handleFrameSwitches(level, frame);
-    console.log(event, 'MouseOver');
+    console.log(event, 'ZAP MouseOver');
     // send mouseover event
   }
 
@@ -185,7 +185,7 @@ class Recorder {
     const {level, frame, element} = params;
     const waited: number = this.getWaited();
     this.handleFrameSwitches(level, frame);
-    console.log(event, 'change', (event.target as HTMLInputElement).value);
+    console.log(event, 'ZAP change', (event.target as HTMLInputElement).value);
     const elementLocator = getPath(event.target as HTMLElement, element);
     // Send the keys before a cached submit statement on the same element
     if (
@@ -219,19 +219,19 @@ class Recorder {
     const {element} = params;
     if (event.key === 'Enter') {
       if (this.cachedSubmit && this.cachedTimeStamp === event.timeStamp) {
-        // console.log('Ignoring dup Enter event', this.cachedSubmit);
+        // console.log('ZAP Ignoring dup Enter event', this.cachedSubmit);
         return;
       }
       this.handleCachedSubmit();
       const elementLocator = getPath(event.target as HTMLElement, element);
-      // console.log('Enter key pressed', elementLocator, event.timeStamp);
+      // console.log('ZAP Enter key pressed', elementLocator, event.timeStamp);
       // Cache the statement as it often occurs before the change event occurs
       this.cachedSubmit = new ZestStatementElementSubmit(
         elementLocator,
         this.getWaited()
       );
       this.cachedTimeStamp = event.timeStamp;
-      // console.log('Caching submit', this.cachedSubmit);
+      // console.log('ZAP Caching submit', this.cachedSubmit);
     }
   }
 
@@ -246,7 +246,7 @@ class Recorder {
       document.documentElement.clientHeight ||
       document.body.clientHeight;
     // send window resize event
-    console.log('Window Resize : ', width, height);
+    console.log('ZAP Window Resize : ', width, height);
   }
 
   addListenerToInputField(
@@ -353,6 +353,7 @@ class Recorder {
   }
 
   initializationScript(loginUrl = ''): void {
+    console.log(`ZAP initializationScript ${loginUrl}`);
     Browser.storage.sync.set({
       initScript: false,
       loginUrl: '',
@@ -380,7 +381,7 @@ class Recorder {
   }
 
   recordUserInteractions(initScript = true, loginUrl = ''): void {
-    console.log('user interactions');
+    console.log(`ZAP user interactions ${initScript} ${loginUrl}`);
     if (initScript) {
       this.initializationScript(loginUrl);
     }
@@ -402,7 +403,7 @@ class Recorder {
   }
 
   stopRecordingUserInteractions(): void {
-    console.log('Stopping Recording User Interactions ...');
+    console.log('ZAP Stopping Recording User Interactions ...');
     this.handleCachedSubmit();
     Browser.storage.sync.set({zaprecordingactive: false});
     this.active = false;
@@ -593,7 +594,7 @@ class Recorder {
     }
     const floatingDiv = document.getElementById(ZAP_FLOATING_DIV);
     if (!floatingDiv) {
-      console.log('Floating Div Not Found !');
+      console.log('ZAP Floating Div Not Found !');
       return;
     }
 
