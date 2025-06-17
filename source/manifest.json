@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "ZAP by Checkmarx Browser Extension",
-  "version": "0.1.1",
+  "version": "0.1.2",
 
   "icons": {
     "16": "assets/icons/zap16x16.png",
