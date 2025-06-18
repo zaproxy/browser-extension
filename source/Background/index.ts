@@ -30,7 +30,6 @@ import {
   REPORT_OBJECT,
   RESET_ZEST_SCRIPT,
   SESSION_STORAGE,
-  SET_SAVE_SCRIPT_ENABLE,
   STOP_RECORDING,
   ZEST_SCRIPT,
 } from '../utils/constants';
@@ -249,11 +248,6 @@ async function handleMessage(
       }
       break;
     }
-    case SET_SAVE_SCRIPT_ENABLE:
-      Browser.storage.sync.set({
-        zapenablesavescript: zestScript.getZestStatementCount() > 0,
-      });
-      break;
 
     default:
       // Handle unknown request type

@@ -275,11 +275,6 @@ html {
     color: var(--primary);
   }
   &:hover {color: var(--primary);}
-
-  &.disabled {
-    pointer-events: none;
-    opacity: 0.5;
-  }
 }
 
 @keyframes waves {

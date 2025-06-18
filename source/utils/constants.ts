@@ -38,7 +38,6 @@ export const DEFAULT_WINDOW_HANDLE = 'windowHandle1';
 
 export const ZAP_STOP_RECORDING = 'zapStopRecording';
 export const ZAP_START_RECORDING = 'zapStartRecording';
-export const SET_SAVE_SCRIPT_ENABLE = 'setSaveScriptEnable';
 export const ZEST_SCRIPT = 'zestScript';
 
 export const STOP_RECORDING = 'stopRecording';

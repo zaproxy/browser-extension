@@ -25,7 +25,6 @@ import {
   GET_ZEST_SCRIPT,
   IS_FULL_EXTENSION,
   RESET_ZEST_SCRIPT,
-  SET_SAVE_SCRIPT_ENABLE,
   STOP_RECORDING,
   UPDATE_TITLE,
   ZAP_START_RECORDING,
@@ -57,9 +56,6 @@ const loginUrlInput = document.getElementById(
 const scriptNameInput = document.getElementById(
   'script-name-input'
 ) as HTMLInputElement;
-const saveScriptButton = document.getElementById(
-  'save-script'
-) as HTMLButtonElement;
 
 function sendMessageToContentScript(message: string, data = ''): void {
   Browser.tabs.query({active: true, currentWindow: true}).then((tabs) => {
@@ -90,14 +86,12 @@ function startedAnimation(): void {
 
 async function restoreState(): Promise<void> {
   console.log('Restore state');
-  await Browser.runtime.sendMessage({type: SET_SAVE_SCRIPT_ENABLE});
   optionsIcon.title = OPTIONS;
   downloadIcon.title = DOWNLOAD;
   Browser.storage.sync
     .get({
       zaprecordingactive: false,
       zapscriptname: '',
-      zapenablesavescript: false,
     })
     .then((items) => {
       if (items.zaprecordingactive) {
@@ -110,11 +104,6 @@ async function restoreState(): Promise<void> {
         done?.classList.remove('invisible');
       } else {
         done?.classList.add('invisible');
-      }
-      if (!items.zapenablesavescript) {
-        saveScriptButton.classList.add('disabled');
-      } else {
-        saveScriptButton.classList.remove('disabled');
       }
     });
 }
@@ -189,7 +178,14 @@ function openHelpPage(): void {
   closePopup();
 }
 
-function downloadZestScript(zestScriptJSON: string, title: string): void {
+function downloadZestScript(
+  zestScriptJSON: string,
+  title: string,
+  statementCount: number
+): void {
+  if (statementCount === 0) {
+    return;
+  }
   if (title === '') {
     scriptNameInput?.focus();
     return;
@@ -211,11 +207,12 @@ async function handleSaveScript(): Promise<void> {
     zaprecordingactive: false,
   });
   if (storageItems.zaprecordingactive) {
+    sendMessageToContentScript(ZAP_STOP_RECORDING);
     await Browser.runtime.sendMessage({type: STOP_RECORDING});
   }
   Browser.runtime.sendMessage({type: GET_ZEST_SCRIPT}).then((items) => {
     const msg = items as ZestScriptMessage;
-    downloadZestScript(msg.script, msg.title);
+    downloadZestScript(msg.script, msg.title, msg.statementCount);
   });
 }
 

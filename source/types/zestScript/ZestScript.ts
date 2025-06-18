@@ -22,6 +22,7 @@ import Browser from 'webextension-polyfill';
 interface ZestScriptMessage {
   script: string;
   title: string;
+  statementCount: number;
 }
 
 class ZestScript {
@@ -93,7 +94,11 @@ class ZestScript {
     return new Promise((resolve) => {
       Browser.storage.sync.get({zapscriptname: this.title}).then((items) => {
         this.title = items.zapscriptname as string;
-        resolve({script: this.toJSON(), title: this.title});
+        resolve({
+          script: this.toJSON(),
+          title: this.title,
+          statementCount: this.getZestStatementCount(),
+        });
       });
     });
   }
