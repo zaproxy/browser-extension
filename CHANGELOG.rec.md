@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Fixed
 - Download on script completion on Chrome.
 - Download file date string.
+- Download via popup on Edge.
+- Close notification dialog when script downloaded directly.
 
 ## 0.1.2 - 2025-06-17
 
