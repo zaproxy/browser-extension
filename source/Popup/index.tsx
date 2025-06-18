@@ -31,6 +31,7 @@ import {
   ZAP_START_RECORDING,
   ZAP_STOP_RECORDING,
 } from '../utils/constants';
+import {downloadJson} from '../utils/util';
 import {ZestScriptMessage} from '../types/zestScript/ZestScript';
 
 const STOP = i18n.t('stop');
@@ -193,19 +194,11 @@ function downloadZestScript(zestScriptJSON: string, title: string): void {
     scriptNameInput?.focus();
     return;
   }
-  const blob = new Blob([zestScriptJSON], {type: 'application/json'});
-  const url = URL.createObjectURL(blob);
+  downloadJson(
+    zestScriptJSON,
+    title + (title.slice(-4) === '.zst' ? '' : '.zst')
+  );
 
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = title + (title.slice(-4) === '.zst' ? '' : '.zst');
-  link.style.display = 'none';
-
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-
-  URL.revokeObjectURL(url);
   Browser.runtime.sendMessage({type: RESET_ZEST_SCRIPT});
   Browser.storage.sync.set({
     zaprecordingactive: false,

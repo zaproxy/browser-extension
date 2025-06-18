@@ -29,9 +29,11 @@ import {
   ZestStatementLaunchBrowser,
   ZestStatementSwitchToFrame,
 } from '../types/zestScript/ZestStatement';
+import {ZestScriptMessage} from '../types/zestScript/ZestScript';
 import {getPath} from './util';
+import {downloadJson} from '../utils/util';
 import {
-  DOWNLOAD_RECORDING,
+  GET_ZEST_SCRIPT,
   STOP_RECORDING,
   ZAP_FLOATING_DIV,
   ZAP_FLOATING_DIV_ELEMENTS,
@@ -413,6 +415,19 @@ class Recorder {
     }
   }
 
+  pad(i: number): string {
+    return `${i}`.padStart(2, `0`);
+  }
+
+  getDateString(): string {
+    const now = new Date();
+    return `${now.getFullYear()}-${this.pad(now.getMonth() + 1)}-${this.pad(
+      now.getDate()
+    )}-${this.pad(now.getHours())}-${this.pad(now.getMinutes())}-${this.pad(
+      now.getSeconds()
+    )}`;
+  }
+
   insertFloatingPopup(): void {
     if (this.floatingWindowInserted) {
       const floatingDiv = document.getElementById(ZAP_FLOATING_DIV);
@@ -496,10 +511,18 @@ class Recorder {
         })
         .then((items) => {
           if (items.downloadScript) {
-            Browser.runtime.sendMessage({
-              type: DOWNLOAD_RECORDING,
-              data: window.location.hostname,
-            });
+            Browser.runtime
+              .sendMessage({type: GET_ZEST_SCRIPT})
+              .then((items2) => {
+                const msg = items2 as ZestScriptMessage;
+                downloadJson(
+                  msg.script,
+                  `zap-rec-${
+                    window.location.hostname
+                  }${this.getDateString()}.zst`
+                );
+              });
+
             Browser.storage.sync.set({downloadScript: false});
           }
         });
