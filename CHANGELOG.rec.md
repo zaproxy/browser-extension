@@ -3,6 +3,12 @@ All notable changes to the recorder browser extension will be documented in this
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## Unreleased
+
+### Fixed
+- Download on script completion on Chrome.
+- Download file date string.
+
 ## 0.1.2 - 2025-06-17
 
 ### Added

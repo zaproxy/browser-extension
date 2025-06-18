@@ -23,7 +23,6 @@ import {ReportedStorage} from '../types/ReportedModel';
 import {ZestScript, ZestScriptMessage} from '../types/zestScript/ZestScript';
 import {ZestStatementWindowClose} from '../types/zestScript/ZestStatement';
 import {
-  DOWNLOAD_RECORDING,
   GET_ZEST_SCRIPT,
   IS_FULL_EXTENSION,
   LOCAL_STORAGE,
@@ -173,33 +172,6 @@ function sendZestScriptToZAP(
   }
 }
 
-function downloadZestScript(zestScriptJSON: string, title: string): void {
-  const blob = new Blob([zestScriptJSON], {type: 'application/json'});
-  const url = URL.createObjectURL(blob);
-
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = title + (title.slice(-4) === '.zst' ? '' : '.zst');
-  link.style.display = 'none';
-
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-
-  URL.revokeObjectURL(url);
-}
-
-function pad(i: number): string {
-  return `${i}`.padStart(2, `0`);
-}
-
-function getDateString(): string {
-  const now = new Date();
-  return `${now.getFullYear()}-${pad(now.getMonth())}-${pad(
-    now.getDay()
-  )}-${pad(now.getHours())}-${pad(now.getMinutes())}-${pad(now.getSeconds())}`;
-}
-
 async function handleMessage(
   request: MessageEvent,
   zapurl: string,
@@ -275,17 +247,6 @@ async function handleMessage(
           sendZestScriptToZAP(data, zapkey, zapurl);
         }
       }
-      break;
-    }
-    case DOWNLOAD_RECORDING: {
-      zestScript.getZestScript().then((items) => {
-        const msg = items as ZestScriptMessage;
-        let site = '';
-        if (request.data) {
-          site = `${request.data}-`;
-        }
-        downloadZestScript(msg.script, `zap-rec-${site}${getDateString()}.zst`);
-      });
       break;
     }
     case SET_SAVE_SCRIPT_ENABLE:
