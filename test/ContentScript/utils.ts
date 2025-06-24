@@ -18,10 +18,13 @@
  * limitations under the License.
  */
 import http from 'http';
-import fs from 'fs';
+import fs, {readdirSync} from 'fs';
 import path from 'path';
-import {Request, Response} from 'express';
-import JsonServer from 'json-server';
+import {WebDriver, WebElement} from 'selenium-webdriver';
+import {ZapServer} from './ZapServer';
+import {BaseDriver} from '../drivers/BaseDriver';
+
+const TIMEOUT = 2000;
 
 export function getStaticHttpServer(): http.Server {
   return http.createServer((request, response) => {
@@ -46,65 +49,6 @@ export function getStaticHttpServer(): http.Server {
         response.writeHead(404, {'Content-Type': 'text/plain'});
         response.end(`Error : ${err}`);
       });
-  });
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getInsertPosition(body: any, actualData: Array<object>): number {
-  const statementJson = body?.statementJson;
-  if (statementJson) {
-    const index = JSON.parse(statementJson)?.index;
-    if (index) {
-      return index - 1;
-    }
-  }
-  return actualData.length;
-}
-
-function toJsonWithoutDynamicValues(value: string): string {
-  return JSON.parse(
-    value
-      .replace(/timestamp":\d+/g, 'timestamp": "TIMESTAMP"')
-      .replace(/Recorded by [^\\]+?"/g, 'Recorded by comment"')
-      .replace(/browserType":"[^\\]+?"/g, 'browserType":"browser"')
-  );
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function normalizeJson(body: any): any {
-  ['eventJson', 'statementJson', 'objectJson'].forEach((name) => {
-    const value = body[name];
-    if (value) {
-      body[name] = toJsonWithoutDynamicValues(value);
-    }
-  });
-  return body;
-}
-
-export function getFakeZapServer(
-  actualData: Array<object>,
-  JSONPORT: number,
-  incZapEvents = false
-): http.Server {
-  const app = JsonServer.create();
-
-  app.use(JsonServer.bodyParser);
-  app.post('/JSON/client/action/:action', (req: Request, res: Response) => {
-    const action = req.params;
-    const {body} = req;
-    const msg = JSON.stringify({action, body});
-    if (incZapEvents || msg.indexOf('localzap') === -1) {
-      // Ignore localzap events
-      actualData[getInsertPosition(body, actualData)] = {
-        action,
-        body: normalizeJson(body),
-      };
-    }
-    res.sendStatus(200);
-  });
-
-  return app.listen(JSONPORT, () => {
-    console.log(`JSON Server listening on port ${JSONPORT}`);
   });
 }
 
@@ -322,11 +266,41 @@ export function reportZestStatementSwitchToFrame(
   return data;
 }
 
+export async function eventsProcessed(): Promise<void> {
+  return new Promise((f) => {
+    setTimeout(f, TIMEOUT);
+  });
+}
+
+export async function pageLoaded(wd: WebDriver): Promise<void> {
+  await wd.wait(
+    () => wd.executeScript('return document.readyState == "complete"'),
+    TIMEOUT
+  );
+}
+
+export async function focus(wd: WebDriver, element: WebElement): Promise<void> {
+  await wd.executeScript('arguments[0].focus();', element);
+}
+
+export async function enableZapEvents(
+  server: ZapServer,
+  driver: BaseDriver
+): Promise<void> {
+  server.setRecordZapEvents(true);
+  await driver.setEnable(true);
+}
+
 export async function closeServer(_server: http.Server): Promise<void> {
   return new Promise((resolve) => {
     _server.close(() => {
-      console.log('Server closed');
       resolve();
     });
   });
+}
+
+export function downloadScriptName(dir: string): string {
+  return readdirSync(dir, {withFileTypes: true}).filter(
+    (item) => !item.isDirectory()
+  )[0].name;
 }

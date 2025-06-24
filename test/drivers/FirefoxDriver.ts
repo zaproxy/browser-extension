@@ -17,110 +17,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Browser, BrowserContext, firefox} from 'playwright';
-import {withExtension} from 'playwright-webextext';
+import {Browser, WebDriver, Builder} from 'selenium-webdriver';
+import firefox from 'selenium-webdriver/firefox';
+import {BaseDriver} from './BaseDriver';
 import {extensionPath} from '../ContentScript/constants';
 
-class FirefoxDriver {
-  browser: Browser;
+class FirefoxDriver extends BaseDriver {
+  extensionId = '5f271647-ec19-47f5-bb19-d646f523c873';
 
-  context: BrowserContext;
-
-  extensionId: string;
-
-  public getExtensionId(): string {
-    // TODO: Find a way to get the extension ID
-    return this.extensionId;
+  protected async getBaseExtensionUrl(): Promise<string> {
+    return `moz-extension://${this.extensionId}/`;
   }
 
-  public async getBrowser(): Promise<Browser> {
-    return withExtension(firefox, `${extensionPath.FIREFOX}-ext`).launch({
-      headless: false,
-    });
-  }
-
-  public async grantPermission(): Promise<void> {
-    const page = await this.context.newPage();
-    await page.goto('about:addons');
-    await page.waitForTimeout(50);
-    await page.keyboard.press('Tab');
-    await page.waitForTimeout(50);
-    await page.keyboard.press('ArrowDown');
-    await page.waitForTimeout(50);
-
-    for (let i = 0; i < 7; i += 1) {
-      await page.keyboard.press('Tab');
-    }
-
-    await page.keyboard.press('Enter');
-
-    for (let i = 0; i < 4; i += 1) {
-      await page.keyboard.press('ArrowDown');
-      await page.waitForTimeout(50);
-    }
-
-    await page.keyboard.press('Enter');
-    await page.waitForTimeout(50);
-    await page.keyboard.press('Tab');
-    await page.waitForTimeout(50);
-    await page.keyboard.press('ArrowRight');
-    await page.waitForTimeout(50);
-    await page.keyboard.press('Enter');
-    await page.waitForTimeout(50);
-    await page.keyboard.press('Tab');
-    await page.waitForTimeout(50);
-    await page.keyboard.press('Enter');
-    await page.waitForTimeout(50);
-
-    await page.keyboard.down('ShiftLeft');
-    await page.waitForTimeout(50);
-    await page.keyboard.press('Tab');
-    await page.waitForTimeout(50);
-    await page.keyboard.press('Tab');
-    await page.waitForTimeout(50);
-    await page.keyboard.up('ShiftLeft');
-    await page.waitForTimeout(50);
-
-    await page.keyboard.press('Enter');
-    for (let i = 0; i < 2; i += 1) {
-      await page.keyboard.press('ArrowDown');
-      await page.waitForTimeout(50);
-    }
-    await page.keyboard.press('Enter');
-    await page.waitForTimeout(50);
-    await page.close();
-  }
-
-  public async getContext(): Promise<BrowserContext> {
-    if (this.context) return this.context;
-    this.browser = await this.getBrowser();
-    this.context = await this.browser.newContext();
-    // TODO: add way to configure extension
-    await this.grantPermission();
-    return this.context;
-  }
-
-  public async close(): Promise<void> {
-    await this.context?.close();
-    await this.browser?.close();
-  }
-
-  public async getOptionsURL(): Promise<string> {
-    const extensionId = this.getExtensionId();
-    return `moz-extension://${extensionId}/options.html`;
-  }
-
-  public async getPopupURL(): Promise<string> {
-    const extensionId = this.getExtensionId();
-    return `moz-extension://${extensionId}/popup.html`;
-  }
-
-  public async setEnable(): Promise<void> {
-    // TODO: to be implemented
-  }
-
-  public async toggleRecording(): Promise<void> {
-    // TODO: to be implemented
+  protected async createWebDriver(): Promise<WebDriver> {
+    const options = new firefox.Options()
+      .addExtensions(`${extensionPath.FIREFOX}.ext.xpi`)
+      .setPreference('browser.download.folderList', 2)
+      .setPreference('browser.download.dir', this.downloadsDir)
+      .setPreference(
+        'extensions.webextensions.uuids',
+        JSON.stringify({
+          'browser-extensionV3@zaproxy.org': this.extensionId,
+        })
+      )
+      .addArguments('-headless');
+    const wd = (await new Builder()
+      .forBrowser(Browser.FIREFOX)
+      .setFirefoxOptions(options)
+      .build()) as firefox.Driver;
+    wd.installAddon(`${extensionPath.FIREFOX}.ext.xpi`, true);
+    return wd;
   }
 }
 
