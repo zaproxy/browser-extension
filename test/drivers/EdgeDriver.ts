@@ -17,17 +17,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import path from 'path';
+import {Browser, WebDriver, Builder} from 'selenium-webdriver';
+import edge from 'selenium-webdriver/edge';
+import {extensionPath} from '../ContentScript/constants';
+import {ChromeDriver} from './ChromeDriver';
 
-export const extensionPath = {
-  CHROME: path.join(__dirname, '..', '..', 'extension', 'chrome'),
-  FIREFOX: path.join(__dirname, '..', '..', 'extension', 'firefox'),
-};
+class EdgeDriver extends ChromeDriver {
+  protected async createWebDriver(): Promise<WebDriver> {
+    const options = new edge.Options();
+    options
+      .addArguments('--headless=new')
+      .addExtensions(`${extensionPath.CHROME}.ext.zip`)
+      .setUserPreferences({'download.default_directory': this.downloadsDir});
+    const wd = await new Builder()
+      .forBrowser(Browser.EDGE)
+      .setEdgeOptions(options)
+      .build();
+    return wd;
+  }
+}
 
-export const HTTPPORT = 1801;
-export const JSONPORT = 8080;
-export const BROWSERNAME = {
-  CHROME: 'chrome',
-  EDGE: 'edge',
-  FIREFOX: 'firefox',
-};
+export {EdgeDriver};

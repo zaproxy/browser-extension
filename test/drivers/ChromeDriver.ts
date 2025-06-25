@@ -17,83 +17,51 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {BrowserContext, chromium, Page} from 'playwright';
+import {
+  Browser,
+  WebDriver,
+  Builder,
+  By,
+  Capabilities,
+} from 'selenium-webdriver';
+import {BaseDriver} from './BaseDriver';
 import {extensionPath} from '../ContentScript/constants';
 
-class ChromeDriver {
-  context: BrowserContext;
+class ChromeDriver extends BaseDriver {
+  extensionBaseUrl: string;
 
-  public async getExtensionId(): Promise<string> {
-    let [background] = this.context.serviceWorkers();
-    if (!background)
-      background = await this.context.waitForEvent('serviceworker');
-    return background.url().split('/')[2];
+  protected async getBaseExtensionUrl(): Promise<string> {
+    if (!this.extensionBaseUrl) {
+      const wd = await this.getWebDriver();
+      await wd.get(`chrome://serviceworker-internals/`);
+      const element = await wd.findElement(
+        By.css(
+          '#serviceworker-list > div > div.serviceworker-item > div > div.serviceworker-scope > span.value'
+        )
+      );
+      this.extensionBaseUrl = await element.getText();
+    }
+    return this.extensionBaseUrl;
   }
 
-  public async configureExtension(JSONPORT: number): Promise<void> {
-    const extensionId = await this.getExtensionId();
-    const backgroundPage = await this.context.newPage();
-    await backgroundPage.goto(`chrome-extension://${extensionId}/options.html`);
-    await backgroundPage.fill('#zapurl', `http://localhost:${JSONPORT}/`);
-    await backgroundPage.check('#zapenable');
-    await backgroundPage.click('#save');
-    await backgroundPage.close();
-  }
-
-  public async getContext(
-    JSONPORT: number,
-    startRecording = false
-  ): Promise<BrowserContext> {
-    if (this.context) return this.context;
-    this.context = await chromium.launchPersistentContext('', {
-      channel: 'chromium',
+  protected async createWebDriver(): Promise<WebDriver> {
+    const capabilities = Capabilities.chrome();
+    capabilities.set('goog:chromeOptions', {
       args: [
-        `--disable-extensions-except=${extensionPath.CHROME}-ext`,
+        // FIXME https://github.com/SeleniumHQ/selenium/issues/15788
+        `--disable-features=DisableLoadExtensionCommandLineSwitch`,
         `--load-extension=${extensionPath.CHROME}-ext`,
+        '--headless=new',
       ],
+      prefs: {
+        'download.default_directory': this.downloadsDir,
+      },
     });
-    await this.configureExtension(JSONPORT);
-    if (startRecording) {
-      await this.toggleRecording();
-    }
-    return this.context;
-  }
-
-  public async setEnable(value: boolean): Promise<void> {
-    const page = await this.context.newPage();
-    await page.goto(await this.getOptionsURL());
-    if (value) {
-      await page.check('#zapenable');
-    } else {
-      await page.uncheck('#zapenable');
-    }
-    await page.click('#save');
-    await page.close();
-  }
-
-  public async toggleRecording(loginUrl = ''): Promise<Page | undefined> {
-    const page = await this.context.newPage();
-    await page.goto(await this.getPopupURL());
-    if (loginUrl !== '') {
-      await page.fill('#login-url-input', loginUrl);
-    }
-    await page.click('#record-btn');
-    await page.close();
-    return loginUrl !== '' ? (this.context.pages().at(-1) as Page) : undefined;
-  }
-
-  public async close(): Promise<void> {
-    await this.context?.close();
-  }
-
-  public async getOptionsURL(): Promise<string> {
-    const extensionId = await this.getExtensionId();
-    return `chrome-extension://${extensionId}/options.html`;
-  }
-
-  public async getPopupURL(): Promise<string> {
-    const extensionId = await this.getExtensionId();
-    return `chrome-extension://${extensionId}/popup.html`;
+    const wd = await new Builder()
+      .forBrowser(Browser.CHROME)
+      .withCapabilities(capabilities)
+      .build();
+    return wd;
   }
 }
 
