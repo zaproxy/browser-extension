@@ -683,6 +683,8 @@ function integrationTests(
     await eventsProcessed();
     await wd.findElement(By.xpath('/html/body/div[3]/button')).click();
     await eventsProcessed();
+    await wd.findElement(By.xpath('/html/body/div[3]/span[1]')).click();
+    await eventsProcessed();
     // Then
     expect(actualData).toEqual([
       reportZestStatementComment(),
@@ -691,6 +693,13 @@ function integrationTests(
       reportZestStatementClick(4, 'btn'),
       reportZestStatementScrollTo(5, '/html/body/div[2]/button', 'xpath', 5000),
       reportZestStatementClick(6, '/html/body/div[2]/button', 'xpath', 10000),
+      reportZestStatementScrollTo(
+        7,
+        '/html/body/div[2]/span[1]',
+        'xpath',
+        5000
+      ),
+      reportZestStatementClick(8, '/html/body/div[2]/span[1]', 'xpath', 10000),
     ]);
   });
 }

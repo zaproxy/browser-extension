@@ -141,7 +141,7 @@ function getPath(
       path.element = selector;
     } else {
       const xpath = getXPath(element, documentElement);
-      if (xpath && isElementXPathUnique(xpath, documentElement)) {
+      if (xpath) {
         path.type = 'xpath';
         path.element = xpath;
       }

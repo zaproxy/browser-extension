@@ -3,6 +3,11 @@ All notable changes to the full browser extension will be documented in this fil
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## Unreleased
+
+### Fixed
+- Do not record empty elements.
+
 ## 0.1.3 - 2025-06-18
 
 ### Fixed
