@@ -231,13 +231,17 @@ export function reportZestStatementSubmit(
 export function reportZestStatementSendKeys(
   index: number,
   element: string,
-  value: string
+  value: string,
+  statementType = 'id',
+  wait = 5000
 ): object {
   return reportZestStatement(
     index,
     'ZestClientElementSendKeys',
     element,
-    value
+    value,
+    statementType,
+    wait
   );
 }
 
@@ -266,9 +270,9 @@ export function reportZestStatementSwitchToFrame(
   return data;
 }
 
-export async function eventsProcessed(): Promise<void> {
+export async function eventsProcessed(delay = TIMEOUT): Promise<void> {
   return new Promise((f) => {
-    setTimeout(f, TIMEOUT);
+    setTimeout(f, delay);
   });
 }
 

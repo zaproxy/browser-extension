@@ -260,6 +260,32 @@ function integrationTests(
     ]);
   });
 
+  test('Should record send keys waiting enough', async () => {
+    // Given / When
+    await driver.toggleRecording();
+    const wd = await driver.getWebDriver();
+    await wd.get(`http://localhost:${_HTTPPORT}/webpages/interactions.html`);
+    await pageLoaded(wd);
+    await wd.findElement(By.id('click')).click();
+    await eventsProcessed(5000);
+    await wd.findElement(By.id('input-1')).sendKeys('testinput');
+    await wd.findElement(By.id('click')).click();
+    await eventsProcessed();
+    // Then
+    expect(actualData).toEqual([
+      reportZestStatementComment(),
+      reportZestStatementLaunch(
+        'http://localhost:1801/webpages/interactions.html'
+      ),
+      reportZestStatementScrollTo(3, 'click'),
+      reportZestStatementClick(4, 'click'),
+      reportZestStatementScrollTo(5, 'input-1', 'id', 10000),
+      reportZestStatementSendKeys(6, 'input-1', 'testinput', 'id', 10000),
+      reportZestStatementScrollTo(7, 'click'),
+      reportZestStatementClick(8, 'click'),
+    ]);
+  });
+
   test('Should record appending existing input text', async () => {
     // Given / When
     await driver.toggleRecording();
@@ -691,13 +717,18 @@ function integrationTests(
       reportZestStatementLaunch('http://localhost:1801/webpages/divtest.html'),
       reportZestStatementScrollTo(3, 'btn'),
       reportZestStatementClick(4, 'btn'),
-      reportZestStatementScrollTo(5, '/html/body/div[2]/button', 'xpath', 5000),
+      reportZestStatementScrollTo(
+        5,
+        '/html/body/div[2]/button',
+        'xpath',
+        10000
+      ),
       reportZestStatementClick(6, '/html/body/div[2]/button', 'xpath', 10000),
       reportZestStatementScrollTo(
         7,
         '/html/body/div[2]/span[1]',
         'xpath',
-        5000
+        10000
       ),
       reportZestStatementClick(8, '/html/body/div[2]/span[1]', 'xpath', 10000),
     ]);
