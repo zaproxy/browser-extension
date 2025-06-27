@@ -2,16 +2,25 @@
 <html>
 <body>
 <script>
-function addButton() {
+function addElements() {
 	const div = document.createElement('div');
 	const button = document.createElement('button');
     button.textContent = 'Click Me';
 	div.appendChild(button);
+
+	const spanA = document.createElement('span');
+	spanA.textContent = 'Span A';
+	div.appendChild(spanA);
+
+	const spanB = document.createElement('span');
+	spanB.textContent = "Span B";
+	div.appendChild(spanB);
+
 	document.body.appendChild(div);
 }
 </script>
 <div>
-	<button id="btn" onclick="addButton();">Add Button</button>
+	<button id="btn" onclick="addElements();">Add Elements</button>
 </div>
 
 </body>
