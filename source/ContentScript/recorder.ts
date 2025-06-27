@@ -146,7 +146,7 @@ class Recorder {
     console.log(event, 'ZAP clicked');
     const elementLocator = getPath(event.target as HTMLElement, element);
     this.sendZestScriptToZAP(
-      new ZestStatementElementScrollTo(elementLocator, this.getWaited()),
+      new ZestStatementElementScrollTo(elementLocator, waited),
       false
     );
     this.sendZestScriptToZAP(
@@ -198,7 +198,7 @@ class Recorder {
       this.handleCachedSubmit();
     }
     this.sendZestScriptToZAP(
-      new ZestStatementElementScrollTo(elementLocator, this.getWaited()),
+      new ZestStatementElementScrollTo(elementLocator, waited),
       false
     );
     this.sendZestScriptToZAP(
