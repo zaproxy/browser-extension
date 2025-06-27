@@ -10,11 +10,11 @@ These can be used to handle complicated authentication flows or sequences of rel
 
 [![ZAP Chat: Modern Apps Part 1](https://img.youtube.com/vi/Rq_d7OLmMfw/0.jpg)](https://www.youtube.com/watch?v=Rq_d7OLmMfw)
 
-Works in both Firefox and Chrome.
+Works in both Firefox and Chrome. The Chrome extension also works in Edge but is not currently in the Edge Add-ons Store.
 
 Initially generated from https://github.com/abhijithvijayan/web-extension-starter/tree/react-typescript
 
-Only Firefox and Chrome have been tested - Opera may or may not work :wink:
+Only Firefox, Chrome and Edge have been tested - Opera may or may not work :wink:
 
 This extension is bundled in the ZAP [Client Side Integration](https://www.zaproxy.org/docs/desktop/addons/client-side-integration/)
 add-on, so you typically do not need to install it manually.
@@ -32,10 +32,11 @@ It will not interact with ZAP, even if you have it running.
 
 You can use this extension to record Zest scripts on a system on which ZAP is not running.
 
-The latest published extensions will be available via the relevant stores:
+The latest published extensions are available via the relevant stores:
 
 * Firefox - [ZAP by Checkmarx Recorder](https://addons.mozilla.org/en-GB/firefox/addon/zap-by-checkmarx-recorder/)
 * Chrome - [ZAP by Checkmarx Recorder](https://chromewebstore.google.com/detail/zap-by-checkmarx-recorder/belmenkmkfloppjbbgibipmgcmnkaiki)
+* Edge - [ZAP by Checkmarx Recorder](https://microsoftedge.microsoft.com/addons/detail/zap-by-checkmarx-recorder/okgkpllibfpmngdhhponlojjgeabfeee)
 
 ## Quick Start
 
@@ -85,12 +86,19 @@ Then run the following:
   - Go to the browser address bar and type `chrome://extensions`
   - Check the `Developer Mode` button to enable it.
   - Click on the `Load Unpacked Extension…` button.
-  - Select your browsers folder in `extension/`.
+  - Select the relevant chrome directory in `extension/`.
 
 - ### Firefox
 
   - Load the Add-on via `about:debugging` as temporary Add-on.
   - Choose the `manifest.json` file in the extracted directory
+
+- ### Edge
+
+  - Go to the browser address bar and type `edge://extensions`
+  - Check the `Developer Mode` button to enable it.
+  - Click on the `Load Unpacked Extension…` button.
+  - Select the relevant chrome directory in `extension/`.
 
 - ### Opera
 
