@@ -63,6 +63,7 @@ html {
   background: var(--greyLight-1);
 }
 
+
 .components {
   width: 30rem;
   height: 35rem;
@@ -299,4 +300,63 @@ html {
 
 .download, .settings, .help, .done{
   width: 2rem;
+}
+
+//Dark Theme Support
+@media (prefers-color-scheme: dark) {
+  :root {
+    --dark-bg: $black;
+    --dark-elevated: #111;
+    --dark-shadow-light: #1a1a1a;
+    --dark-shadow-dark: #000;
+    --dark-text: #eee;
+    --dark-border: #222;
+    --dark-red: #ff3b30;
+
+  }
+
+  .container {
+    background: $black;
+  }
+
+  .form__input {
+    background-color: var(--dark-elevated);
+    color: var(--dark-text);
+    box-shadow: inset 0.2rem 0.2rem 0.5rem var(--dark-shadow-dark),
+                inset -0.2rem -0.2rem 0.5rem var(--dark-shadow-light);
+  }
+
+  .form__input::placeholder {
+    color: #999;
+  }
+
+  .record__btn {
+    background: var(--dark-red);  /* bright red background */
+    color: #fff;                  /* white icon/text */
+    box-shadow: 0.3rem 0.3rem 0.6rem #800000,  /* deep red shadow */
+                -0.2rem -0.2rem 0.5rem #ff5e5e; /* soft red highlight */
+  }
+
+  .record__btn.shadow {
+    box-shadow: inset 0.2rem 0.2rem 0.5rem #800000,
+                inset -0.2rem -0.2rem 0.5rem #ff5e5e;
+  }
+
+  .download-icon,
+  .setting-icon__settings,
+  .help-icon__settings {
+    background: var(--dark-elevated);
+    color: var(--dark-text);
+    box-shadow: 0.3rem 0.3rem 0.6rem var(--dark-shadow-dark),
+                -0.2rem -0.2rem 0.5rem var(--dark-shadow-light);
+  }
+
+  .download,
+  .settings,
+  .help,
+  .done,
+  .record__btn .play,
+  .record__btn .pause {
+    filter: brightness(0) invert(1); /* white icons */
+  }
 }
