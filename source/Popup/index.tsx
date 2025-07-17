@@ -45,6 +45,10 @@ const wave2 = document.querySelector('.record__back-2');
 const done = document.querySelector('.done');
 const optionsIcon = document.querySelector('.settings') as HTMLImageElement;
 const downloadIcon = document.querySelector('.download') as HTMLImageElement;
+const zapIcon = document.querySelector('.zapicon') as HTMLImageElement;
+
+const zapImageDark = './assets/icons/ZAP_by_Checkmarx_logo-dark.png';
+const zapImageLight = './assets/icons/ZAP_by_Checkmarx_logo.png';
 
 const recordButton = document.getElementById('record-btn');
 const configureButton = document.getElementById('configure-btn');
@@ -240,6 +244,23 @@ document.addEventListener('load', restoreState);
 recordButton?.addEventListener('click', toggleRecording);
 saveScript?.addEventListener('click', handleSaveScript);
 scriptNameInput?.addEventListener('input', handleScriptNameChange);
+
+if (
+  window.matchMedia &&
+  window.matchMedia('(prefers-color-scheme: dark)').matches
+) {
+  zapIcon.src = zapImageDark;
+}
+
+window
+  .matchMedia('(prefers-color-scheme: dark)')
+  .addEventListener('change', (e) => {
+    if (e.matches) {
+      zapIcon.src = zapImageDark;
+    } else {
+      zapIcon.src = zapImageLight;
+    }
+  });
 
 if (configureButton) {
   if (IS_FULL_EXTENSION) {

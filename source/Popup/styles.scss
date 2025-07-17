@@ -34,8 +34,6 @@ body {
   --text-color: #333333;      /* Dark text color */
 }
 
-
-
 $shadow: .3rem .3rem .6rem var(--greyLight-2), 
 -.2rem -.2rem .5rem var(--white);
 $inner-shadow: inset .2rem .2rem .5rem var(--greyLight-2), 
@@ -299,4 +297,63 @@ html {
 
 .download, .settings, .help, .done{
   width: 2rem;
+}
+
+// Define dark theme variables
+:root {
+  --dark-bg: #303030;
+  --dark-surface: #1a1a1a;
+  --dark-border: #444;
+  --dark-text: #f1f1f1;
+  --dark-placeholder: #999;
+  --dark-button-bg: #fff;
+  --dark-button-text: #000;
+  --dark-shadow-light: rgba(255, 255, 255, 0.3);
+  --dark-shadow-dark: rgba(255, 255, 255, 0.2);
+}
+
+@media (prefers-color-scheme: dark) {
+  .container {
+    background-color: var(--dark-bg);
+  }
+
+  .record,
+  .form,
+  .setting-icon,
+  .help-icon {
+    filter: invert(1) hue-rotate(180deg) grayscale(0.8) contrast(0.9) brightness(0.95);
+  }
+
+  .components .record__btn {
+    background: var(--dark-button-bg) !important;
+    color: var(--dark-button-text) !important;
+    filter: invert(1) hue-rotate(180deg) grayscale(0.8) contrast(0.9) brightness(0.95);
+    box-shadow:
+      0.3rem 0.3rem 0.6rem var(--dark-shadow-light),
+      -0.2rem -0.2rem 0.5rem var(--dark-shadow-dark) !important;
+  }
+
+  .components .record__btn.shadow {
+    filter: invert(1) hue-rotate(180deg) grayscale(0.8) contrast(0.9) brightness(0.95);
+    box-shadow:
+      inset 0.2rem 0.2rem 0.5rem var(--dark-shadow-light),
+      inset -0.2rem -0.2rem 0.5rem var(--dark-shadow-dark) !important;
+  }
+  .components input,
+  .components textarea,
+  .components select,
+  .components .form__input {
+    filter: invert(1) hue-rotate(180deg);
+    background-color: var(--dark-surface) !important;
+    color: var(--dark-text) !important;
+    border: 1px solid var(--dark-border);
+    box-shadow: none !important;
+  }
+
+  .components input::placeholder,
+  .components textarea::placeholder,
+  .components .form__input::placeholder {
+    filter: invert(1) hue-rotate(180deg);
+    color: var(--dark-placeholder) !important;
+  }
 }
