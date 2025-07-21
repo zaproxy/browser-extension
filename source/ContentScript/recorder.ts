@@ -531,7 +531,11 @@ class Recorder {
     floatingDiv.appendChild(textElement);
     floatingDiv.appendChild(buttonElement);
 
-    document.body.appendChild(floatingDiv);
+    if (document.body instanceof HTMLFrameSetElement) {
+      document.body.after(floatingDiv);
+    } else {
+      document.body.appendChild(floatingDiv);
+    }
     this.floatingWindowInserted = true;
 
     let isDragging = false;

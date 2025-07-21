@@ -733,6 +733,22 @@ function integrationTests(
       reportZestStatementClick(8, '/html/body/div[2]/span[1]', 'xpath', 10000),
     ]);
   });
+
+  test('Should insert ZAP div after frameset', async () => {
+    // Given / When
+    await driver.toggleRecording();
+    const wd = await driver.getWebDriver();
+    await wd.get(`http://localhost:${_HTTPPORT}/webpages/frameset.html`);
+    await pageLoaded(wd);
+    await wd.findElement(By.xpath('/html/div/button')).click();
+    await eventsProcessed();
+    // Then
+    expect(actualData).toEqual([
+      reportZestStatementComment(),
+      reportZestStatementLaunch('http://localhost:1801/webpages/frameset.html'),
+      reportZestStatementClose(3),
+    ]);
+  });
 }
 
 describe('Chrome Integration Test', () => {
