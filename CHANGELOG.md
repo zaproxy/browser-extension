@@ -3,6 +3,11 @@ All notable changes to the full browser extension will be documented in this fil
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## Unreleased
+
+### Fixed
+- Correct the position of the notification dialog when the page being recorded uses frames.
+
 ## 0.1.4 - 2025-06-30
 
 ### Fixed
