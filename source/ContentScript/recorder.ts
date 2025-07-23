@@ -312,9 +312,12 @@ class Recorder {
     const domMutated: MutationCallback = (mutationsList: MutationRecord[]) => {
       mutationsList.forEach((mutation) => {
         if (mutation.type === 'childList') {
-          // Look for added input elements
-          if (mutation.target instanceof Element) {
-            const inputs = mutation.target.getElementsByTagName('input');
+          // Use node type instead of instanceof as it does not work reliably
+          if (mutation.target.nodeType === Node.ELEMENT_NODE) {
+            // Look for added input elements
+            const inputs = (mutation.target as Element).getElementsByTagName(
+              'input'
+            );
             for (let j = 0; j < inputs.length; j += 1) {
               this.addListenerToInputField(
                 textElements,
@@ -330,7 +333,7 @@ class Recorder {
     };
 
     const observer = new MutationObserver(domMutated);
-    observer.observe(document, {
+    observer.observe(element, {
       attributes: false,
       childList: true,
       subtree: true,

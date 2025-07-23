@@ -542,6 +542,36 @@ function integrationTests(
     ]);
   });
 
+  test('Should record frame submitted elements', async () => {
+    // Given / When
+    await driver.toggleRecording();
+    const wd = await driver.getWebDriver();
+    await wd.get(`http://localhost:${_HTTPPORT}/webpages/frameset.html`);
+    await wd.switchTo().frame(0);
+    await wd.findElement(By.id('btn')).click();
+    const inputA = await wd.findElement(By.xpath('/html/body/div[2]/input'));
+    await inputA.sendKeys('value');
+    await inputA.sendKeys(Key.ENTER);
+    await eventsProcessed();
+    // Then
+    expect(actualData).toEqual([
+      reportZestStatementComment(),
+      reportZestStatementLaunch('http://localhost:1801/webpages/frameset.html'),
+      reportZestStatementSwitchToFrame(3, 0, ''),
+      reportZestStatementScrollTo(4, 'btn'),
+      reportZestStatementClick(5, 'btn'),
+      reportZestStatementScrollTo(6, 'body > div > input', 'cssSelector'),
+      reportZestStatementSendKeys(
+        7,
+        'body > div > input',
+        'value',
+        'cssSelector'
+      ),
+      reportZestStatementScrollTo(8, 'body > div > input', 'cssSelector'),
+      reportZestStatementSubmit(9, 'body > div > input', 'cssSelector'),
+    ]);
+  });
+
   test('Should not record interactions on floating container', async () => {
     // Given / When
     await driver.toggleRecording();

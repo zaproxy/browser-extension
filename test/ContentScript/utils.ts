@@ -218,13 +218,17 @@ export function reportZestStatementClick(
 
 export function reportZestStatementSubmit(
   index: number,
-  element: string
+  element: string,
+  statementType = 'id',
+  wait = 5000
 ): object {
   return reportZestStatement(
     index,
     'ZestClientElementSubmit',
     element,
-    undefined
+    undefined,
+    statementType,
+    wait
   );
 }
 
