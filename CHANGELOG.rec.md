@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Include start URL loading time in `waitForMsec` of the first recorded action.
 - Correct the position of the notification dialog when the page being recorded uses frames.
 - Record submitted inputs dynamically added to frames.
+- Correct recording of frames not immediately loaded.
 
 ## 0.1.4 - 2025-06-30
 
