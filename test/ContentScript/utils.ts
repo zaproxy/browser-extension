@@ -26,9 +26,19 @@ import {BaseDriver} from '../drivers/BaseDriver';
 
 const TIMEOUT = 2000;
 
+function streamResponse(
+  filePath: string,
+  response: http.ServerResponse<http.IncomingMessage>
+): void {
+  const fileStream = fs.createReadStream(filePath);
+  response.writeHead(200, {'Content-Type': 'text/html'});
+  fileStream.pipe(response);
+}
+
 export function getStaticHttpServer(): http.Server {
   return http.createServer((request, response) => {
-    const url = `${request.url}`;
+    const baseUrl = new URL(`http://localhost${request.url}`);
+    const url = baseUrl.pathname;
 
     if (url.startsWith('/redirect/')) {
       response.writeHead(302, {Location: '/webpages/interactions.html'});
@@ -41,9 +51,13 @@ export function getStaticHttpServer(): http.Server {
     fs.promises
       .access(filePath, fs.constants.F_OK)
       .then(() => {
-        const fileStream = fs.createReadStream(filePath);
-        response.writeHead(200, {'Content-Type': 'text/html'});
-        fileStream.pipe(response);
+        let delay = 0;
+        if (baseUrl.searchParams.has('delay')) {
+          delay = Number(baseUrl.searchParams.get('delay')) || 1000;
+        }
+        setTimeout((): void => {
+          streamResponse(filePath, response);
+        }, delay);
       })
       .catch((err: NodeJS.ErrnoException | null) => {
         response.writeHead(404, {'Content-Type': 'text/plain'});
@@ -276,10 +290,13 @@ export async function eventsProcessed(delay = TIMEOUT): Promise<void> {
   });
 }
 
-export async function pageLoaded(wd: WebDriver): Promise<void> {
+export async function pageLoaded(
+  wd: WebDriver,
+  timeout = TIMEOUT
+): Promise<void> {
   await wd.wait(
     () => wd.executeScript('return document.readyState == "complete"'),
-    TIMEOUT
+    timeout
   );
 }
 

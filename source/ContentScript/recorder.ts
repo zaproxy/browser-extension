@@ -354,13 +354,15 @@ class Recorder {
     return browserName;
   }
 
-  initializationScript(loginUrl = ''): void {
+  initializationScript(loginUrl = '', startTime = 0): void {
     console.log(`ZAP initializationScript ${loginUrl}`);
     Browser.storage.sync.set({
       initScript: false,
       loginUrl: '',
+      startTime: 0,
       downloadScript: true,
     });
+    this.lastStatementTime = startTime;
     const stopRecordingButton = document.getElementById(STOP_RECORDING_ID);
     if (stopRecordingButton) {
       // Can happen if recording restarted in browser launched from ZAP recorder
@@ -382,10 +384,14 @@ class Recorder {
     this.handleResize();
   }
 
-  recordUserInteractions(initScript = true, loginUrl = ''): void {
+  recordUserInteractions(
+    initScript = true,
+    loginUrl = '',
+    startTime = 0
+  ): void {
     console.log(`ZAP user interactions ${initScript} ${loginUrl}`);
     if (initScript) {
-      this.initializationScript(loginUrl);
+      this.initializationScript(loginUrl, startTime);
     }
     this.active = true;
     this.previousDOMState = document.documentElement.outerHTML;

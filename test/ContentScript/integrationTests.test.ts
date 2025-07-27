@@ -238,6 +238,26 @@ function integrationTests(
     ]);
   });
 
+  test('Should record click with start URL delay', async () => {
+    // Given / When
+    await driver.toggleRecording(
+      `http://localhost:${_HTTPPORT}/webpages/interactions.html?delay=5000`
+    );
+    const wd = await driver.getWebDriver();
+    await pageLoaded(wd, 5500);
+    await wd.findElement(By.id('click')).click();
+    await eventsProcessed();
+    // Then
+    expect(actualData).toEqual([
+      reportZestStatementComment(),
+      reportZestStatementLaunch(
+        'http://localhost:1801/webpages/interactions.html?delay=5000'
+      ),
+      reportZestStatementScrollTo(3, 'click', 'id', 10000),
+      reportZestStatementClick(4, 'click', 'id', 10000),
+    ]);
+  });
+
   test('Should record send keys', async () => {
     // Given / When
     await driver.toggleRecording();

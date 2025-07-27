@@ -66,7 +66,7 @@ abstract class BaseDriver {
 
   private async selectLatestWindow(wd: WebDriver): Promise<void> {
     const handles = await wd.getAllWindowHandles();
-    await wd.switchTo().window(handles[0]);
+    await wd.switchTo().window(handles.at(handles.length > 2 ? -1 : 0));
   }
 
   public async setEnable(value: boolean): Promise<void> {
