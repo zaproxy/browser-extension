@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
 
+### Changed
+- Do not record frame switches on mouse over events as they are not currently recorded.
+
 ### Fixed
 - Include start URL loading time in `waitForMsec` of the first recorded action.
 - Correct the position of the notification dialog when the page being recorded uses frames.
