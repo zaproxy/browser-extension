@@ -267,6 +267,26 @@ class Recorder {
     }
   }
 
+  handleFrameLoad(params: {
+    element: HTMLIFrameElement | HTMLObjectElement;
+    level: number;
+  }): void {
+    const frame = params.element;
+    const doc = frame.contentDocument || frame.contentWindow?.document;
+    if (doc != null) {
+      this.addListenersToDocument(doc, params.level, this.indexOfFrame(frame));
+    }
+  }
+
+  indexOfFrame(element: Element): number {
+    for (let i = 0; i < window.frames.length; i += 1) {
+      if (window.frames[i].frameElement === element) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
   addListenersToDocument(
     element: Document,
     level: number,
@@ -294,13 +314,28 @@ class Recorder {
 
     // Add listeners to all the frames
     const frames = element.querySelectorAll('frame, iframe');
-    let i = 0;
     frames.forEach((_frame) => {
-      const frameDocument = (_frame as HTMLIFrameElement | HTMLObjectElement)
-        .contentWindow?.document;
-      if (frameDocument != null) {
-        this.addListenersToDocument(frameDocument, level + 1, i);
-        i += 1;
+      const htmlElement = _frame as HTMLIFrameElement | HTMLObjectElement;
+      const frameDocument = htmlElement.contentWindow?.document;
+      if (
+        frameDocument != null &&
+        frameDocument.readyState === 'complete' &&
+        // Chrome/Edge report completed with about:blank
+        frameDocument.documentURI !== 'about:blank'
+      ) {
+        this.addListenersToDocument(
+          frameDocument,
+          level + 1,
+          this.indexOfFrame(_frame)
+        );
+      } else {
+        _frame.addEventListener(
+          'load',
+          this.handleFrameLoad.bind(this, {
+            element: htmlElement,
+            level: level + 1,
+          })
+        );
       }
     });
 
