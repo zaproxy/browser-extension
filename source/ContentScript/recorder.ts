@@ -303,10 +303,11 @@ class Recorder {
       'scroll',
       debounce(this.handleScroll.bind(this, {level, frame, element}), 1000)
     );
-    element.addEventListener(
-      'mouseover',
-      this.handleMouseOver.bind(this, {level, frame, element})
-    );
+    // Do not track mouse over events for now, they are not recorded.
+    // element.addEventListener(
+    //   'mouseover',
+    //   this.handleMouseOver.bind(this, {level, frame, element})
+    // );
     element.addEventListener(
       'change',
       this.handleChange.bind(this, {level, frame, element})
