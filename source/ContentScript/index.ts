@@ -277,14 +277,15 @@ function injectScript(): Promise<boolean> {
     configureExtension();
     withZapRecordingActive(() => {
       Browser.storage.sync
-        .get({initScript: false, loginUrl: ''})
+        .get({initScript: false, loginUrl: '', startTime: 0})
         .then((items) => {
           console.log(
             `ZAP injectScript items ${items.initScript} ${items.loginUrl}`
           );
           recorder.recordUserInteractions(
             items.initScript === true,
-            items.loginUrl as string
+            items.loginUrl as string,
+            items.startTime as number
           );
         });
     });

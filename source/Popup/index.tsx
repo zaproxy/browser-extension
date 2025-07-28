@@ -129,6 +129,7 @@ function startRecording(): void {
   Browser.storage.sync.set({
     initScript: true,
     loginUrl: loginUrlInput.value,
+    startTime: loginUrlInput.value !== '' ? Date.now() : 0,
   });
   sendMessageToContentScript(ZAP_START_RECORDING);
   Browser.runtime.sendMessage({type: RESET_ZEST_SCRIPT});
