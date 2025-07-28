@@ -3,7 +3,7 @@ All notable changes to the full browser extension will be documented in this fil
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## Unreleased
+## 0.1.5 - 2025-07-28
 
 ### Changed
 - Do not record frame switches on mouse over events as they are not currently recorded.
