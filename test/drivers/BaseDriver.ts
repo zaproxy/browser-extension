@@ -66,7 +66,7 @@ abstract class BaseDriver {
 
   private async selectLatestWindow(wd: WebDriver): Promise<void> {
     const handles = await wd.getAllWindowHandles();
-    await wd.switchTo().window(handles.at(handles.length > 2 ? -1 : 0));
+    await wd.switchTo().window(handles[0]);
   }
 
   public async setEnable(value: boolean): Promise<void> {
@@ -86,6 +86,14 @@ abstract class BaseDriver {
     await this.selectLatestWindow(wd);
   }
 
+  private waitForExtensionTabClosed(): () => Promise<boolean> {
+    return async () => {
+      const wd = await this.getWebDriver();
+      const handles = await wd.getAllWindowHandles();
+      return handles.length === 2;
+    };
+  }
+
   public async toggleRecording(loginUrl = ''): Promise<void> {
     const wd = await this.getWebDriver();
     await wd.switchTo().newWindow('tab');
@@ -94,7 +102,13 @@ abstract class BaseDriver {
       await wd.findElement(By.id('login-url-input')).sendKeys(loginUrl);
     }
     await wd.findElement(By.id('record-btn')).click();
-    await this.selectLatestWindow(wd);
+    if (loginUrl !== '') {
+      await wd.wait(this.waitForExtensionTabClosed());
+      const handles = await wd.getAllWindowHandles();
+      await wd.switchTo().window(handles[1]);
+    } else {
+      await this.selectLatestWindow(wd);
+    }
   }
 }
 
