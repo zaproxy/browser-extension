@@ -612,6 +612,29 @@ function integrationTests(
     ]);
   });
 
+  test('Should record frame interactions on replaced frame', async () => {
+    // Given / When
+    await driver.toggleRecording();
+    const wd = await driver.getWebDriver();
+    await wd.get(`http://localhost:${_HTTPPORT}/webpages/framesetReplace.html`);
+    await wd.wait(until.ableToSwitchToFrame(0));
+    await wd.wait(until.elementLocated(By.id('btn'))).click();
+    await wd.wait(until.elementLocated(By.id('click'))).click();
+    await eventsProcessed();
+    // Then
+    expect(actualData).toEqual([
+      reportZestStatementComment(),
+      reportZestStatementLaunch(
+        'http://localhost:1801/webpages/framesetReplace.html'
+      ),
+      reportZestStatementSwitchToFrame(3, 0, ''),
+      reportZestStatementScrollTo(4, 'btn'),
+      reportZestStatementClick(5, 'btn'),
+      reportZestStatementScrollTo(6, 'click'),
+      reportZestStatementClick(7, 'click'),
+    ]);
+  });
+
   test('Should not record interactions on floating container', async () => {
     // Given / When
     await driver.toggleRecording();

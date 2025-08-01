@@ -268,7 +268,7 @@ class Recorder {
   }
 
   handleFrameLoad(params: {
-    element: HTMLIFrameElement | HTMLObjectElement;
+    element: HTMLIFrameElement | HTMLFrameElement;
     level: number;
   }): void {
     const frame = params.element;
@@ -276,6 +276,46 @@ class Recorder {
     if (doc != null) {
       this.addListenersToDocument(doc, params.level, this.indexOfFrame(frame));
     }
+  }
+
+  processFrame(frame: Element, level: number): void {
+    const htmlElement = frame as HTMLIFrameElement | HTMLFrameElement;
+    const frameDocument = htmlElement.contentWindow?.document;
+    if (
+      frameDocument != null &&
+      frameDocument.readyState === 'complete' &&
+      // Chrome/Edge report completed with different src
+      frameDocument.documentURI === htmlElement.src
+    ) {
+      this.addListenersToDocument(
+        frameDocument,
+        level,
+        this.indexOfFrame(frame)
+      );
+    } else {
+      frame.addEventListener(
+        'load',
+        this.handleFrameLoad.bind(this, {
+          element: htmlElement,
+          level,
+        })
+      );
+    }
+    const domMutated: MutationCallback = (mutationsList: MutationRecord[]) => {
+      mutationsList.forEach((mutation) => {
+        if (
+          mutation.type === 'attributes' &&
+          mutation.attributeName === 'src'
+        ) {
+          this.processFrame(mutation.target as Element, level);
+        }
+      });
+    };
+
+    const observer = new MutationObserver(domMutated);
+    observer.observe(frame, {
+      attributes: true,
+    });
   }
 
   indexOfFrame(element: Element): number {
@@ -315,30 +355,7 @@ class Recorder {
 
     // Add listeners to all the frames
     const frames = element.querySelectorAll('frame, iframe');
-    frames.forEach((_frame) => {
-      const htmlElement = _frame as HTMLIFrameElement | HTMLObjectElement;
-      const frameDocument = htmlElement.contentWindow?.document;
-      if (
-        frameDocument != null &&
-        frameDocument.readyState === 'complete' &&
-        // Chrome/Edge report completed with about:blank
-        frameDocument.documentURI !== 'about:blank'
-      ) {
-        this.addListenersToDocument(
-          frameDocument,
-          level + 1,
-          this.indexOfFrame(_frame)
-        );
-      } else {
-        _frame.addEventListener(
-          'load',
-          this.handleFrameLoad.bind(this, {
-            element: htmlElement,
-            level: level + 1,
-          })
-        );
-      }
-    });
+    frames.forEach((_frame) => this.processFrame(_frame, level + 1));
 
     // Add listeners to all of the text fields
     element.querySelectorAll('input').forEach((input) => {

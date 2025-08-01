@@ -3,6 +3,11 @@ All notable changes to the recorder browser extension will be documented in this
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## Unreleased
+
+### Fixed
+- Record interactions on replaced frames.
+
 ## 0.1.5 - 2025-07-28
 
 ### Changed
