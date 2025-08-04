@@ -57,13 +57,20 @@ const scriptNameInput = document.getElementById(
   'script-name-input'
 ) as HTMLInputElement;
 
+let startTab: Browser.Tabs.Tab | undefined;
+
 function sendMessageToContentScript(message: string, data = ''): void {
-  Browser.tabs.query({active: true, currentWindow: true}).then((tabs) => {
-    const activeTab = tabs[0];
-    if (activeTab?.id) {
-      Browser.tabs.sendMessage(activeTab.id, {type: message, data});
-    }
-  });
+  if (startTab?.id) {
+    Browser.tabs.sendMessage(startTab?.id, {type: message, data});
+    startTab = undefined;
+  } else {
+    Browser.tabs.query({active: true, currentWindow: true}).then((tabs) => {
+      const activeTab = tabs[0];
+      if (activeTab?.id) {
+        Browser.tabs.sendMessage(activeTab.id, {type: message, data});
+      }
+    });
+  }
 }
 
 function stoppedAnimation(): void {
@@ -149,12 +156,14 @@ function toggleRecording(e: Event): void {
       if (loginUrl !== '') {
         Browser.tabs
           .create({
-            active: true,
+            active: false,
             url: loginUrl,
           })
           .then(
-            (_) => {
+            (tab) => {
+              startTab = tab;
               startRecording();
+              Browser.tabs.update(tab.id, {active: true});
               closePopup();
             },
             (error) => {
