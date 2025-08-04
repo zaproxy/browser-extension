@@ -81,26 +81,26 @@ Then run the following:
 
 - **Load extension in browser**
 
-- ### Chrome
+### Chrome
 
   - Go to the browser address bar and type `chrome://extensions`
   - Check the `Developer Mode` button to enable it.
   - Click on the `Load Unpacked Extension…` button.
   - Select the relevant chrome directory in `extension/`.
 
-- ### Firefox
+### Firefox
 
   - Load the Add-on via `about:debugging` as temporary Add-on.
   - Choose the `manifest.json` file in the extracted directory
 
-- ### Edge
+### Edge
 
   - Go to the browser address bar and type `edge://extensions`
   - Check the `Developer Mode` button to enable it.
   - Click on the `Load Unpacked Extension…` button.
   - Select the relevant chrome directory in `extension/`.
 
-- ### Opera
+### Opera
 
   - Load the extension via `opera:extensions`
   - Check the `Developer Mode` and load as unpacked from extension’s extracted directory.
@@ -114,6 +114,12 @@ Then run the following:
 
 - Shared Eslint & Prettier Configuration - [`@abhijithvijayan/eslint-config`](https://www.npmjs.com/package/@abhijithvijayan/eslint-config)
 - Shared TypeScript Configuration - [`@abhijithvijayan/tsconfig`](https://www.npmjs.com/package/@abhijithvijayan/tsconfig)
+
+### Update Dependencies
+
+Individual dependencies can be updated using `yarn upgrade <package_name>`
+
+To update `package.json` use `npx syncyarnlock --save --keepPrefix`
 
 ## Licenses
 
