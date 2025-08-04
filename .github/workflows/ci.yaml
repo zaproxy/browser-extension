@@ -32,6 +32,7 @@ jobs:
     needs: check
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         browser: ["Chrome", "Edge", "Firefox"]
 
