@@ -4,6 +4,9 @@ updates:
   directory: "/"
   schedule:
     interval: weekly
+  ignore:
+    # This will requires quite a few changes to support
+    - dependency-name: "@abhijithvijayan/tsconfig"
   groups:
     dependencies:
       applies-to: version-updates
