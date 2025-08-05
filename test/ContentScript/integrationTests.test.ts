@@ -46,6 +46,8 @@ import {
   downloadScriptName,
 } from './utils';
 
+const testif = (condition: boolean): jest.It => (condition ? it : it.skip);
+
 function integrationTests(
   browserName: string,
   _HTTPPORT: number,
@@ -842,6 +844,20 @@ function integrationTests(
       reportZestStatementClose(3),
     ]);
   });
+
+  testif(browserName === BROWSERNAME.FIREFOX)(
+    'Should open help from popup',
+    async () => {
+      // Given / When
+      const wd = await driver.getWebDriver();
+      await wd.get(await driver.getPopupURL());
+      await wd.findElement(By.id('help-btn')).click();
+      await eventsProcessed();
+      await wd.switchTo().window((await wd.getAllWindowHandles())[0]);
+      // Then
+      expect(await wd.getPageSource()).toContain('Summary');
+    }
+  );
 }
 
 describe('Chrome Integration Test', () => {
