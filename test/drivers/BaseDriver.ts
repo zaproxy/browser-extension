@@ -82,6 +82,10 @@ abstract class BaseDriver {
       await zapenable.click();
     }
     await wd.findElement(By.id('save')).click();
+    // Wait for the page to reload.
+    await new Promise((f) => {
+      setTimeout(f, 500);
+    });
     await wd.close();
     await this.selectLatestWindow(wd);
   }
