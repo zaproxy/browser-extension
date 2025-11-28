@@ -7,6 +7,8 @@ updates:
   ignore:
     # This will requires quite a few changes to support
     - dependency-name: "@abhijithvijayan/tsconfig"
+    # https://github.com/jsdom/jsdom/issues/3966 and https://github.com/jestjs/jest/issues/9430
+    - dependency-name: "jsdom"
   groups:
     dependencies:
       applies-to: version-updates
