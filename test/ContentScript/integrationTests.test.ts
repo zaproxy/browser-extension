@@ -240,6 +240,25 @@ function integrationTests(
     ]);
   });
 
+  test('Should record click that does not bubble', async () => {
+    // Given / When
+    await driver.toggleRecording();
+    const wd = await driver.getWebDriver();
+    await wd.get(`http://localhost:${_HTTPPORT}/webpages/interactions.html`);
+    await pageLoaded(wd);
+    await wd.findElement(By.id('click-no-bubble')).click();
+    await eventsProcessed();
+    // Then
+    expect(actualData).toEqual([
+      reportZestStatementComment(),
+      reportZestStatementLaunch(
+        'http://localhost:1801/webpages/interactions.html'
+      ),
+      reportZestStatementScrollTo(3, 'click-no-bubble'),
+      reportZestStatementClick(4, 'click-no-bubble'),
+    ]);
+  });
+
   test('Should record click with start URL delay', async () => {
     // Given / When
     await driver.toggleRecording(

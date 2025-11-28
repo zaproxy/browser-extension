@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Added
 - Support for dark mode
 
+### Fixed
+- Record all clicks even when the site stops the events from bubbling.
+
 ## 0.1.6 - 2025-08-04
 
 ### Fixed

@@ -3,6 +3,7 @@
     </head>
     <body>
         <button id="click">click me</button>
+        <button id="click-no-bubble">click me no bubble</button>
         <input type="text" id="input-1" /> 
         <input type="date" id="input-2" />
         <input type="text" id="input-3-filled" value="Existing text"/> 
@@ -14,5 +15,9 @@
           <option value="audi">Audi</option>
         </select>
         <iframe src="./testFrame.html" name="frame1"></iframe>
+        <script>
+          const elem = document.getElementById("click-no-bubble");
+          elem.addEventListener("click", (e) => e.stopPropagation());
+        </script>
     </body>
 </html>
