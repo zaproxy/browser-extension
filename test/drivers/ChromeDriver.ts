@@ -46,11 +46,12 @@ class ChromeDriver extends BaseDriver {
 
   protected async createWebDriver(): Promise<WebDriver> {
     const capabilities = Capabilities.chrome();
+    capabilities.set('webSocketUrl', true);
     capabilities.set('goog:chromeOptions', {
       args: [
-        // FIXME https://github.com/SeleniumHQ/selenium/issues/15788
-        `--disable-features=DisableLoadExtensionCommandLineSwitch`,
-        `--load-extension=${extensionPath.CHROME}-ext`,
+        // Needed to install the extension with BiDi.
+        '--enable-unsafe-extension-debugging',
+        '--remote-debugging-pipe',
         '--headless=new',
       ],
       prefs: {
@@ -61,6 +62,12 @@ class ChromeDriver extends BaseDriver {
       .forBrowser(Browser.CHROME)
       .withCapabilities(capabilities)
       .build();
+    (await wd.getBidi()).send({
+      method: 'webExtension.install',
+      params: {
+        extensionData: {type: 'path', path: `${extensionPath.CHROME}-ext`},
+      },
+    });
     return wd;
   }
 }
