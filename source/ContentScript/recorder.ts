@@ -337,7 +337,10 @@ class Recorder {
 
     element.addEventListener(
       'click',
-      this.handleClick.bind(this, {level, frame, element})
+      this.handleClick.bind(this, {level, frame, element}),
+      {
+        capture: true,
+      }
     );
     element.addEventListener(
       'scroll',
