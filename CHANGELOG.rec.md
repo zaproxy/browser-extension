@@ -3,6 +3,11 @@ All notable changes to the recorder browser extension will be documented in this
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## Unreleased
+
+### Fixed
+- Ignore events on non-visible elements, which will fail on replay.
+
 ## 0.1.7 - 2025-11-28
 
 ### Added

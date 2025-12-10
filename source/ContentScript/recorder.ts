@@ -396,10 +396,37 @@ class Recorder {
     });
   }
 
+  isVisible(el: HTMLElement): boolean {
+    const style = window.getComputedStyle(el);
+
+    if (
+      style.display === 'none' ||
+      style.visibility === 'hidden' ||
+      style.opacity === '0'
+    ) {
+      return false;
+    }
+
+    // Check layout dimensions
+    if (el.offsetWidth <= 0 && el.offsetHeight <= 0) {
+      return false;
+    }
+
+    const rect = el.getBoundingClientRect();
+
+    // Check rendered size
+    if (rect.width === 0 || rect.height === 0) {
+      return false;
+    }
+
+    // The element is rendered and visible in layout (may still be off-screen)
+    return true;
+  }
+
   shouldRecord(element: HTMLElement): boolean {
     if (!this.active) return this.active;
     if (element.className === ZAP_FLOATING_DIV_ELEMENTS) return false;
-    return true;
+    return this.isVisible(element);
   }
 
   getBrowserName(): string {
