@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
 
+### Changed
+- Do not notify synthetic scroll to statements, which are only added to help with replay not as direct result of user actions.
+
 ### Fixed
 - Ignore events on non-visible elements, which will fail on replay.
 - Ignore click after submit, since the former is a side effect of the latter.
