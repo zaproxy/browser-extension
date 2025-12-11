@@ -145,6 +145,15 @@ class Recorder {
     this.handleFrameSwitches(level, frame);
     console.log(event, 'ZAP clicked');
     const elementLocator = getPath(event.target as HTMLElement, element);
+
+    if ((event as MouseEvent).detail === 0) {
+      // Not a user click.
+      if (this.cachedSubmit) {
+        this.handleCachedSubmit();
+      }
+      return;
+    }
+
     this.sendZestScriptToZAP(
       new ZestStatementElementScrollTo(elementLocator, waited),
       false
