@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Hidden Element Event Demo</title>
+</head>
+<body>
+
+  <button id="visibleButton">Click Me</button>
+
+  <input id="visibleCheckBox" type="checkbox">
+
+  <input id="hiddenCheckBoxDisplay" type="checkbox" style="display:none">
+
+  <input id="hiddenCheckBoxVisibility" type="checkbox" style="visibility:hidden">
+
+  <input id="hiddenCheckBoxOpacity" type="checkbox" style="opacity:0">
+
+  <script>
+    document.getElementById("visibleButton").addEventListener("click", () => {
+      document.getElementById("visibleCheckBox").click();
+      document.getElementById("hiddenCheckBoxDisplay").click();
+      document.getElementById("hiddenCheckBoxVisibility").click();
+      document.getElementById("hiddenCheckBoxOpacity").click();
+    });
+  </script>
+
+</body>
+</html>
