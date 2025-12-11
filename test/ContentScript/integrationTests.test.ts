@@ -690,9 +690,29 @@ function integrationTests(
       reportZestStatementScrollTo(3, 'visibleButton'),
       reportZestStatementClick(4, 'visibleButton'),
       reportZestStatementScrollTo(5, 'visibleCheckBox'),
-      reportZestStatementClick(6, 'visibleCheckBox'),
-      reportZestStatementScrollTo(7, 'visibleCheckBox'),
-      reportZestStatementSendKeys(8, 'visibleCheckBox', 'on', 'id'),
+      reportZestStatementSendKeys(6, 'visibleCheckBox', 'on', 'id'),
+    ]);
+  });
+
+  test('Should not record click before submit', async () => {
+    // Given / When
+    await driver.toggleRecording();
+    const wd = await driver.getWebDriver();
+    await wd.get(`http://localhost:${_HTTPPORT}/webpages/submitClick.html`);
+    const input = await wd.findElement(By.id('input'));
+    await input.sendKeys('value');
+    await input.sendKeys(Key.ENTER);
+    await eventsProcessed();
+    // Then
+    expect(actualData).toEqual([
+      reportZestStatementComment(),
+      reportZestStatementLaunch(
+        'http://localhost:1801/webpages/submitClick.html'
+      ),
+      reportZestStatementScrollTo(3, 'input'),
+      reportZestStatementSendKeys(4, 'input', 'value'),
+      reportZestStatementScrollTo(5, 'input'),
+      reportZestStatementSubmit(6, 'input'),
     ]);
   });
 

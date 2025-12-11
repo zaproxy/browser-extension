@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 - Ignore events on non-visible elements, which will fail on replay.
+- Ignore click after submit, since the former is a side effect of the latter.
 
 ## 0.1.7 - 2025-11-28
 
