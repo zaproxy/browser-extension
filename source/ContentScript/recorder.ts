@@ -20,6 +20,7 @@
 import debounce from 'lodash/debounce';
 import Browser from 'webextension-polyfill';
 import {
+  ElementLocator,
   ZestStatement,
   ZestStatementComment,
   ZestStatementElementClick,
@@ -72,13 +73,15 @@ class Recorder {
 
   async sendZestScriptToZAP(
     zestStatement: ZestStatement,
-    sendCache = true
+    params: {sendCache: boolean; notify: boolean}
   ): Promise<number> {
-    if (sendCache) {
+    if (params.sendCache) {
       this.handleCachedSubmit();
     }
     // console.log('ZAP Sending statement', zestStatement);
-    this.notify(zestStatement);
+    if (params.notify) {
+      this.notify(zestStatement);
+    }
     return Browser.runtime.sendMessage({
       type: ZEST_SCRIPT,
       data: zestStatement.toJSON(),
@@ -99,17 +102,24 @@ class Recorder {
     return waited;
   }
 
+  sendScrollToToZap(elementLocator: ElementLocator, waitForMsec: number): void {
+    this.sendZestScriptToZAP(
+      new ZestStatementElementScrollTo(elementLocator, waitForMsec),
+      {sendCache: false, notify: false}
+    );
+  }
+
   handleCachedSubmit(): void {
     if (this.cachedSubmit) {
-      this.sendZestScriptToZAP(
-        new ZestStatementElementScrollTo(
-          this.cachedSubmit.elementLocator,
-          this.getWaited()
-        ),
-        false
+      this.sendScrollToToZap(
+        this.cachedSubmit.elementLocator,
+        this.getWaited()
       );
       // console.log('ZAP Sending cached submit', this.cachedSubmit);
-      this.sendZestScriptToZAP(this.cachedSubmit, false);
+      this.sendZestScriptToZAP(this.cachedSubmit, {
+        sendCache: false,
+        notify: true,
+      });
       delete this.cachedSubmit;
       this.cachedTimeStamp = -1;
     }
@@ -121,14 +131,20 @@ class Recorder {
     }
     if (this.curLevel > level) {
       while (this.curLevel > level) {
-        this.sendZestScriptToZAP(new ZestStatementSwitchToFrame(-1));
+        this.sendZestScriptToZAP(new ZestStatementSwitchToFrame(-1), {
+          sendCache: true,
+          notify: true,
+        });
         this.curLevel -= 1;
       }
       this.curFrame = frameIndex;
     } else {
       this.curLevel += 1;
       this.curFrame = frameIndex;
-      this.sendZestScriptToZAP(new ZestStatementSwitchToFrame(frameIndex));
+      this.sendZestScriptToZAP(new ZestStatementSwitchToFrame(frameIndex), {
+        sendCache: true,
+        notify: true,
+      });
     }
     if (this.curLevel !== level) {
       console.log('ZAP Error in switching frames');
@@ -154,12 +170,10 @@ class Recorder {
       return;
     }
 
+    this.sendScrollToToZap(elementLocator, waited);
     this.sendZestScriptToZAP(
-      new ZestStatementElementScrollTo(elementLocator, waited),
-      false
-    );
-    this.sendZestScriptToZAP(
-      new ZestStatementElementClick(elementLocator, waited)
+      new ZestStatementElementClick(elementLocator, waited),
+      {sendCache: true, notify: true}
     );
     // click on target element
   }
@@ -206,17 +220,14 @@ class Recorder {
       // The cached submit was not on the same element, so send it
       this.handleCachedSubmit();
     }
-    this.sendZestScriptToZAP(
-      new ZestStatementElementScrollTo(elementLocator, waited),
-      false
-    );
+    this.sendScrollToToZap(elementLocator, waited);
     this.sendZestScriptToZAP(
       new ZestStatementElementSendKeys(
         elementLocator,
         (event.target as HTMLInputElement).value,
         waited
       ),
-      false
+      {sendCache: false, notify: true}
     );
     // Now send the cached submit, if there still is one
     this.handleCachedSubmit();
@@ -468,13 +479,15 @@ class Recorder {
       new ZestStatementComment(
         `Recorded by ${Browser.runtime.getManifest().name} ` +
           `${Browser.runtime.getManifest().version} on ${navigator.userAgent}`
-      )
+      ),
+      {sendCache: true, notify: true}
     );
     this.sendZestScriptToZAP(
       new ZestStatementLaunchBrowser(
         this.getBrowserName(),
         loginUrl !== '' ? loginUrl : window.location.href
-      )
+      ),
+      {sendCache: true, notify: true}
     );
     this.handleResize();
   }
