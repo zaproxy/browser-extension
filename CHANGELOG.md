@@ -3,7 +3,7 @@ All notable changes to the full browser extension will be documented in this fil
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## Unreleased
+## 0.1.8 - 2025-12-12
 
 ### Changed
 - Do not notify synthetic scroll to statements, which are only added to help with replay not as direct result of user actions.
