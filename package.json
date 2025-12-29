@@ -64,7 +64,7 @@
     "@types/jest": "^30.0.0",
     "@types/json-server": "^0.14.8",
     "@types/lodash": "^4.17.21",
-    "@types/node": "^25.0.2",
+    "@types/node": "^25.0.3",
     "@types/selenium-webdriver": "^4.35.4",
     "@types/text-encoding": "^0.0.40",
     "@types/webextension-polyfill": "^0.12.4",
