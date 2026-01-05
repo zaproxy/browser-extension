@@ -110,7 +110,7 @@
     "webpack": "^5.104.1",
     "webpack-cli": "^6.0.1",
     "webpack-ext-reloader": "^1.1.13",
-    "wext-manifest-loader": "^3.0.1",
+    "wext-manifest-loader": "^3.0.2",
     "wext-manifest-webpack-plugin": "^1.4.1"
   }
 }
