@@ -856,6 +856,50 @@ function integrationTests(
     ]);
   });
 
+  test.only('Should report pointer elements', async () => {
+    // Given
+    await enableZapEvents(server, driver);
+    server.setRecordZapEvents(false);
+    const wd = await driver.getWebDriver();
+    // When
+    await wd.get(`http://localhost:${_HTTPPORT}/webpages/pointerelements.html`);
+    await eventsProcessed();
+    // Then
+    expect(actualData).toEqual([
+      reportEvent(
+        'pageLoad',
+        'http://localhost:1801/webpages/pointerelements.html'
+      ),
+      reportObject(
+        'nodeAdded',
+        'IMG',
+        'img1',
+        'IMG',
+        'http://localhost:1801/webpages/pointerelements.html',
+        undefined,
+        ''
+      ),
+      reportObject(
+        'nodeAdded',
+        'DIV',
+        'div1',
+        'DIV',
+        'http://localhost:1801/webpages/pointerelements.html',
+        undefined,
+        'Page 1'
+      ),
+      reportObject(
+        'nodeAdded',
+        'DIV',
+        'div2',
+        'DIV',
+        'http://localhost:1801/webpages/pointerelements.html',
+        undefined,
+        'Page 2'
+      ),
+    ]);
+  });
+
   test('Should ignore ZAP div', async () => {
     // Given / When
     await driver.toggleRecording();
