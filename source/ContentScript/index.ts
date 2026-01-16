@@ -184,6 +184,27 @@ function reportNodeElements(
   }
 }
 
+function reportPointerElements(
+  source: Element | Document,
+  fn: (re: ReportedObject) => void
+): void {
+  source.querySelectorAll('*').forEach((element) => {
+    const {tagName} = element;
+    const url = window.location.href;
+    if (
+      tagName !== 'input' &&
+      tagName !== 'button' &&
+      tagName !== 'a' &&
+      element instanceof Element
+    ) {
+      const compStyles = window.getComputedStyle(element, 'hover');
+      if (compStyles.getPropertyValue('cursor') === 'pointer') {
+        fn(new ReportedElement(element, url));
+      }
+    }
+  });
+}
+
 function reportPageLoaded(
   doc: Document,
   fn: (re: ReportedObject) => void
@@ -197,6 +218,7 @@ function reportPageLoaded(
   reportPageForms(doc, fn);
   reportElements(doc.getElementsByTagName('input'), fn);
   reportElements(doc.getElementsByTagName('button'), fn);
+  reportPointerElements(doc, fn);
   reportStorage(LOCAL_STORAGE, localStorage, fn);
   reportStorage(SESSION_STORAGE, sessionStorage, fn);
 }
@@ -209,10 +231,14 @@ const domMutated = function domMutation(
     reportEvent(new ReportedEvent('domMutation'));
     reportPageLinks(document, reportObject);
     reportPageForms(document, reportObject);
+    reportPointerElements(document, reportObject);
     for (const mutation of mutationList) {
       if (mutation.type === 'childList') {
         reportNodeElements(mutation.target, 'input', reportObject);
         reportNodeElements(mutation.target, 'button', reportObject);
+        if (mutation.target.nodeType === Node.ELEMENT_NODE) {
+          reportPointerElements(mutation.target as Element, reportObject);
+        }
       }
     }
   });
