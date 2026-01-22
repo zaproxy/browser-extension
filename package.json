@@ -42,7 +42,7 @@
     "emoji-log": "^1.0.2",
     "i18next": "^25.7.4",
     "i18next-browser-languagedetector": "^8.2.0",
-    "lodash": "^4.17.21",
+    "lodash": "^4.17.23",
     "webext-base-css": "^2.1.0",
     "webextension-polyfill": "0.12.0"
   },
