@@ -52,7 +52,7 @@ test('ReportedObject toString as expected', () => {
   );
 
   // Then
-  expect(ro.toNonTimestampString()).toBe(
+  expect(ro.toTestString()).toBe(
     '{"type":"a","tagName":"b","id":"c","nodeName":"d","url":"http://localhost/","text":"e"}'
   );
 });
@@ -66,7 +66,7 @@ test('ReportedElement P toString as expected', () => {
   );
 
   // Then
-  expect(ro.toNonTimestampString()).toBe(
+  expect(ro.toTestString()).toBe(
     '{"type":"nodeAdded","tagName":"P","id":"","nodeName":"P","url":"http://localhost/","text":""}'
   );
 });
@@ -83,8 +83,27 @@ test('ReportedElement A toString as expected', () => {
   );
 
   // Then
-  expect(ro.toNonTimestampString()).toBe(
+  expect(ro.toTestString()).toBe(
     '{"type":"nodeAdded","tagName":"A","id":"","nodeName":"A","url":"http://localhost/","href":"https://example.com/","text":"Title"}'
+  );
+});
+
+test('ReportedElement with ARIA attributes', () => {
+  const btnWithId: Element = document.createElement('button');
+  btnWithId.setAttribute('id', 'close-btn');
+  btnWithId.setAttribute('aria-label', 'Close dialog');
+  const roWithId: src.ReportedElement = new src.ReportedElement(btnWithId, 'http://localhost/');
+  expect(roWithId.toTestString()).toBe(
+    '{"type":"nodeAdded","tagName":"BUTTON","id":"close-btn","nodeName":"BUTTON","url":"http://localhost/","text":"Close dialog"}'
+  );
+
+  const divNoId: Element = document.createElement('div');
+  divNoId.setAttribute('role', 'button');
+  divNoId.setAttribute('aria-label', 'Submit');
+  divNoId.setAttribute('aria-controls', 'form1');
+  const roNoId: src.ReportedElement = new src.ReportedElement(divNoId, 'http://localhost/');
+  expect(roNoId.toTestString()).toBe(
+    '{"type":"nodeAdded","tagName":"DIV","id":"","nodeName":"DIV","url":"http://localhost/","text":"Submit","ariaIdentification":{"role":"button","aria-label":"Submit","aria-controls":"form1"}}'
   );
 });
 
@@ -114,10 +133,10 @@ test('Report standard page links', () => {
 
   // Then
   expect(mockFn.mock.calls.length).toBe(2);
-  expect(mockFn.mock.calls[0][0].toNonTimestampString()).toBe(
+  expect(mockFn.mock.calls[0][0].toTestString()).toBe(
     '{"type":"nodeAdded","tagName":"A","id":"","nodeName":"A","url":"http://localhost/","href":"https://www.example.com/1","text":"link1"}'
   );
-  expect(mockFn.mock.calls[1][0].toNonTimestampString()).toBe(
+  expect(mockFn.mock.calls[1][0].toTestString()).toBe(
     '{"type":"nodeAdded","tagName":"A","id":"","nodeName":"A","url":"http://localhost/","href":"https://www.example.com/2","text":"link2"}'
   );
 });
@@ -134,10 +153,10 @@ test('Report area page links', () => {
 
   // Then
   expect(mockFn.mock.calls.length).toBe(2);
-  expect(mockFn.mock.calls[0][0].toNonTimestampString()).toBe(
+  expect(mockFn.mock.calls[0][0].toTestString()).toBe(
     '{"type":"nodeAdded","tagName":"AREA","id":"","nodeName":"AREA","url":"http://localhost/","href":"https://www.example.com/1","text":""}'
   );
-  expect(mockFn.mock.calls[1][0].toNonTimestampString()).toBe(
+  expect(mockFn.mock.calls[1][0].toTestString()).toBe(
     '{"type":"nodeAdded","tagName":"AREA","id":"","nodeName":"AREA","url":"http://localhost/","href":"https://www.example.com/2","text":""}'
   );
 });
@@ -168,10 +187,10 @@ test('Report page forms', () => {
 
   // Then
   expect(mockFn.mock.calls.length).toBe(2);
-  expect(mockFn.mock.calls[0][0].toNonTimestampString()).toBe(
+  expect(mockFn.mock.calls[0][0].toTestString()).toBe(
     '{"type":"nodeAdded","tagName":"FORM","id":"form1","nodeName":"FORM","url":"http://localhost/","text":"Content1","formId":-1}'
   );
-  expect(mockFn.mock.calls[1][0].toNonTimestampString()).toBe(
+  expect(mockFn.mock.calls[1][0].toTestString()).toBe(
     '{"type":"nodeAdded","tagName":"FORM","id":"form2","nodeName":"FORM","url":"http://localhost/","text":"Content2","formId":-1}'
   );
 });
@@ -199,10 +218,10 @@ test('Report node elements', () => {
 
   // Then
   expect(mockFn.mock.calls.length).toBe(2);
-  expect(mockFn.mock.calls[0][0].toNonTimestampString()).toBe(
+  expect(mockFn.mock.calls[0][0].toTestString()).toBe(
     '{"type":"nodeAdded","tagName":"INPUT","id":"input1","nodeName":"INPUT","url":"http://localhost/","text":"","tagType":"text","formId":-1}'
   );
-  expect(mockFn.mock.calls[1][0].toNonTimestampString()).toBe(
+  expect(mockFn.mock.calls[1][0].toTestString()).toBe(
     '{"type":"nodeAdded","tagName":"INPUT","id":"input2","nodeName":"INPUT","url":"http://localhost/","text":"","tagType":"text","formId":-1}'
   );
 });
@@ -220,13 +239,13 @@ test('Report storage', () => {
 
   // Then
   expect(mockFn.mock.calls.length).toBe(3);
-  expect(mockFn.mock.calls[0][0].toNonTimestampString()).toBe(
+  expect(mockFn.mock.calls[0][0].toTestString()).toBe(
     '{"type":"localStorage","tagName":"","id":"item1","nodeName":"","url":"http://localhost/","text":"value1"}'
   );
-  expect(mockFn.mock.calls[1][0].toNonTimestampString()).toBe(
+  expect(mockFn.mock.calls[1][0].toTestString()).toBe(
     '{"type":"localStorage","tagName":"","id":"item2","nodeName":"","url":"http://localhost/","text":"value2"}'
   );
-  expect(mockFn.mock.calls[2][0].toNonTimestampString()).toBe(
+  expect(mockFn.mock.calls[2][0].toTestString()).toBe(
     '{"type":"localStorage","tagName":"","id":"item3","nodeName":"","url":"http://localhost/","text":"value3"}'
   );
 
@@ -245,7 +264,10 @@ test('Reported page loaded', () => {
       '<button id="button1">Button</button>' +
       '<input id="input1" value="default"/>' +
       '<area href="https://www.example.com/1">' +
-      '<input id="submit" type="submit" value="Submit"/>'
+      '<input id="submit" type="submit" value="Submit"/>' +
+      '<div role="button" aria-label="ARIA Button">Click</div>' +
+      '<span role="link" aria-pressed="true">ARIA Link</span>' +
+      '</body>'
   );
   const mockFn = jest.fn();
   localStorage.setItem('lsKey', 'value1');
@@ -255,29 +277,35 @@ test('Reported page loaded', () => {
   src.reportPageLoaded(dom.window.document, mockFn);
 
   // Then
-  expect(mockFn.mock.calls.length).toBe(8);
-  expect(mockFn.mock.calls[0][0].toNonTimestampString()).toBe(
+  expect(mockFn.mock.calls.length).toBe(10);
+  expect(mockFn.mock.calls[0][0].toTestString()).toBe(
     '{"type":"nodeAdded","tagName":"A","id":"","nodeName":"A","url":"http://localhost/","href":"https://www.example.com/1","text":"link1"}'
   );
-  expect(mockFn.mock.calls[1][0].toNonTimestampString()).toBe(
+  expect(mockFn.mock.calls[1][0].toTestString()).toBe(
     '{"type":"nodeAdded","tagName":"AREA","id":"","nodeName":"AREA","url":"http://localhost/","href":"https://www.example.com/1","text":""}'
   );
-  expect(mockFn.mock.calls[2][0].toNonTimestampString()).toBe(
+  expect(mockFn.mock.calls[2][0].toTestString()).toBe(
     '{"type":"nodeAdded","tagName":"FORM","id":"form1","nodeName":"FORM","url":"http://localhost/","text":"FormContent","formId":-1}'
   );
-  expect(mockFn.mock.calls[3][0].toNonTimestampString()).toBe(
+  expect(mockFn.mock.calls[3][0].toTestString()).toBe(
     '{"type":"nodeAdded","tagName":"INPUT","id":"input1","nodeName":"INPUT","url":"http://localhost/","text":"default","tagType":"text"}'
   );
-  expect(mockFn.mock.calls[4][0].toNonTimestampString()).toBe(
+  expect(mockFn.mock.calls[4][0].toTestString()).toBe(
     '{"type":"nodeAdded","tagName":"INPUT","id":"submit","nodeName":"INPUT","url":"http://localhost/","text":"Submit","tagType":"submit"}'
   );
-  expect(mockFn.mock.calls[5][0].toNonTimestampString()).toBe(
+  expect(mockFn.mock.calls[5][0].toTestString()).toBe(
     '{"type":"nodeAdded","tagName":"BUTTON","id":"button1","nodeName":"BUTTON","url":"http://localhost/","text":"Button"}'
   );
-  expect(mockFn.mock.calls[6][0].toNonTimestampString()).toBe(
+  expect(mockFn.mock.calls[6][0].toTestString()).toBe(
+    '{"type":"nodeAdded","tagName":"DIV","id":"","nodeName":"DIV","url":"http://localhost/","text":"ARIA Button","ariaIdentification":{"role":"button","aria-label":"ARIA Button"}}'
+  );
+  expect(mockFn.mock.calls[7][0].toTestString()).toBe(
+    '{"type":"nodeAdded","tagName":"SPAN","id":"","nodeName":"SPAN","url":"http://localhost/","text":"ARIA Link","ariaIdentification":{"role":"link","aria-pressed":"true"}}'
+  );
+  expect(mockFn.mock.calls[8][0].toTestString()).toBe(
     '{"type":"localStorage","tagName":"","id":"lsKey","nodeName":"","url":"http://localhost/","text":"value1"}'
   );
-  expect(mockFn.mock.calls[7][0].toNonTimestampString()).toBe(
+  expect(mockFn.mock.calls[9][0].toTestString()).toBe(
     '{"type":"sessionStorage","tagName":"","id":"ssKey","nodeName":"","url":"http://localhost/","text":"value2"}'
   );
 

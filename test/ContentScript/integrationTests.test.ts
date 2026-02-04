@@ -900,6 +900,111 @@ function integrationTests(
     ]);
   });
 
+  test('Should report ARIA elements', async () => {
+    // Given
+    await enableZapEvents(server, driver);
+    server.setRecordZapEvents(false);
+    const wd = await driver.getWebDriver();
+    // When
+    await wd.get(`http://localhost:${_HTTPPORT}/webpages/ariaElements.html`);
+    await eventsProcessed();
+    // Then
+    expect(actualData).toEqual(
+      expect.arrayContaining([
+        reportEvent(
+          'pageLoad',
+          'http://localhost:1801/webpages/ariaElements.html'
+        ),
+        reportObject(
+          'nodeAdded',
+          'DIV',
+          'aria-button-1',
+          'DIV',
+          'http://localhost:1801/webpages/ariaElements.html',
+          undefined,
+          'Submit Form'
+        ),
+        reportObject(
+          'nodeAdded',
+          'SPAN',
+          'aria-button-2',
+          'SPAN',
+          'http://localhost:1801/webpages/ariaElements.html',
+          undefined,
+          expect.stringContaining('Toggle Button')
+        ),
+        reportObject(
+          'nodeAdded',
+          'DIV',
+          'aria-link-1',
+          'DIV',
+          'http://localhost:1801/webpages/ariaElements.html',
+          undefined,
+          'Go to homepage'
+        ),
+        reportObject(
+          'nodeAdded',
+          'DIV',
+          'aria-checkbox-1',
+          'DIV',
+          'http://localhost:1801/webpages/ariaElements.html',
+          undefined,
+          'Accept terms'
+        ),
+        reportObject(
+          'nodeAdded',
+          'DIV',
+          'aria-tab-1',
+          'DIV',
+          'http://localhost:1801/webpages/ariaElements.html',
+          undefined,
+          expect.stringContaining('Tab 1')
+        ),
+        reportObject(
+          'nodeAdded',
+          'DIV',
+          'aria-menuitem-1',
+          'DIV',
+          'http://localhost:1801/webpages/ariaElements.html',
+          undefined,
+          expect.stringContaining('Edit')
+        ),
+        reportObject(
+          'nodeAdded',
+          'DIV',
+          '',
+          'DIV',
+          'http://localhost:1801/webpages/ariaElements.html',
+          undefined,
+          'No ID Button',
+          {
+            role: 'button',
+            'aria-label': 'No ID Button',
+            'aria-pressed': 'false',
+          }
+        ),
+        reportObject(
+          'nodeAdded',
+          'BUTTON',
+          'standard-button',
+          'BUTTON',
+          'http://localhost:1801/webpages/ariaElements.html',
+          undefined,
+          expect.stringContaining('Standard Button')
+        ),
+        reportObject(
+          'nodeAdded',
+          'A',
+          'standard-link',
+          'A',
+          'http://localhost:1801/webpages/ariaElements.html',
+          'http://localhost:1801/webpages/ariaElements.html#test',
+          expect.stringContaining('Standard Link')
+        ),
+      ])
+    );
+  });
+
   test('Should ignore ZAP div', async () => {
     // Given / When
     await driver.toggleRecording();

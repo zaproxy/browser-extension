@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ARIA Elements Test Page</title>
+    <style>
+        .clickable {
+            padding: 10px;
+            margin: 5px;
+            border: 1px solid #ccc;
+            display: inline-block;
+        }
+        .clickable:hover {
+            background-color: #eee;
+        }
+    </style>
+</head>
+<body>
+    <h1>ARIA Elements Test Page</h1>
+
+    <!-- Elements with role="button" -->
+    <div id="aria-button-1" role="button" aria-label="Submit Form" class="clickable">
+        Submit
+    </div>
+    <span id="aria-button-2" role="button" aria-pressed="false" class="clickable">
+        Toggle Button
+    </span>
+
+    <!-- Elements with role="link" -->
+    <div id="aria-link-1" role="link" aria-label="Go to homepage" class="clickable">
+        Home Link
+    </div>
+    <span id="aria-link-2" role="link" aria-describedby="link-desc" class="clickable">
+        Described Link
+    </span>
+    <p id="link-desc" hidden>This link navigates to another page</p>
+
+    <!-- Elements with role="checkbox" -->
+    <div id="aria-checkbox-1" role="checkbox" aria-checked="false" aria-label="Accept terms" class="clickable">
+        Accept Terms
+    </div>
+
+    <!-- Elements with role="tab" -->
+    <div role="tablist" aria-label="Sample Tabs">
+        <div id="aria-tab-1" role="tab" aria-selected="true" aria-controls="panel-1" class="clickable">
+            Tab 1
+        </div>
+        <div id="aria-tab-2" role="tab" aria-selected="false" aria-controls="panel-2" class="clickable">
+            Tab 2
+        </div>
+    </div>
+    <div id="panel-1" role="tabpanel" aria-labelledby="aria-tab-1">Panel 1 Content</div>
+    <div id="panel-2" role="tabpanel" aria-labelledby="aria-tab-2" hidden>Panel 2 Content</div>
+
+    <!-- Elements with role="menuitem" -->
+    <div role="menu" aria-label="Actions Menu">
+        <div id="aria-menuitem-1" role="menuitem" class="clickable">
+            Edit
+        </div>
+        <div id="aria-menuitem-2" role="menuitem" class="clickable">
+            Delete
+        </div>
+    </div>
+
+    <!-- Elements with role="option" in a listbox -->
+    <div role="listbox" aria-label="Select an option">
+        <div id="aria-option-1" role="option" aria-selected="false" class="clickable">
+            Option 1
+        </div>
+        <div id="aria-option-2" role="option" aria-selected="true" class="clickable">
+            Option 2
+        </div>
+    </div>
+
+    <!-- Element with role="switch" -->
+    <div id="aria-switch-1" role="switch" aria-checked="false" aria-label="Enable notifications" class="clickable">
+        Notifications: Off
+    </div>
+
+    <!-- Element with role="radio" -->
+    <div role="radiogroup" aria-label="Choose size">
+        <div id="aria-radio-1" role="radio" aria-checked="true" class="clickable">
+            Small
+        </div>
+        <div id="aria-radio-2" role="radio" aria-checked="false" class="clickable">
+            Large
+        </div>
+    </div>
+
+    <!-- Element with aria-haspopup -->
+    <div id="aria-popup-trigger" role="button" aria-haspopup="menu" aria-expanded="false" class="clickable">
+        Open Menu
+    </div>
+
+    <!-- Element with aria-controls and aria-expanded -->
+    <div id="aria-disclosure" role="button" aria-expanded="false" aria-controls="disclosure-content" class="clickable">
+        Show More
+    </div>
+    <div id="disclosure-content" hidden>
+        This is the expandable content.
+    </div>
+
+    <!-- Element WITHOUT id - should have ariaIdentification -->
+    <div role="button" aria-label="No ID Button" aria-pressed="false" class="clickable">
+        Click Me (No ID)
+    </div>
+
+    <!-- Regular elements without ARIA (should NOT be reported by ARIA detection) -->
+    <div id="regular-div" class="clickable">Regular Div (no ARIA)</div>
+    <span id="regular-span">Regular Span</span>
+
+    <!-- Standard HTML elements -->
+    <button id="standard-button">Standard Button</button>
+    <a id="standard-link" href="#test">Standard Link</a>
+
+</body>
+</html>
