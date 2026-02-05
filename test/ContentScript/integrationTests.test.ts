@@ -922,7 +922,9 @@ function integrationTests(
           'DIV',
           'http://localhost:1801/webpages/ariaElements.html',
           undefined,
-          'Submit Form'
+          'Submit Form',
+          undefined,
+          'button'
         ),
         reportObject(
           'nodeAdded',
@@ -931,7 +933,9 @@ function integrationTests(
           'SPAN',
           'http://localhost:1801/webpages/ariaElements.html',
           undefined,
-          expect.stringContaining('Toggle Button')
+          expect.stringContaining('Toggle Button'),
+          undefined,
+          'button'
         ),
         reportObject(
           'nodeAdded',
@@ -940,7 +944,9 @@ function integrationTests(
           'DIV',
           'http://localhost:1801/webpages/ariaElements.html',
           undefined,
-          'Go to homepage'
+          'Go to homepage',
+          undefined,
+          'link'
         ),
         reportObject(
           'nodeAdded',
@@ -949,7 +955,9 @@ function integrationTests(
           'DIV',
           'http://localhost:1801/webpages/ariaElements.html',
           undefined,
-          'Accept terms'
+          'Accept terms',
+          undefined,
+          'checkbox'
         ),
         reportObject(
           'nodeAdded',
@@ -958,7 +966,9 @@ function integrationTests(
           'DIV',
           'http://localhost:1801/webpages/ariaElements.html',
           undefined,
-          expect.stringContaining('Tab 1')
+          expect.stringContaining('Tab 1'),
+          undefined,
+          'tab'
         ),
         reportObject(
           'nodeAdded',
@@ -967,7 +977,9 @@ function integrationTests(
           'DIV',
           'http://localhost:1801/webpages/ariaElements.html',
           undefined,
-          expect.stringContaining('Edit')
+          expect.stringContaining('Edit'),
+          undefined,
+          'menuitem'
         ),
         reportObject(
           'nodeAdded',
@@ -978,10 +990,10 @@ function integrationTests(
           undefined,
           'No ID Button',
           {
-            role: 'button',
             'aria-label': 'No ID Button',
             'aria-pressed': 'false',
-          }
+          },
+          'button'
         ),
         reportObject(
           'nodeAdded',

@@ -205,7 +205,14 @@ function reportPointerElements(
   });
 }
 
-const STANDARD_INTERACTIVE_TAGS = ['A', 'BUTTON', 'INPUT', 'SELECT', 'TEXTAREA', 'FORM'];
+const STANDARD_INTERACTIVE_TAGS = [
+  'A',
+  'BUTTON',
+  'INPUT',
+  'SELECT',
+  'TEXTAREA',
+  'FORM',
+];
 
 const INTERACTIVE_ARIA_ROLES = [
   'button',
@@ -247,7 +254,6 @@ function reportAriaElements(
     }
   });
 }
-
 
 function reportPageLoaded(
   doc: Document,

@@ -54,16 +54,11 @@ class ReportedObject {
   }
 
   public toString(): string {
-    return JSON.stringify(this, function replacer(k: string, v: unknown) {
-      if (k === 'ariaIdentification' && v === null) {
-        return undefined;
-      }
-      return v;
-    });
+    return JSON.stringify(this);
   }
 
   public toShortString(): string {
-    return JSON.stringify(this, function replacer(k: string, v: string) {
+    return JSON.stringify(this, function replacer(k: string, v: unknown) {
       if (k === 'xpath') {
         // Dont return the xpath value - it can change too often in many cases
         return undefined;
@@ -73,12 +68,9 @@ class ReportedObject {
   }
 
   // Use this for tests
-  public toTestString(): string {
+  public toNonTimestampString(): string {
     return JSON.stringify(this, function replacer(k: string, v: unknown) {
       if (k === 'timestamp') {
-        return undefined;
-      }
-      if (k === 'ariaIdentification' && v === null) {
         return undefined;
       }
       return v;
@@ -108,7 +100,9 @@ class ReportedElement extends ReportedObject {
 
   public formId: number | null;
 
-  public ariaIdentification: Record<string, string> | null = null;
+  public role: string | null;
+
+  public ariaIdentification: Record<string, string> | null;
 
   public constructor(element: Element, url: string) {
     super(
@@ -148,13 +142,13 @@ class ReportedElement extends ReportedObject {
       this.text = ariaLabel;
     }
 
+    const role = element.getAttribute('role');
+    if (role !== null) {
+      this.role = role;
+    }
+
     if (!this.id) {
       const ariaAttrs: Record<string, string> = {};
-
-      const role = element.getAttribute('role');
-      if (role !== null) {
-        ariaAttrs['role'] = role;
-      }
 
       Array.from(element.attributes)
         .filter((attr) => attr.name.startsWith('aria-'))
@@ -172,9 +166,6 @@ class ReportedElement extends ReportedObject {
     return JSON.stringify(this, function replacer(k: string, v: unknown) {
       if (k === 'timestamp') {
         // No point reporting the same element lots of times
-        return undefined;
-      }
-      if (k === 'ariaIdentification' && v === null) {
         return undefined;
       }
       return v;

@@ -90,7 +90,8 @@ export function reportObject(
   url: string,
   href: string | undefined,
   text: string,
-  ariaIdentification?: Record<string, string>
+  ariaIdentification?: Record<string, string>,
+  role?: string
 ): object {
   const data = {
     action: {action: 'reportObject'},
@@ -104,6 +105,7 @@ export function reportObject(
         url,
         href,
         text,
+        role,
         ariaIdentification,
       },
       apikey: 'not set',
@@ -114,6 +116,9 @@ export function reportObject(
   }
   if (ariaIdentification === undefined) {
     delete data.body.objectJson.ariaIdentification;
+  }
+  if (role === undefined) {
+    delete data.body.objectJson.role;
   }
   return data;
 }
