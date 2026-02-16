@@ -997,6 +997,28 @@ function integrationTests(
         ),
         reportObject(
           'nodeAdded',
+          'DIV',
+          '',
+          'DIV',
+          'http://localhost:1801/webpages/ariaElements.html',
+          undefined,
+          'Duplicate Action',
+          undefined,
+          'button'
+        ),
+        reportObject(
+          'nodeAdded',
+          'DIV',
+          '',
+          'DIV',
+          'http://localhost:1801/webpages/ariaElements.html',
+          undefined,
+          'Duplicate Action',
+          undefined,
+          'button'
+        ),
+        reportObject(
+          'nodeAdded',
           'BUTTON',
           'standard-button',
           'BUTTON',

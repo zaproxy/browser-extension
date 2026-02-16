@@ -99,9 +99,17 @@
         This is the expandable content.
     </div>
 
-    <!-- Element WITHOUT id - should have ariaIdentification -->
+    <!-- Element WITHOUT id - should have ariaIdentification (unique aria attributes) -->
     <div role="button" aria-label="No ID Button" aria-pressed="false" class="clickable">
         Click Me (No ID)
+    </div>
+
+    <!-- Elements WITHOUT id and DUPLICATED aria attributes - should NOT have ariaIdentification -->
+    <div role="button" aria-label="Duplicate Action" class="clickable">
+        Duplicate Button 1
+    </div>
+    <div role="button" aria-label="Duplicate Action" class="clickable">
+        Duplicate Button 2
     </div>
 
     <!-- Regular elements without ARIA (should NOT be reported by ARIA detection) -->

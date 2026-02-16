@@ -157,9 +157,27 @@ class ReportedElement extends ReportedObject {
         });
 
       if (Object.keys(ariaAttrs).length > 0) {
-        this.ariaIdentification = ariaAttrs;
+        if (this.isAriaSelectorUnique(ariaAttrs, element)) {
+          this.ariaIdentification = ariaAttrs;
+        }
       }
     }
+  }
+
+  private isAriaSelectorUnique(
+    ariaAttrs: Record<string, string>,
+    element: Element
+  ): boolean {
+    const doc = element.ownerDocument;
+    if (!doc || !element.isConnected) {
+      return true;
+    }
+
+    const selector = Object.entries(ariaAttrs)
+      .map(([key, value]) => `[${key}="${CSS.escape(value)}"]`)
+      .join('');
+    const elements = doc.querySelectorAll(selector);
+    return elements.length === 1;
   }
 
   public toShortString(): string {
