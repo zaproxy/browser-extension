@@ -1845,10 +1845,10 @@
   resolved "https://registry.yarnpkg.com/@typed/curry/-/curry-1.0.1.tgz#555d4624b0cbf09e101945326d3bb9ffcaba3655"
   integrity sha512-ifSe9XfT+K0pycWdfIAOJda0gqHCjqMXqv+Ecb0mm6uCOI6SnDXykl7vU1lOafZbuptAmeFbdBqj+093GX5GxQ==
 
-"@types/archiver@^6.0.3":
-  version "6.0.3"
-  resolved "https://registry.yarnpkg.com/@types/archiver/-/archiver-6.0.3.tgz#074eb6f4febc0128c25a205a8263da3d4688df53"
-  integrity sha512-a6wUll6k3zX6qs5KlxIggs1P1JcYJaTCx2gnlr+f0S1yd2DoaEwoIK10HmBaLnZwWneBz+JBm0dwcZu0zECBcQ==
+"@types/archiver@^7.0.0":
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/@types/archiver/-/archiver-7.0.0.tgz#475d5aa4076ffc05f2c78dc7540b0ea4ab8c7d7a"
+  integrity sha512-/3vwGwx9n+mCQdYZ2IKGGHEFL30I96UgBlk8EtRDDFQ9uxM1l4O5Ci6r00EMAkiDaTqD9DQ6nVrWRICnBPtzzg==
   dependencies:
     "@types/readdir-glob" "*"
 
@@ -3784,16 +3784,17 @@ del@^4.1.1:
     pify "^4.0.1"
     rimraf "^2.6.3"
 
-del@^8.0.0:
-  version "8.0.0"
-  resolved "https://registry.yarnpkg.com/del/-/del-8.0.0.tgz#f333a5673cfeb72e46084031714a7c30515e80aa"
-  integrity sha512-R6ep6JJ+eOBZsBr9esiNN1gxFbZE4Q2cULkUSFumGYecAiS6qodDvcPx/sFuWHMNul7DWmrtoEOpYSm7o6tbSA==
+del@^8.0.1:
+  version "8.0.1"
+  resolved "https://registry.yarnpkg.com/del/-/del-8.0.1.tgz#86772fe3a8c9f91bad0d7c6f79e04c6f310e50ac"
+  integrity sha512-gPqh0mKTPvaUZGAuHbrBUYKZWBNAeHG7TU3QH5EhVwPMyKvmfJaNXhcD2jTcXsJRRcffuho4vaYweu80dRrMGA==
   dependencies:
     globby "^14.0.2"
     is-glob "^4.0.3"
     is-path-cwd "^3.0.0"
     is-path-inside "^4.0.0"
     p-map "^7.0.2"
+    presentable-error "^0.0.1"
     slash "^5.1.0"
 
 depd@2.0.0, depd@^2.0.0, depd@~2.0.0:
@@ -4679,22 +4680,22 @@ file-entry-cache@^6.0.1:
   dependencies:
     flat-cache "^3.0.4"
 
-filemanager-webpack-plugin@^9.0.1:
-  version "9.0.1"
-  resolved "https://registry.yarnpkg.com/filemanager-webpack-plugin/-/filemanager-webpack-plugin-9.0.1.tgz#40e909af3bde3c5018698efdc73f2b31a71fc9a4"
-  integrity sha512-eNvWK6GrC9roBc1LkB/SzixXCApxs0fbKEo99BDrZmLfC9LCWxzg8B4dzoYKLdXvi19Fc6aWOApnBa8DfZIxVQ==
+filemanager-webpack-plugin@^10.0.0:
+  version "10.0.0"
+  resolved "https://registry.yarnpkg.com/filemanager-webpack-plugin/-/filemanager-webpack-plugin-10.0.0.tgz#ce4d97e699cbc4a5c70d39ea8fec6cb43cd2c9ed"
+  integrity sha512-mYJ2pFeeI3yq6soW1z7YTpXdqormmhy7AliujldFA2YnqwyV3Te0j8pE9/MI67kvFc+Bx/8pHJjDmGBAm6hRow==
   dependencies:
-    "@types/archiver" "^6.0.3"
+    "@types/archiver" "^7.0.0"
     "@types/fs-extra" "^11.0.4"
     "@types/is-glob" "^4.0.4"
     "@types/normalize-path" "^3.0.2"
     archiver "^7.0.1"
-    del "^8.0.0"
+    del "^8.0.1"
     fast-glob "^3.3.3"
-    fs-extra "^11.3.0"
+    fs-extra "^11.3.3"
     is-glob "^4.0.3"
     normalize-path "^3.0.0"
-    schema-utils "^4.3.2"
+    schema-utils "^4.3.3"
 
 fill-range@^7.1.1:
   version "7.1.1"
@@ -4830,10 +4831,10 @@ fs-extra@^10.0.0:
     jsonfile "^6.0.1"
     universalify "^2.0.0"
 
-fs-extra@^11.3.0:
-  version "11.3.0"
-  resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-11.3.0.tgz#0daced136bbaf65a555a326719af931adc7a314d"
-  integrity sha512-Z4XaCL6dUDHfP/jT25jJKMmtxvuwbkrD1vNSMFlo9lNLY2c5FHYSQgHPRZUjAB26TpDEoW9HCOgplrdbaPV/ew==
+fs-extra@^11.3.3:
+  version "11.3.4"
+  resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-11.3.4.tgz#ab6934eca8bcf6f7f6b82742e33591f86301d6fc"
+  integrity sha512-CTXd6rk/M3/ULNQj8FBqBWHYBVYybQ3VPBw0xGKFe3tuH7ytT6ACnvzpIQ3UZtB8yvUKC2cXn1a+x+5EVQLovA==
   dependencies:
     graceful-fs "^4.2.0"
     jsonfile "^6.0.1"
@@ -7463,6 +7464,11 @@ prelude-ls@^1.2.1:
   resolved "https://registry.yarnpkg.com/prelude-ls/-/prelude-ls-1.2.1.tgz#debc6489d7a6e6b0e7611888cec880337d316396"
   integrity sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==
 
+presentable-error@^0.0.1:
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/presentable-error/-/presentable-error-0.0.1.tgz#6d2579d397b1384a0cc733b36375c2c8755d53c6"
+  integrity sha512-E6rsNU1QNJgB3sjj7OANinGncFKuK+164sLXw1/CqBjj/EkXSoSdHCtWQGBNlREIGLnL7IEUEGa08YFVUbrhVg==
+
 prettier-linter-helpers@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/prettier-linter-helpers/-/prettier-linter-helpers-1.0.1.tgz#6a31f88a4bad6c7adda253de12ba4edaea80ebcd"
@@ -7979,7 +7985,7 @@ schema-utils@^3.1.1:
     ajv "^6.12.5"
     ajv-keywords "^3.5.2"
 
-schema-utils@^4.0.0, schema-utils@^4.2.0, schema-utils@^4.3.0, schema-utils@^4.3.2, schema-utils@^4.3.3:
+schema-utils@^4.0.0, schema-utils@^4.2.0, schema-utils@^4.3.0, schema-utils@^4.3.3:
   version "4.3.3"
   resolved "https://registry.yarnpkg.com/schema-utils/-/schema-utils-4.3.3.tgz#5b1850912fa31df90716963d45d9121fdfc09f46"
   integrity sha512-eflK8wEtyOE6+hsaRVPxvUKYCpRgzLqDTb8krvAsRIwOGlHoSgYLgBXoubGgLd2fT41/OUYdb48v4k4WWHQurA==
