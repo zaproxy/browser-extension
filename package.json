@@ -108,7 +108,7 @@
     "ts-jest": "^29.4.6",
     "typescript": "^5.9.3",
     "webpack": "^5.105.4",
-    "webpack-cli": "^6.0.1",
+    "webpack-cli": "^7.0.0",
     "webpack-ext-reloader": "^1.1.13",
     "wext-manifest-loader": "^3.0.2",
     "wext-manifest-webpack-plugin": "^1.4.1"
