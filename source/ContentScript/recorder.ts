@@ -34,6 +34,7 @@ import {ZestScriptMessage} from '../types/zestScript/ZestScript';
 import {getPath} from './util';
 import {downloadJson} from '../utils/util';
 import {
+  DEFAULT_WINDOW_HANDLE,
   GET_ZEST_SCRIPT,
   STOP_RECORDING,
   ZAP_FLOATING_DIV,
@@ -56,6 +57,8 @@ class Recorder {
   curFrame = 0;
 
   active = false;
+
+  windowHandle: string = DEFAULT_WINDOW_HANDLE;
 
   haveListenersBeenAdded = false;
 
@@ -104,7 +107,7 @@ class Recorder {
 
   sendScrollToToZap(elementLocator: ElementLocator, waitForMsec: number): void {
     this.sendZestScriptToZAP(
-      new ZestStatementElementScrollTo(elementLocator, waitForMsec),
+      new ZestStatementElementScrollTo(elementLocator, waitForMsec, this.windowHandle),
       {sendCache: false, notify: false}
     );
   }
@@ -131,7 +134,7 @@ class Recorder {
     }
     if (this.curLevel > level) {
       while (this.curLevel > level) {
-        this.sendZestScriptToZAP(new ZestStatementSwitchToFrame(-1), {
+        this.sendZestScriptToZAP(new ZestStatementSwitchToFrame(-1, '', this.windowHandle), {
           sendCache: true,
           notify: true,
         });
@@ -141,7 +144,7 @@ class Recorder {
     } else {
       this.curLevel += 1;
       this.curFrame = frameIndex;
-      this.sendZestScriptToZAP(new ZestStatementSwitchToFrame(frameIndex), {
+      this.sendZestScriptToZAP(new ZestStatementSwitchToFrame(frameIndex, '', this.windowHandle), {
         sendCache: true,
         notify: true,
       });
@@ -172,7 +175,7 @@ class Recorder {
 
     this.sendScrollToToZap(elementLocator, waited);
     this.sendZestScriptToZAP(
-      new ZestStatementElementClick(elementLocator, waited),
+      new ZestStatementElementClick(elementLocator, waited, this.windowHandle),
       {sendCache: true, notify: true}
     );
     // click on target element
@@ -225,7 +228,8 @@ class Recorder {
       new ZestStatementElementSendKeys(
         elementLocator,
         (event.target as HTMLInputElement).value,
-        waited
+        waited,
+        this.windowHandle
       ),
       {sendCache: false, notify: true}
     );
@@ -250,7 +254,8 @@ class Recorder {
       // Cache the statement as it often occurs before the change event occurs
       this.cachedSubmit = new ZestStatementElementSubmit(
         elementLocator,
-        this.getWaited()
+        this.getWaited(),
+        this.windowHandle
       );
       this.cachedTimeStamp = event.timeStamp;
       // console.log('ZAP Caching submit', this.cachedSubmit);
@@ -485,7 +490,8 @@ class Recorder {
     this.sendZestScriptToZAP(
       new ZestStatementLaunchBrowser(
         this.getBrowserName(),
-        loginUrl !== '' ? loginUrl : window.location.href
+        loginUrl !== '' ? loginUrl : window.location.href,
+        this.windowHandle
       ),
       {sendCache: true, notify: true}
     );
@@ -770,6 +776,10 @@ class Recorder {
         }
       }, 100);
     });
+  }
+
+  setWindowHandle(handle: string): void {
+    this.windowHandle = handle;
   }
 }
 

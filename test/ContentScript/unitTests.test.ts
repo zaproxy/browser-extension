@@ -29,6 +29,8 @@ import {
   ZestStatementElementClick,
   ZestStatementElementSendKeys,
   ZestStatementSwitchToFrame,
+  ZestStatementWindowHandle,
+  ZestStatementActionSleep,
 } from '../../source/types/zestScript/ZestStatement';
 
 jest.mock('webextension-polyfill');
@@ -485,4 +487,49 @@ test('should generate valid frame switch statement', () => {
   expect(zestStatementSwitchToFrame.toJSON()).toBe(
     '{"windowHandle":"windowHandle1","frameIndex":0,"frameName":"testvalue","parent":false,"index":-1,"enabled":true,"elementType":"ZestClientSwitchToFrame"}'
   );
+});
+
+test('should generate valid window handle statement', () => {
+  const stmt = new ZestStatementWindowHandle(
+    'windowHandle2',
+    'https://example\\.com.*',
+    true
+  );
+
+  expect(stmt.toJSON()).toBe(
+    '{"windowHandle":"windowHandle2","url":"https://example\\\\.com.*","regex":true,"index":-1,"enabled":true,"elementType":"ZestClientWindowHandle"}'
+  );
+});
+
+test('should generate valid action sleep statement', () => {
+  const stmt = new ZestStatementActionSleep(10000);
+
+  expect(stmt.toJSON()).toBe(
+    '{"milliseconds":10000,"index":-1,"enabled":true,"elementType":"ZestActionSleep"}'
+  );
+});
+
+test('popup flow emits sleep before window handle in script', () => {
+  // This verifies the fix: ZestActionSleep must come before ZestClientWindowHandle
+  // so that ZAP waits for the popup to load before trying to locate it.
+  const script = new ZestScript('recordedScript');
+  const sleepStmt = new ZestStatementActionSleep(10000);
+  const windowHandleStmt = new ZestStatementWindowHandle(
+    'windowHandle2',
+    'https://login\\.microsoftonline\\.com.*',
+    true
+  );
+
+  script.addStatement(sleepStmt.toJSON());
+  script.addStatement(windowHandleStmt.toJSON());
+
+  const parsed = JSON.parse(script.toJSON());
+  const statements = parsed.statements;
+
+  expect(statements).toHaveLength(2);
+  expect(statements[0].elementType).toBe('ZestActionSleep');
+  expect(statements[0].milliseconds).toBe(10000);
+  expect(statements[1].elementType).toBe('ZestClientWindowHandle');
+  expect(statements[1].windowHandle).toBe('windowHandle2');
+  expect(statements[1].regex).toBe(true);
 });

@@ -32,12 +32,16 @@ export const ZEST_CLIENT_ELEMENT_SUBMIT = 'ZestClientElementSubmit';
 export const ZEST_CLIENT_LAUNCH = 'ZestClientLaunch';
 export const ZEST_CLIENT_ELEMENT_CLEAR = 'ZestClientElementClear';
 export const ZEST_CLIENT_WINDOW_CLOSE = 'ZestClientWindowClose';
+export const ZEST_CLIENT_WINDOW_HANDLE = 'ZestClientWindowHandle';
 export const ZEST_CLIENT_ELEMENT_MOUSE_OVER = 'ZestClientElementMouseOver';
+export const ZEST_ACTION_SLEEP = 'ZestActionSleep';
 export const ZEST_COMMENT = 'ZestComment';
 export const DEFAULT_WINDOW_HANDLE = 'windowHandle1';
 
 export const ZAP_STOP_RECORDING = 'zapStopRecording';
 export const ZAP_START_RECORDING = 'zapStartRecording';
+export const ZAP_GET_WINDOW_HANDLE = 'zapGetWindowHandle';
+export const ZAP_REGISTER_POPUP = 'zapRegisterPopup';
 export const ZEST_SCRIPT = 'zestScript';
 
 export const STOP_RECORDING = 'stopRecording';
