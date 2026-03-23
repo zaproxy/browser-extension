@@ -26,6 +26,7 @@ import {
 } from '../types/ReportedModel';
 import Recorder from './recorder';
 import {
+  DEFAULT_WINDOW_HANDLE,
   IS_FULL_EXTENSION,
   LOCAL_STORAGE,
   LOCAL_ZAP_ENABLE,
@@ -35,6 +36,7 @@ import {
   SESSION_STORAGE,
   URL_ZAP_ENABLE,
   URL_ZAP_RECORD,
+  ZAP_REGISTER_POPUP,
   ZAP_START_RECORDING,
   ZAP_STOP_RECORDING,
 } from '../utils/constants';
@@ -302,18 +304,37 @@ function injectScript(): Promise<boolean> {
   return new Promise((resolve) => {
     configureExtension();
     withZapRecordingActive(() => {
-      Browser.storage.sync
-        .get({initScript: false, loginUrl: '', startTime: 0})
-        .then((items) => {
-          console.log(
-            `ZAP injectScript items ${items.initScript} ${items.loginUrl}`
-          );
-          recorder.recordUserInteractions(
-            items.initScript === true,
-            items.loginUrl as string,
-            items.startTime as number
-          );
-        });
+      // Detect popup windows using window.opener: if non-null, this page was
+      // opened via window.open() (e.g. OAuth login popup). This works in all
+      // modes (private, normal) and all browsers, unlike background-side detection.
+      const isWindowPopup = window.opener !== null;
+      const handlePromise = isWindowPopup
+        ? Browser.runtime
+            .sendMessage({type: ZAP_REGISTER_POPUP, url: window.location.href})
+            .catch(() => DEFAULT_WINDOW_HANDLE)
+        : Promise.resolve(DEFAULT_WINDOW_HANDLE);
+
+      Promise.all([
+        Browser.storage.sync.get({
+          initScript: false,
+          loginUrl: '',
+          startTime: 0,
+        }),
+        handlePromise,
+      ]).then(([items, handle]) => {
+        const windowHandle = (handle as string) || DEFAULT_WINDOW_HANDLE;
+        console.log(
+          `ZAP injectScript items ${items.initScript} ${items.loginUrl} handle=${windowHandle} popup=${isWindowPopup}`
+        );
+        if (isWindowPopup) {
+          recorder.setWindowHandle(windowHandle);
+        }
+        recorder.recordUserInteractions(
+          isWindowPopup ? false : items.initScript === true,
+          items.loginUrl as string,
+          items.startTime as number
+        );
+      });
     });
     withZapEnableSetting(() => {
       enableExtension();
@@ -334,6 +355,9 @@ Browser.runtime.onMessage.addListener(
   ) => {
     if (message.type === ZAP_START_RECORDING) {
       configureExtension();
+      if (message.windowHandle) {
+        recorder.setWindowHandle(message.windowHandle);
+      }
       recorder.recordUserInteractions();
     } else if (message.type === ZAP_STOP_RECORDING) {
       recorder.stopRecordingUserInteractions();
