@@ -107,7 +107,11 @@ class Recorder {
 
   sendScrollToToZap(elementLocator: ElementLocator, waitForMsec: number): void {
     this.sendZestScriptToZAP(
-      new ZestStatementElementScrollTo(elementLocator, waitForMsec, this.windowHandle),
+      new ZestStatementElementScrollTo(
+        elementLocator,
+        waitForMsec,
+        this.windowHandle
+      ),
       {sendCache: false, notify: false}
     );
   }
@@ -134,20 +138,20 @@ class Recorder {
     }
     if (this.curLevel > level) {
       while (this.curLevel > level) {
-        this.sendZestScriptToZAP(new ZestStatementSwitchToFrame(-1, '', this.windowHandle), {
-          sendCache: true,
-          notify: true,
-        });
+        this.sendZestScriptToZAP(
+          new ZestStatementSwitchToFrame(-1, '', this.windowHandle),
+          {sendCache: true, notify: true}
+        );
         this.curLevel -= 1;
       }
       this.curFrame = frameIndex;
     } else {
       this.curLevel += 1;
       this.curFrame = frameIndex;
-      this.sendZestScriptToZAP(new ZestStatementSwitchToFrame(frameIndex, '', this.windowHandle), {
-        sendCache: true,
-        notify: true,
-      });
+      this.sendZestScriptToZAP(
+        new ZestStatementSwitchToFrame(frameIndex, '', this.windowHandle),
+        {sendCache: true, notify: true}
+      );
     }
     if (this.curLevel !== level) {
       console.log('ZAP Error in switching frames');

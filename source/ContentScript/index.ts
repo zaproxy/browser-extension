@@ -355,9 +355,6 @@ Browser.runtime.onMessage.addListener(
   ) => {
     if (message.type === ZAP_START_RECORDING) {
       configureExtension();
-      if (message.windowHandle) {
-        recorder.setWindowHandle(message.windowHandle);
-      }
       recorder.recordUserInteractions();
     } else if (message.type === ZAP_STOP_RECORDING) {
       recorder.stopRecordingUserInteractions();

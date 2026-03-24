@@ -524,7 +524,7 @@ test('popup flow emits sleep before window handle in script', () => {
   script.addStatement(windowHandleStmt.toJSON());
 
   const parsed = JSON.parse(script.toJSON());
-  const statements = parsed.statements;
+  const {statements} = parsed;
 
   expect(statements).toHaveLength(2);
   expect(statements[0].elementType).toBe('ZestActionSleep');

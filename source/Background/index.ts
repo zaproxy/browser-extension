@@ -36,7 +36,6 @@ import {
   RESET_ZEST_SCRIPT,
   SESSION_STORAGE,
   STOP_RECORDING,
-  ZAP_GET_WINDOW_HANDLE,
   ZAP_REGISTER_POPUP,
   ZEST_SCRIPT,
 } from '../utils/constants';
@@ -51,6 +50,13 @@ const zestScript = new ZestScript();
 
 let windowHandleCounter = 1;
 const popupTabHandles = new Map<number, string>();
+
+const POPUP_WINDOW_SLEEP_MS = 10000;
+
+interface RegisterPopupMessage {
+  type: string;
+  url?: string;
+}
 /*
   A callback URL will only be available if the browser has been launched from ZAP, otherwise call the individual endpoints
 */
@@ -276,23 +282,17 @@ async function onMessageHandler(
   _sender: Runtime.MessageSender
 ): Promise<number | ZestScriptMessage | string> {
   const msg = message as MessageEvent;
-  if (msg.type === ZAP_GET_WINDOW_HANDLE) {
-    const tabId = _sender.tab?.id;
-    const handle = tabId
-      ? (popupTabHandles.get(tabId) ?? DEFAULT_WINDOW_HANDLE)
-      : DEFAULT_WINDOW_HANDLE;
-    return Promise.resolve(handle);
-  }
 
   if (msg.type === ZAP_REGISTER_POPUP) {
     // Called by the content script when it detects window.opener !== null.
     // Assign a new window handle for this popup tab if not already registered.
     const tabId = _sender.tab?.id;
-    const popupUrl = (msg as unknown as {url?: string}).url ?? '';
+    const popupUrl = (msg as unknown as RegisterPopupMessage).url ?? '';
 
     if (tabId !== undefined) {
-      if (popupTabHandles.has(tabId)) {
-        return Promise.resolve(popupTabHandles.get(tabId)!);
+      const cached = popupTabHandles.get(tabId);
+      if (cached !== undefined) {
+        return Promise.resolve(cached);
       }
       windowHandleCounter += 1;
       const handle = `windowHandle${windowHandleCounter}`;
@@ -309,7 +309,7 @@ async function onMessageHandler(
       } catch {
         // popupUrl is empty or invalid; fall back to match-all
       }
-      const sleepStmt = new ZestStatementActionSleep(10000);
+      const sleepStmt = new ZestStatementActionSleep(POPUP_WINDOW_SLEEP_MS);
       const sleepStmtData = zestScript.addStatement(sleepStmt.toJSON());
       const stmt = new ZestStatementWindowHandle(handle, urlPattern, true);
       const stmtData = zestScript.addStatement(stmt.toJSON());
@@ -374,13 +374,15 @@ Browser.tabs.onRemoved.addListener(async (tabId) => {
   if (!handle) return;
   popupTabHandles.delete(tabId);
 
-  const items = await Browser.storage.sync.get({
-    zapurl: 'http://zap/',
-    zapkey: 'not set',
-  });
-  const stmt = new ZestStatementWindowClose(0, handle);
-  const data = zestScript.addStatement(stmt.toJSON());
-  sendZestScriptToZAP(data, items.zapkey as string, items.zapurl as string);
+  if (IS_FULL_EXTENSION) {
+    const items = await Browser.storage.sync.get({
+      zapurl: 'http://zap/',
+      zapkey: 'not set',
+    });
+    const stmt = new ZestStatementWindowClose(0, handle);
+    const data = zestScript.addStatement(stmt.toJSON());
+    sendZestScriptToZAP(data, items.zapkey as string, items.zapurl as string);
+  }
 });
 
 if (IS_FULL_EXTENSION) {

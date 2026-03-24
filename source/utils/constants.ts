@@ -40,7 +40,6 @@ export const DEFAULT_WINDOW_HANDLE = 'windowHandle1';
 
 export const ZAP_STOP_RECORDING = 'zapStopRecording';
 export const ZAP_START_RECORDING = 'zapStartRecording';
-export const ZAP_GET_WINDOW_HANDLE = 'zapGetWindowHandle';
 export const ZAP_REGISTER_POPUP = 'zapRegisterPopup';
 export const ZEST_SCRIPT = 'zestScript';
 
