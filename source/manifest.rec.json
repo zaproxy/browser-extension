@@ -1,18 +1,18 @@
 {
   "manifest_version": 3,
-  "name": "ZAP by Checkmarx Recorder",
+  "name": "AccuKnox DAST Recorder",
   "version": "0.1.8",
 
   "icons": {
-    "16": "assets/icons/zap16x16.png",
-    "32": "assets/icons/zap32x32.png",
-    "48": "assets/icons/zap48x48.png",
-    "128": "assets/icons/zap128x128.png",
-    "512": "assets/icons/zap512x512.png"
+    "16": "assets/icons/accuknox-icon-16.png",
+    "32": "assets/icons/accuknox-icon-32.png",
+    "48": "assets/icons/accuknox-icon-48.png",
+    "128": "assets/icons/accuknox-icon-128.png",
+    "512": "assets/icons/accuknox-icon-512.png"
   },
-  "description": "An extension for recording actions taken in the browser. It can be used to record things like auth scripts to be used in ZAP.",
-  "homepage_url": "https://github.com/zaproxy/browser-extension/",
-  "short_name": "ZAP Recorder",
+  "description": "An extension for recording actions taken in the browser. It can be used to record things like auth scripts to be used in DAST.",
+  "homepage_url": "https://www.accuknox.com/",
+  "short_name": "DAST Recorder",
   "incognito": "spanning",
 
   "permissions": [
@@ -28,9 +28,9 @@
     "extension_pages" : "script-src 'self'; object-src 'self'"
   },
 
-  "__chrome|firefox__author": "ZAP Core Team",
+  "__chrome|firefox__author": "AccuKnox",
   "__opera__developer": {
-    "name": "ZAP Core Team"
+    "name": "AccuKnox"
   },
 
   "__firefox__browser_specific_settings": {
@@ -44,13 +44,13 @@
 
   "action": {
     "default_icon": {
-      "16": "assets/icons/zap16x16.png",
-      "32": "assets/icons/zap32x32.png",
-      "48": "assets/icons/zap48x48.png",
-      "128": "assets/icons/zap128x128.png",
-      "512": "assets/icons/zap512x512.png"
+      "16": "assets/icons/accuknox-icon-16.png",
+      "32": "assets/icons/accuknox-icon-32.png",
+      "48": "assets/icons/accuknox-icon-48.png",
+      "128": "assets/icons/accuknox-icon-128.png",
+      "512": "assets/icons/accuknox-icon-512.png"
     },
-    "default_title": "ZAP by Checkmarx Recorder",
+    "default_title": "AccuKnox DAST Recorder",
     "default_popup": "popup.html",
     "__chrome|opera__chrome_style": false,
     "__firefox__browser_style": false
@@ -62,7 +62,7 @@
       "js/background.bundle.js"
     ]
   },
-  
+
   "content_scripts": [{
     "matches": [
       "http://*/*",

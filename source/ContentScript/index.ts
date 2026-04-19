@@ -1,9 +1,9 @@
 /*
- * Zed Attack Proxy (ZAP) and its related source files.
+ * AccuKnox DAST Browser Extension and its related source files.
  *
- * ZAP is an HTTP/HTTPS proxy for assessing web application security.
+ * DAST is an HTTP/HTTPS proxy for assessing web application security.
  *
- * Copyright 2023 The ZAP Development Team
+ * Copyright 2023 The AccuKnox DAST Development Team
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,15 +28,15 @@ import Recorder from './recorder';
 import {
   IS_FULL_EXTENSION,
   LOCAL_STORAGE,
-  LOCAL_ZAP_ENABLE,
-  LOCAL_ZAP_RECORD,
+  LOCAL_DAST_ENABLE,
+  LOCAL_DAST_RECORD,
   REPORT_EVENT,
   REPORT_OBJECT,
   SESSION_STORAGE,
-  URL_ZAP_ENABLE,
-  URL_ZAP_RECORD,
-  ZAP_START_RECORDING,
-  ZAP_STOP_RECORDING,
+  URL_DAST_ENABLE,
+  URL_DAST_RECORD,
+  DAST_START_RECORDING,
+  DAST_STOP_RECORDING,
 } from '../utils/constants';
 
 const reportedObjects = new Set<string>();
@@ -58,7 +58,7 @@ function reportStorage(
   }
 }
 
-async function sendEventToZAP(obj: ReportedEvent): Promise<number> {
+async function sendEventToDAST(obj: ReportedEvent): Promise<number> {
   if (IS_FULL_EXTENSION) {
     return Browser.runtime.sendMessage({
       type: REPORT_EVENT,
@@ -68,7 +68,7 @@ async function sendEventToZAP(obj: ReportedEvent): Promise<number> {
   return -1;
 }
 
-async function sendObjectToZAP(obj: ReportedObject): Promise<number> {
+async function sendObjectToDAST(obj: ReportedObject): Promise<number> {
   if (IS_FULL_EXTENSION) {
     return Browser.runtime.sendMessage({
       type: REPORT_OBJECT,
@@ -81,7 +81,7 @@ async function sendObjectToZAP(obj: ReportedObject): Promise<number> {
 function reportObject(repObj: ReportedObject): void {
   const repObjStr = repObj.toShortString();
   if (!reportedObjects.has(repObjStr)) {
-    sendObjectToZAP(repObj);
+    sendObjectToDAST(repObj);
     reportedObjects.add(repObjStr);
   }
 }
@@ -91,32 +91,32 @@ function reportAllStorage(): void {
   reportStorage(SESSION_STORAGE, sessionStorage, reportObject);
 }
 
-function withZapEnableSetting(fn: () => void): void {
-  Browser.storage.sync.get({zapenable: false}).then((items) => {
-    console.log(`ZAP withZapEnableSetting ${items.zapenable}`);
-    if (items.zapenable) {
+function withDastEnableSetting(fn: () => void): void {
+  Browser.storage.sync.get({dastenable: false}).then((items) => {
+    console.log(`DAST withDastEnableSetting ${items.dastenable}`);
+    if (items.dastenable) {
       fn();
     }
   });
 }
 
-function withZapRecordingActive(fn: () => void): void {
-  Browser.storage.sync.get({zaprecordingactive: false}).then((items) => {
-    console.log(`ZAP withZapRecordingActive ${items.zaprecordingactive}`);
-    if (items.zaprecordingactive) {
+function withDastRecordingActive(fn: () => void): void {
+  Browser.storage.sync.get({dastrecordingactive: false}).then((items) => {
+    console.log(`DAST withDastRecordingActive ${items.dastrecordingactive}`);
+    if (items.dastrecordingactive) {
       fn();
     }
   });
 }
 
 function reportPageUnloaded(): void {
-  withZapEnableSetting(() => {
+  withDastEnableSetting(() => {
     Browser.runtime.sendMessage({
       type: REPORT_EVENT,
       data: new ReportedEvent('pageUnload').toString(),
     });
     for (const value of Object.values(reportedEvents)) {
-      sendEventToZAP(value);
+      sendEventToDAST(value);
     }
     reportAllStorage();
   });
@@ -128,13 +128,13 @@ function reportEvent(event: ReportedEvent): void {
   if (!existingEvent) {
     existingEvent = new ReportedEvent(event.eventName);
     reportedEvents[event.eventName] = event;
-    sendEventToZAP(existingEvent);
+    sendEventToDAST(existingEvent);
   } else if (existingEvent.url !== window.location.href) {
     // The fragment has changed - report the old one and start a new count
-    sendEventToZAP(existingEvent);
+    sendEventToDAST(existingEvent);
     existingEvent = new ReportedEvent(event.eventName);
     reportedEvents[event.eventName] = event;
-    sendEventToZAP(existingEvent);
+    sendEventToDAST(existingEvent);
   } else {
     // eslint-disable-next-line no-plusplus
     existingEvent.count++;
@@ -227,7 +227,7 @@ const domMutated = function domMutation(
   mutationList: MutationRecord[],
   _obs: MutationObserver
 ): void {
-  withZapEnableSetting(() => {
+  withDastEnableSetting(() => {
     reportEvent(new ReportedEvent('domMutation'));
     reportPageLinks(document, reportObject);
     reportPageForms(document, reportObject);
@@ -253,7 +253,7 @@ function onLoadEventListener(): void {
     return;
   }
 
-  withZapEnableSetting(() => {
+  withDastEnableSetting(() => {
     reportPageLoaded(document, reportObject);
   });
 }
@@ -280,20 +280,20 @@ function enableExtension(): void {
 
 function configureExtension(): void {
   if (isConfigurationRequest()) {
-    // The Browser has been launched from ZAP - use this URL for configuration
+    // The Browser has been launched from DAST - use this URL for configuration
     const params = new URLSearchParams(window.location.search);
     const enable =
-      localStorage.getItem(LOCAL_ZAP_ENABLE) === 'true' ||
-      params.has(URL_ZAP_ENABLE);
+      localStorage.getItem(LOCAL_DAST_ENABLE) === 'true' ||
+      params.has(URL_DAST_ENABLE);
     const record =
-      localStorage.getItem(LOCAL_ZAP_RECORD) === 'true' ||
-      params.has(URL_ZAP_RECORD);
+      localStorage.getItem(LOCAL_DAST_RECORD) === 'true' ||
+      params.has(URL_DAST_RECORD);
 
-    console.log('ZAP Configure', enable, record);
+    console.log('DAST Configure', enable, record);
     Browser.storage.sync.set({
-      zapurl: window.location.href.split('?')[0],
-      zapenable: enable,
-      zaprecordingactive: record,
+      dasturl: window.location.href.split('?')[0],
+      dastenable: enable,
+      dastrecordingactive: record,
     });
   }
 }
@@ -301,12 +301,12 @@ function configureExtension(): void {
 function injectScript(): Promise<boolean> {
   return new Promise((resolve) => {
     configureExtension();
-    withZapRecordingActive(() => {
+    withDastRecordingActive(() => {
       Browser.storage.sync
         .get({initScript: false, loginUrl: '', startTime: 0})
         .then((items) => {
           console.log(
-            `ZAP injectScript items ${items.initScript} ${items.loginUrl}`
+            `DAST injectScript items ${items.initScript} ${items.loginUrl}`
           );
           recorder.recordUserInteractions(
             items.initScript === true,
@@ -315,7 +315,7 @@ function injectScript(): Promise<boolean> {
           );
         });
     });
-    withZapEnableSetting(() => {
+    withDastEnableSetting(() => {
       enableExtension();
       resolve(true);
     });
@@ -332,10 +332,14 @@ Browser.runtime.onMessage.addListener(
     _sender: Runtime.MessageSender,
     _sendResponse: (response?: any) => void
   ) => {
-    if (message.type === ZAP_START_RECORDING) {
+    if (message.type === DAST_START_RECORDING) {
+      reportedObjects.clear();
+      for (const key of Object.keys(reportedEvents)) {
+        delete reportedEvents[key];
+      }
       configureExtension();
       recorder.recordUserInteractions();
-    } else if (message.type === ZAP_STOP_RECORDING) {
+    } else if (message.type === DAST_STOP_RECORDING) {
       recorder.stopRecordingUserInteractions();
     }
 

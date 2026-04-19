@@ -1,9 +1,9 @@
 /*
- * Zed Attack Proxy (ZAP) and its related source files.
+ * AccuKnox DAST Browser Extension and its related source files.
  *
- * ZAP is an HTTP/HTTPS proxy for assessing web application security.
+ * DAST is an HTTP/HTTPS proxy for assessing web application security.
  *
- * Copyright 2023 The ZAP Development Team
+ * Copyright 2023 The AccuKnox DAST Development Team
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import Browser from 'webextension-polyfill';
 // The manifest will be undefined when running the tests
 export const IS_FULL_EXTENSION =
   typeof Browser.runtime.getManifest === 'undefined' ||
-  Browser.runtime.getManifest().name === 'ZAP by Checkmarx Browser Extension';
+  Browser.runtime.getManifest().name === 'AccuKnox DAST Browser Extension';
 
 export const ZEST_CLIENT_SWITCH_TO_FRAME = 'ZestClientSwitchToFrame';
 export const ZEST_CLIENT_ELEMENT_CLICK = 'ZestClientElementClick';
@@ -33,11 +33,15 @@ export const ZEST_CLIENT_LAUNCH = 'ZestClientLaunch';
 export const ZEST_CLIENT_ELEMENT_CLEAR = 'ZestClientElementClear';
 export const ZEST_CLIENT_WINDOW_CLOSE = 'ZestClientWindowClose';
 export const ZEST_CLIENT_ELEMENT_MOUSE_OVER = 'ZestClientElementMouseOver';
+export const ZEST_CLIENT_WAIT_FOR_MSEC = 'ZestClientWaitForMsec';
 export const ZEST_COMMENT = 'ZestComment';
+
+// Trailing wait after recording stops so the site can finish loading on replay
+export const DAST_TRAILING_WAIT_MSEC = 10000;
 export const DEFAULT_WINDOW_HANDLE = 'windowHandle1';
 
-export const ZAP_STOP_RECORDING = 'zapStopRecording';
-export const ZAP_START_RECORDING = 'zapStartRecording';
+export const DAST_STOP_RECORDING = 'dastStopRecording';
+export const DAST_START_RECORDING = 'dastStartRecording';
 export const ZEST_SCRIPT = 'zestScript';
 
 export const STOP_RECORDING = 'stopRecording';
@@ -50,15 +54,15 @@ export const REPORT_OBJECT = 'reportObject';
 
 export const LOCAL_STORAGE = 'localStorage';
 export const SESSION_STORAGE = 'sessionStorage';
-export const LOCAL_ZAP_URL = 'localzapurl';
-export const LOCAL_ZAP_ENABLE = 'localzapenable';
-export const LOCAL_ZAP_RECORD = 'localzaprecord';
-export const URL_ZAP_ENABLE = 'zapenable';
-export const URL_ZAP_RECORD = 'zaprecord';
+export const LOCAL_DAST_URL = 'localdasturl';
+export const LOCAL_DAST_ENABLE = 'localdastenable';
+export const LOCAL_DAST_RECORD = 'localdastrecord';
+export const URL_DAST_ENABLE = 'dastenable';
+export const URL_DAST_RECORD = 'dastrecord';
 
-export const ZAP_URL = 'zapurl';
-export const ZAP_KEY = 'zapkey';
-export const ZAP_ENABLE = 'zapenable';
+export const DAST_URL = 'dasturl';
+export const DAST_KEY = 'dastkey';
+export const DAST_ENABLE = 'dastenable';
 
-export const ZAP_FLOATING_DIV = 'ZapfloatingDiv';
-export const ZAP_FLOATING_DIV_ELEMENTS = 'ZapfloatingDivElements';
+export const DAST_FLOATING_DIV = 'DastfloatingDiv';
+export const DAST_FLOATING_DIV_ELEMENTS = 'DastfloatingDivElements';

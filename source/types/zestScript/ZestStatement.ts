@@ -1,9 +1,9 @@
 /*
- * Zed Attack Proxy (ZAP) and its related source files.
+ * AccuKnox DAST Browser Extension and its related source files.
  *
- * ZAP is an HTTP/HTTPS proxy for assessing web application security.
+ * DAST is an HTTP/HTTPS proxy for assessing web application security.
  *
- * Copyright 2023 The ZAP Development Team
+ * Copyright 2023 The AccuKnox DAST Development Team
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import {
   ZEST_CLIENT_ELEMENT_SUBMIT,
   ZEST_CLIENT_LAUNCH,
   ZEST_CLIENT_SWITCH_TO_FRAME,
+  ZEST_CLIENT_WAIT_FOR_MSEC,
   ZEST_CLIENT_WINDOW_CLOSE,
   ZEST_COMMENT,
 } from '../../utils/constants';
@@ -304,6 +305,28 @@ class ZestStatementSwitchToFrame extends ZestStatement {
   }
 }
 
+class ZestStatementClientWaitForMsec extends ZestStatement {
+  windowHandle: string;
+
+  waitForMsec: number;
+
+  constructor(waitForMsec: number, windowHandle = DEFAULT_WINDOW_HANDLE) {
+    super(ZEST_CLIENT_WAIT_FOR_MSEC);
+    this.waitForMsec = waitForMsec;
+    this.windowHandle = windowHandle;
+  }
+
+  toJSON(): string {
+    return JSON.stringify({
+      windowHandle: this.windowHandle,
+      waitForMsec: this.waitForMsec,
+      index: this.index,
+      enabled: true,
+      elementType: this.elementType,
+    });
+  }
+}
+
 class ZestStatementElementMouseOver extends ZestStatementElement {
   constructor(elementLocator: ElementLocator) {
     super(ZEST_CLIENT_ELEMENT_MOUSE_OVER, elementLocator);
@@ -329,4 +352,5 @@ export {
   ZestStatementElementSubmit,
   ZestStatementElementClear,
   ZestStatementWindowClose,
+  ZestStatementClientWaitForMsec,
 };

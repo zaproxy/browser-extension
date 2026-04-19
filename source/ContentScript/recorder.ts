@@ -1,9 +1,9 @@
 /*
- * Zed Attack Proxy (ZAP) and its related source files.
+ * AccuKnox DAST Browser Extension and its related source files.
  *
- * ZAP is an HTTP/HTTPS proxy for assessing web application security.
+ * DAST is an HTTP/HTTPS proxy for assessing web application security.
  *
- * Copyright 2023 The ZAP Development Team
+ * Copyright 2023 The AccuKnox DAST Development Team
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,9 @@
 import debounce from 'lodash/debounce';
 import Browser from 'webextension-polyfill';
 import {
-  ElementLocator,
   ZestStatement,
   ZestStatementComment,
   ZestStatementElementClick,
-  ZestStatementElementScrollTo,
   ZestStatementElementSendKeys,
   ZestStatementElementSubmit,
   ZestStatementLaunchBrowser,
@@ -36,12 +34,12 @@ import {downloadJson} from '../utils/util';
 import {
   GET_ZEST_SCRIPT,
   STOP_RECORDING,
-  ZAP_FLOATING_DIV,
-  ZAP_FLOATING_DIV_ELEMENTS,
+  DAST_FLOATING_DIV,
+  DAST_FLOATING_DIV_ELEMENTS,
   ZEST_SCRIPT,
 } from '../utils/constants';
 
-const STOP_RECORDING_ID = 'ZAP-stop-recording-button';
+const STOP_RECORDING_ID = 'DAST-stop-recording-button';
 const STOP_RECORDING_TEXT = 'Stop and Download Recording';
 
 class Recorder {
@@ -69,16 +67,25 @@ class Recorder {
   // We can get duplicate events for the enter key, this allows us to dedup them
   cachedTimeStamp = -1;
 
+  // Hold the most recent click so a SendKeys on the same element can drop it
+  // (typing implies focus, the click is redundant).
+  cachedClick?: ZestStatementElementClick;
+
+  // Dedup duplicate click events — any click on the same element as the last
+  // recorded click is dropped, regardless of how long ago it happened.
+  lastClickLocator = '';
+
   lastStatementTime: number;
 
-  async sendZestScriptToZAP(
+  async sendZestScriptToDAST(
     zestStatement: ZestStatement,
     params: {sendCache: boolean; notify: boolean}
   ): Promise<number> {
     if (params.sendCache) {
+      this.flushCachedClick();
       this.handleCachedSubmit();
     }
-    // console.log('ZAP Sending statement', zestStatement);
+    // console.log('DAST Sending statement', zestStatement);
     if (params.notify) {
       this.notify(zestStatement);
     }
@@ -102,21 +109,10 @@ class Recorder {
     return waited;
   }
 
-  sendScrollToToZap(elementLocator: ElementLocator, waitForMsec: number): void {
-    this.sendZestScriptToZAP(
-      new ZestStatementElementScrollTo(elementLocator, waitForMsec),
-      {sendCache: false, notify: false}
-    );
-  }
-
   handleCachedSubmit(): void {
     if (this.cachedSubmit) {
-      this.sendScrollToToZap(
-        this.cachedSubmit.elementLocator,
-        this.getWaited()
-      );
-      // console.log('ZAP Sending cached submit', this.cachedSubmit);
-      this.sendZestScriptToZAP(this.cachedSubmit, {
+      // console.log('DAST Sending cached submit', this.cachedSubmit);
+      this.sendZestScriptToDAST(this.cachedSubmit, {
         sendCache: false,
         notify: true,
       });
@@ -125,13 +121,22 @@ class Recorder {
     }
   }
 
+  flushCachedClick(): void {
+    if (this.cachedClick) {
+      const click = this.cachedClick;
+      delete this.cachedClick;
+      this.sendZestScriptToDAST(click, {sendCache: false, notify: true});
+    }
+  }
+
   handleFrameSwitches(level: number, frameIndex: number): void {
     if (this.curLevel === level && this.curFrame === frameIndex) {
       return;
     }
+    this.lastClickLocator = '';
     if (this.curLevel > level) {
       while (this.curLevel > level) {
-        this.sendZestScriptToZAP(new ZestStatementSwitchToFrame(-1), {
+        this.sendZestScriptToDAST(new ZestStatementSwitchToFrame(-1), {
           sendCache: true,
           notify: true,
         });
@@ -141,13 +146,13 @@ class Recorder {
     } else {
       this.curLevel += 1;
       this.curFrame = frameIndex;
-      this.sendZestScriptToZAP(new ZestStatementSwitchToFrame(frameIndex), {
+      this.sendZestScriptToDAST(new ZestStatementSwitchToFrame(frameIndex), {
         sendCache: true,
         notify: true,
       });
     }
     if (this.curLevel !== level) {
-      console.log('ZAP Error in switching frames');
+      console.log('DAST Error in switching frames');
     }
   }
 
@@ -159,7 +164,7 @@ class Recorder {
     const waited: number = this.getWaited();
     const {level, frame, element} = params;
     this.handleFrameSwitches(level, frame);
-    console.log(event, 'ZAP clicked');
+    console.log(event, 'DAST clicked');
     const elementLocator = getPath(event.target as HTMLElement, element);
 
     if ((event as MouseEvent).detail === 0) {
@@ -170,20 +175,20 @@ class Recorder {
       return;
     }
 
-    this.sendScrollToToZap(elementLocator, waited);
-    this.sendZestScriptToZAP(
-      new ZestStatementElementClick(elementLocator, waited),
-      {sendCache: true, notify: true}
-    );
-    // click on target element
-  }
+    if (this.lastClickLocator === elementLocator.element) {
+      return;
+    }
+    this.lastClickLocator = elementLocator.element;
 
-  handleScroll(params: {level: number; frame: number}, event: Event): void {
-    if (!this.shouldRecord(event.target as HTMLElement)) return;
-    const {level, frame} = params;
-    this.handleFrameSwitches(level, frame);
-    console.log(event, 'ZAP scrolling.. ');
-    // scroll the nearest ancestor with scrolling ability
+    // Flush any prior cached click (the one that follows is on a different
+    // element, otherwise the dedup above would have returned), then cache
+    // this click so a SendKeys on the same element can drop it.
+    this.flushCachedClick();
+    if (this.cachedSubmit) {
+      this.handleCachedSubmit();
+    }
+    this.cachedClick = new ZestStatementElementClick(elementLocator, waited);
+    // click on target element
   }
 
   handleMouseOver(
@@ -198,7 +203,7 @@ class Recorder {
     }
     this.previousDOMState = currentDOMState;
     this.handleFrameSwitches(level, frame);
-    console.log(event, 'ZAP MouseOver');
+    console.log(event, 'DAST MouseOver');
     // send mouseover event
   }
 
@@ -210,8 +215,18 @@ class Recorder {
     const {level, frame, element} = params;
     const waited: number = this.getWaited();
     this.handleFrameSwitches(level, frame);
-    console.log(event, 'ZAP change', (event.target as HTMLInputElement).value);
+    console.log(event, 'DAST change', (event.target as HTMLInputElement).value);
     const elementLocator = getPath(event.target as HTMLElement, element);
+    // If the most recent click was on this same element, drop it: the focus
+    // implied by the click is already implicit in the SendKeys.
+    if (
+      this.cachedClick &&
+      this.cachedClick.elementLocator.element === elementLocator.element
+    ) {
+      delete this.cachedClick;
+    } else {
+      this.flushCachedClick();
+    }
     // Send the keys before a cached submit statement on the same element
     if (
       this.cachedSubmit &&
@@ -220,8 +235,7 @@ class Recorder {
       // The cached submit was not on the same element, so send it
       this.handleCachedSubmit();
     }
-    this.sendScrollToToZap(elementLocator, waited);
-    this.sendZestScriptToZAP(
+    this.sendZestScriptToDAST(
       new ZestStatementElementSendKeys(
         elementLocator,
         (event.target as HTMLInputElement).value,
@@ -241,19 +255,20 @@ class Recorder {
     const {element} = params;
     if (event.key === 'Enter') {
       if (this.cachedSubmit && this.cachedTimeStamp === event.timeStamp) {
-        // console.log('ZAP Ignoring dup Enter event', this.cachedSubmit);
+        // console.log('DAST Ignoring dup Enter event', this.cachedSubmit);
         return;
       }
+      this.flushCachedClick();
       this.handleCachedSubmit();
       const elementLocator = getPath(event.target as HTMLElement, element);
-      // console.log('ZAP Enter key pressed', elementLocator, event.timeStamp);
+      // console.log('DAST Enter key pressed', elementLocator, event.timeStamp);
       // Cache the statement as it often occurs before the change event occurs
       this.cachedSubmit = new ZestStatementElementSubmit(
         elementLocator,
         this.getWaited()
       );
       this.cachedTimeStamp = event.timeStamp;
-      // console.log('ZAP Caching submit', this.cachedSubmit);
+      // console.log('DAST Caching submit', this.cachedSubmit);
     }
   }
 
@@ -268,7 +283,7 @@ class Recorder {
       document.documentElement.clientHeight ||
       document.body.clientHeight;
     // send window resize event
-    console.log('ZAP Window Resize : ', width, height);
+    console.log('DAST Window Resize : ', width, height);
   }
 
   addListenerToInputField(
@@ -362,10 +377,6 @@ class Recorder {
         capture: true,
       }
     );
-    element.addEventListener(
-      'scroll',
-      debounce(this.handleScroll.bind(this, {level, frame, element}), 1000)
-    );
     // Do not track mouse over events for now, they are not recorded.
     // element.addEventListener(
     //   'mouseover',
@@ -445,7 +456,7 @@ class Recorder {
 
   shouldRecord(element: HTMLElement): boolean {
     if (!this.active) return this.active;
-    if (element.className === ZAP_FLOATING_DIV_ELEMENTS) return false;
+    if (element.className === DAST_FLOATING_DIV_ELEMENTS) return false;
     return this.isVisible(element);
   }
 
@@ -461,7 +472,7 @@ class Recorder {
   }
 
   initializationScript(loginUrl = '', startTime = 0): void {
-    console.log(`ZAP initializationScript ${loginUrl}`);
+    console.log(`DAST initializationScript ${loginUrl}`);
     Browser.storage.sync.set({
       initScript: false,
       loginUrl: '',
@@ -471,18 +482,18 @@ class Recorder {
     this.lastStatementTime = startTime;
     const stopRecordingButton = document.getElementById(STOP_RECORDING_ID);
     if (stopRecordingButton) {
-      // Can happen if recording restarted in browser launched from ZAP recorder
+      // Can happen if recording restarted in browser launched from DAST recorder
       stopRecordingButton.textContent = STOP_RECORDING_TEXT;
     }
 
-    this.sendZestScriptToZAP(
+    this.sendZestScriptToDAST(
       new ZestStatementComment(
         `Recorded by ${Browser.runtime.getManifest().name} ` +
           `${Browser.runtime.getManifest().version} on ${navigator.userAgent}`
       ),
       {sendCache: true, notify: true}
     );
-    this.sendZestScriptToZAP(
+    this.sendZestScriptToDAST(
       new ZestStatementLaunchBrowser(
         this.getBrowserName(),
         loginUrl !== '' ? loginUrl : window.location.href
@@ -497,11 +508,12 @@ class Recorder {
     loginUrl = '',
     startTime = 0
   ): void {
-    console.log(`ZAP user interactions ${initScript} ${loginUrl}`);
+    console.log(`DAST user interactions ${initScript} ${loginUrl}`);
     if (initScript) {
       this.initializationScript(loginUrl, startTime);
     }
     this.active = true;
+    this.lastClickLocator = '';
     this.previousDOMState = document.documentElement.outerHTML;
     if (this.haveListenersBeenAdded) {
       this.insertFloatingPopup();
@@ -519,11 +531,12 @@ class Recorder {
   }
 
   stopRecordingUserInteractions(): void {
-    console.log('ZAP Stopping Recording User Interactions ...');
+    console.log('DAST Stopping Recording User Interactions ...');
+    this.flushCachedClick();
     this.handleCachedSubmit();
-    Browser.storage.sync.set({zaprecordingactive: false});
+    Browser.storage.sync.set({dastrecordingactive: false});
     this.active = false;
-    const floatingDiv = document.getElementById(ZAP_FLOATING_DIV);
+    const floatingDiv = document.getElementById(DAST_FLOATING_DIV);
     if (floatingDiv) {
       floatingDiv.style.display = 'none';
     }
@@ -544,7 +557,7 @@ class Recorder {
 
   insertFloatingPopup(): void {
     if (this.floatingWindowInserted) {
-      const floatingDiv = document.getElementById(ZAP_FLOATING_DIV);
+      const floatingDiv = document.getElementById(DAST_FLOATING_DIV);
       if (floatingDiv) {
         floatingDiv.style.display = 'flex';
         return;
@@ -562,8 +575,8 @@ class Recorder {
 
     const floatingDiv = document.createElement('div');
     floatingDiv.style.all = 'initial';
-    floatingDiv.className = ZAP_FLOATING_DIV_ELEMENTS;
-    floatingDiv.id = ZAP_FLOATING_DIV;
+    floatingDiv.className = DAST_FLOATING_DIV_ELEMENTS;
+    floatingDiv.id = DAST_FLOATING_DIV;
     floatingDiv.style.position = 'fixed';
     floatingDiv.style.top = '100%';
     floatingDiv.style.left = '50%';
@@ -584,18 +597,18 @@ class Recorder {
 
     const textElement = document.createElement('p');
     textElement.style.all = 'initial';
-    textElement.className = ZAP_FLOATING_DIV_ELEMENTS;
+    textElement.className = DAST_FLOATING_DIV_ELEMENTS;
     textElement.style.margin = '0';
     textElement.style.zIndex = '999999';
     textElement.style.fontSize = '16px';
     textElement.style.color = '#333';
     textElement.style.fontFamily = 'Roboto';
-    textElement.textContent = 'ZAP Browser Extension is Recording...';
+    textElement.textContent = 'DAST Browser Extension is Recording...';
 
     const buttonElement = document.createElement('button');
     buttonElement.id = STOP_RECORDING_ID;
     buttonElement.style.all = 'initial';
-    buttonElement.className = ZAP_FLOATING_DIV_ELEMENTS;
+    buttonElement.className = DAST_FLOATING_DIV_ELEMENTS;
     buttonElement.style.marginTop = '10px';
     buttonElement.style.padding = '8px 15px';
     buttonElement.style.background = '#e74c3c';
@@ -631,7 +644,7 @@ class Recorder {
                 const msg = items2 as ZestScriptMessage;
                 downloadJson(
                   msg.script,
-                  `zap-rec-${
+                  `dast-rec-${
                     window.location.hostname
                   }${this.getDateString()}.zst`
                 );
@@ -712,9 +725,6 @@ class Recorder {
     if (stmt instanceof ZestStatementElementClick) {
       notifyMessage.title = 'Click';
       notifyMessage.message = stmt.elementLocator.element;
-    } else if (stmt instanceof ZestStatementElementScrollTo) {
-      notifyMessage.title = 'Scroll To';
-      notifyMessage.message = stmt.elementLocator.element;
     } else if (stmt instanceof ZestStatementElementSendKeys) {
       notifyMessage.title = 'Send Keys';
       notifyMessage.message = `${stmt.elementLocator.element}: ${stmt.keys}`;
@@ -733,15 +743,15 @@ class Recorder {
     if (this.isNotificationRaised) {
       await this.waitForNotificationToClear();
     }
-    const floatingDiv = document.getElementById(ZAP_FLOATING_DIV);
+    const floatingDiv = document.getElementById(DAST_FLOATING_DIV);
     if (!floatingDiv) {
-      console.log('ZAP Floating Div Not Found !');
+      console.log('DAST Floating Div Not Found !');
       return;
     }
 
     this.isNotificationRaised = true;
     const messageElement = document.createElement('p');
-    messageElement.className = ZAP_FLOATING_DIV_ELEMENTS;
+    messageElement.className = DAST_FLOATING_DIV_ELEMENTS;
     messageElement.textContent = `${notifyMessage.title}: ${notifyMessage.message}`;
     messageElement.style.all = 'initial';
     messageElement.style.fontSize = '20px';

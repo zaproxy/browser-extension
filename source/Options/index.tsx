@@ -1,9 +1,9 @@
 /*
- * Zed Attack Proxy (ZAP) and its related source files.
+ * AccuKnox DAST Browser Extension and its related source files.
  *
- * ZAP is an HTTP/HTTPS proxy for assessing web application security.
+ * DAST is an HTTP/HTTPS proxy for assessing web application security.
  *
- * Copyright 2023 The ZAP Development Team
+ * Copyright 2023 The AccuKnox DAST Development Team
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,25 +18,25 @@
  * limitations under the License.
  */
 import Browser from 'webextension-polyfill';
-import {ZAP_ENABLE, ZAP_KEY, ZAP_URL} from '../utils/constants';
+import {DAST_ENABLE, DAST_KEY, DAST_URL} from '../utils/constants';
 
 console.log('Options loading');
 
 // Saves options to chrome.storage
 function saveOptions(): void {
   console.log('Options save_options');
-  const zapurl = (document.getElementById(ZAP_URL) as HTMLInputElement).value;
-  const zapkey = (document.getElementById(ZAP_KEY) as HTMLInputElement).value;
-  const zapenable = (document.getElementById(ZAP_ENABLE) as HTMLInputElement)
+  const dasturl = (document.getElementById(DAST_URL) as HTMLInputElement).value;
+  const dastkey = (document.getElementById(DAST_KEY) as HTMLInputElement).value;
+  const dastenable = (document.getElementById(DAST_ENABLE) as HTMLInputElement)
     .checked;
-  const zapclosewindowhandle = (
+  const dastclosewindowhandle = (
     document.getElementById('window-close-input') as HTMLInputElement
   ).checked;
   Browser.storage.sync.set({
-    zapurl,
-    zapkey,
-    zapenable,
-    zapclosewindowhandle,
+    dasturl,
+    dastkey,
+    dastenable,
+    dastclosewindowhandle,
   });
 }
 
@@ -46,22 +46,22 @@ function restoreOptions(): void {
 
   Browser.storage.sync
     .get({
-      zapurl: 'http://zap/',
-      zapkey: 'not set',
-      zapenable: false,
-      zaprecordingactive: false,
-      zapclosewindowhandle: true,
+      dasturl: 'http://zap/',
+      dastkey: 'not set',
+      dastenable: false,
+      dastrecordingactive: false,
+      dastclosewindowhandle: true,
     })
     .then((items) => {
-      (document.getElementById(ZAP_URL) as HTMLInputElement).value =
-        items.zapurl as string;
-      (document.getElementById(ZAP_KEY) as HTMLInputElement).value =
-        items.zapkey as string;
-      (document.getElementById(ZAP_ENABLE) as HTMLInputElement).checked =
-        items.zapenable as boolean;
+      (document.getElementById(DAST_URL) as HTMLInputElement).value =
+        items.dasturl as string;
+      (document.getElementById(DAST_KEY) as HTMLInputElement).value =
+        items.dastkey as string;
+      (document.getElementById(DAST_ENABLE) as HTMLInputElement).checked =
+        items.dastenable as boolean;
       (
         document.getElementById('window-close-input') as HTMLInputElement
-      ).checked = items.zapclosewindowhandle as boolean;
+      ).checked = items.dastclosewindowhandle as boolean;
     });
 }
 document.addEventListener('DOMContentLoaded', restoreOptions);

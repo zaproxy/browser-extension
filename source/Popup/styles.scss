@@ -22,9 +22,9 @@ body {
 }
 
 :root {
-  --primary-light: #F0F5FF;   /* Light blue */
-  --primary: #2979FF;         /* Vivid blue */
-  --primary-dark: #ff1500;    /* Dark blue */
+  --primary-light: #E8EAFF;   /* AccuKnox light blue */
+  --primary: #0000C8;         /* AccuKnox deep blue */
+  --primary-dark: #CC0018;    /* AccuKnox red accent */
 
   --white: #FFFFFF;           /* Pure white */
   --greyLight-1: #F2F2F2;     /* Light grey */
@@ -83,10 +83,11 @@ html {
   justify-content: center;
 }
 
-.zapicon {
-  width: 15rem;
-  height: 5rem;
-  margin-right: 1rem; 
+.dasticon {
+  width: 17rem;
+  height: auto;
+  object-fit: contain;
+  margin-right: 1rem;
 }
 
 /*  PLAY BUTTON  */

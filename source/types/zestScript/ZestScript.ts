@@ -1,9 +1,9 @@
 /*
- * Zed Attack Proxy (ZAP) and its related source files.
+ * AccuKnox DAST Browser Extension and its related source files.
  *
- * ZAP is an HTTP/HTTPS proxy for assessing web application security.
+ * DAST is an HTTP/HTTPS proxy for assessing web application security.
  *
- * Copyright 2023 The ZAP Development Team
+ * Copyright 2023 The AccuKnox DAST Development Team
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,8 +92,8 @@ class ZestScript {
 
   getZestScript(): Promise<ZestScriptMessage> {
     return new Promise((resolve) => {
-      Browser.storage.sync.get({zapscriptname: this.title}).then((items) => {
-        this.title = items.zapscriptname as string;
+      Browser.storage.sync.get({dastscriptname: this.title}).then((items) => {
+        this.title = items.dastscriptname as string;
         resolve({
           script: this.toJSON(),
           title: this.title,

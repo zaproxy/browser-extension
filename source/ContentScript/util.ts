@@ -1,9 +1,9 @@
 /*
- * Zed Attack Proxy (ZAP) and its related source files.
+ * AccuKnox DAST Browser Extension and its related source files.
  *
- * ZAP is an HTTP/HTTPS proxy for assessing web application security.
+ * DAST is an HTTP/HTTPS proxy for assessing web application security.
  *
- * Copyright 2023 The ZAP Development Team
+ * Copyright 2023 The AccuKnox DAST Development Team
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 import {ElementLocator} from '../types/zestScript/ZestStatement';
-import {ZAP_FLOATING_DIV} from '../utils/constants';
+import {DAST_FLOATING_DIV} from '../utils/constants';
 
 function isElementPathUnique(path: string, documentElement: Document): boolean {
   const elements = documentElement.querySelectorAll(path);
@@ -58,9 +58,9 @@ function getCSSSelector(
   return selector;
 }
 
-function isZapDiv(node: ChildNode): boolean {
+function isDastDiv(node: ChildNode): boolean {
   if (node instanceof Element) {
-    return (node as Element).getAttribute('id') === ZAP_FLOATING_DIV;
+    return (node as Element).getAttribute('id') === DAST_FLOATING_DIV;
   }
   return false;
 }
@@ -82,7 +82,7 @@ function getXPath(element: HTMLElement, documentElement: Document): string {
       if (
         sibling.nodeType === Node.ELEMENT_NODE &&
         sibling.nodeName === element.nodeName &&
-        !isZapDiv(sibling)
+        !isDastDiv(sibling)
       ) {
         index += 1;
         isUnique = false;

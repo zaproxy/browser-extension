@@ -1,9 +1,9 @@
 /*
- * Zed Attack Proxy (ZAP) and its related source files.
+ * AccuKnox DAST Browser Extension and its related source files.
  *
- * ZAP is an HTTP/HTTPS proxy for assessing web application security.
+ * DAST is an HTTP/HTTPS proxy for assessing web application security.
  *
- * Copyright 2023 The ZAP Development Team
+ * Copyright 2023 The AccuKnox DAST Development Team
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,8 +27,8 @@ import {
   RESET_ZEST_SCRIPT,
   STOP_RECORDING,
   UPDATE_TITLE,
-  ZAP_START_RECORDING,
-  ZAP_STOP_RECORDING,
+  DAST_START_RECORDING,
+  DAST_STOP_RECORDING,
 } from '../utils/constants';
 import {downloadJson} from '../utils/util';
 import {ZestScriptMessage} from '../types/zestScript/ZestScript';
@@ -45,10 +45,10 @@ const wave2 = document.querySelector('.record__back-2');
 const done = document.querySelector('.done');
 const optionsIcon = document.querySelector('.settings') as HTMLImageElement;
 const downloadIcon = document.querySelector('.download') as HTMLImageElement;
-const zapIcon = document.querySelector('.zapicon') as HTMLImageElement;
+const dastIcon = document.querySelector('.dasticon') as HTMLImageElement;
 
-const zapImageDark = './assets/icons/ZAP_by_Checkmarx_logo-dark.png';
-const zapImageLight = './assets/icons/ZAP_by_Checkmarx_logo.png';
+const dastImageDark = './assets/icons/accuknox-logo-dark.svg';
+const dastImageLight = './assets/icons/accuknox-logo.svg';
 
 const recordButton = document.getElementById('record-btn');
 const configureButton = document.getElementById('configure-btn');
@@ -101,17 +101,17 @@ async function restoreState(): Promise<void> {
   downloadIcon.title = DOWNLOAD;
   Browser.storage.sync
     .get({
-      zaprecordingactive: false,
-      zapscriptname: '',
+      dastrecordingactive: false,
+      dastscriptname: '',
     })
     .then((items) => {
-      if (items.zaprecordingactive) {
+      if (items.dastrecordingactive) {
         startedAnimation();
       } else {
         stoppedAnimation();
       }
-      scriptNameInput.value = items.zapscriptname as string;
-      if (items.zapclosewindowhandle) {
+      scriptNameInput.value = items.dastscriptname as string;
+      if (items.dastclosewindowhandle) {
         done?.classList.remove('invisible');
       } else {
         done?.classList.add('invisible');
@@ -128,58 +128,58 @@ function closePopup(): void {
 function stopRecording(): void {
   console.log('Recording stopped ...');
   stoppedAnimation();
-  sendMessageToContentScript(ZAP_STOP_RECORDING);
+  sendMessageToContentScript(DAST_STOP_RECORDING);
   Browser.runtime.sendMessage({type: STOP_RECORDING});
   Browser.storage.sync.set({
-    zaprecordingactive: false,
+    dastrecordingactive: false,
   });
 }
 
-function startRecording(): void {
+async function toggleRecording(e: Event): Promise<void> {
+  e.preventDefault();
+  const items = await Browser.storage.sync.get({dastrecordingactive: false});
+  if (items.dastrecordingactive) {
+    stopRecording();
+    console.log('active');
+    return;
+  }
+
+  const loginUrl = loginUrlInput.value;
+
+  // Resolve the target origin so the background can scope its cache clear.
+  let targetUrl = loginUrl;
+  if (!targetUrl) {
+    const [activeTab] = await Browser.tabs.query({active: true, currentWindow: true});
+    targetUrl = activeTab?.url ?? '';
+  }
+
+  // Wait for background to clear HTTP cache (site-scoped) and activate
+  // no-cache rule BEFORE any tab is opened so the very first request is fresh.
+  await Browser.runtime.sendMessage({type: RESET_ZEST_SCRIPT, data: targetUrl});
+
   startedAnimation();
   Browser.storage.sync.set({
     initScript: true,
-    loginUrl: loginUrlInput.value,
-    startTime: loginUrlInput.value !== '' ? Date.now() : 0,
+    loginUrl,
+    startTime: loginUrl !== '' ? Date.now() : 0,
   });
-  sendMessageToContentScript(ZAP_START_RECORDING);
-  Browser.runtime.sendMessage({type: RESET_ZEST_SCRIPT});
-  Browser.storage.sync.set({
-    zaprecordingactive: true,
-  });
-}
 
-function toggleRecording(e: Event): void {
-  e.preventDefault();
-  Browser.storage.sync.get({zaprecordingactive: false}).then((items) => {
-    if (items.zaprecordingactive) {
-      stopRecording();
-      console.log('active');
-    } else {
-      const loginUrl = loginUrlInput.value;
-      if (loginUrl !== '') {
-        Browser.tabs
-          .create({
-            active: false,
-            url: loginUrl,
-          })
-          .then(
-            (tab) => {
-              startTab = tab;
-              startRecording();
-              Browser.tabs.update(tab.id, {active: true});
-              closePopup();
-            },
-            (error) => {
-              console.log(`Error: ${error}`);
-            }
-          );
-      } else {
-        startRecording();
-        closePopup();
-      }
+  if (loginUrl !== '') {
+    try {
+      const tab = await Browser.tabs.create({active: false, url: loginUrl});
+      startTab = tab;
+      sendMessageToContentScript(DAST_START_RECORDING);
+      Browser.storage.sync.set({dastrecordingactive: true});
+      Browser.tabs.update(tab.id, {active: true});
+      closePopup();
+    } catch (error) {
+      console.log(`Error: ${error}`);
     }
-  });
+  } else {
+    sendMessageToContentScript(DAST_START_RECORDING);
+    Browser.storage.sync.set({dastrecordingactive: true});
+    closePopup();
+  }
 }
 
 function openOptionsPage(): void {
@@ -211,17 +211,17 @@ function downloadZestScript(
 
   Browser.runtime.sendMessage({type: RESET_ZEST_SCRIPT});
   Browser.storage.sync.set({
-    zaprecordingactive: false,
+    dastrecordingactive: false,
   });
   closePopup();
 }
 
 async function handleSaveScript(): Promise<void> {
   const storageItems = await Browser.storage.sync.get({
-    zaprecordingactive: false,
+    dastrecordingactive: false,
   });
-  if (storageItems.zaprecordingactive) {
-    sendMessageToContentScript(ZAP_STOP_RECORDING);
+  if (storageItems.dastrecordingactive) {
+    sendMessageToContentScript(DAST_STOP_RECORDING);
     await Browser.runtime.sendMessage({type: STOP_RECORDING});
   }
   Browser.runtime.sendMessage({type: GET_ZEST_SCRIPT}).then((items) => {
@@ -233,7 +233,7 @@ async function handleSaveScript(): Promise<void> {
 function handleScriptNameChange(e: Event): void {
   const {value} = e.target as HTMLInputElement;
   Browser.storage.sync.set({
-    zapscriptname: value,
+    dastscriptname: value,
   });
   sendMessageToContentScript(UPDATE_TITLE, value);
 }
@@ -249,16 +249,16 @@ if (
   window.matchMedia &&
   window.matchMedia('(prefers-color-scheme: dark)').matches
 ) {
-  zapIcon.src = zapImageDark;
+  dastIcon.src = dastImageDark;
 }
 
 window
   .matchMedia('(prefers-color-scheme: dark)')
   .addEventListener('change', (e) => {
     if (e.matches) {
-      zapIcon.src = zapImageDark;
+      dastIcon.src = dastImageDark;
     } else {
-      zapIcon.src = zapImageLight;
+      dastIcon.src = dastImageLight;
     }
   });
 

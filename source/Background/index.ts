@@ -1,9 +1,9 @@
 /*
- * Zed Attack Proxy (ZAP) and its related source files.
+ * AccuKnox DAST Browser Extension and its related source files.
  *
- * ZAP is an HTTP/HTTPS proxy for assessing web application security.
+ * DAST is an HTTP/HTTPS proxy for assessing web application security.
  *
- * Copyright 2023 The ZAP Development Team
+ * Copyright 2023 The AccuKnox DAST Development Team
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,15 @@
  */
 import 'emoji-log';
 import Browser, {Cookies, Runtime} from 'webextension-polyfill';
+
 import {ReportedStorage} from '../types/ReportedModel';
 import {ZestScript, ZestScriptMessage} from '../types/zestScript/ZestScript';
-import {ZestStatementWindowClose} from '../types/zestScript/ZestStatement';
 import {
+  ZestStatementClientWaitForMsec,
+  ZestStatementWindowClose,
+} from '../types/zestScript/ZestStatement';
+import {
+  DAST_TRAILING_WAIT_MSEC,
   GET_ZEST_SCRIPT,
   IS_FULL_EXTENSION,
   LOCAL_STORAGE,
@@ -34,22 +39,23 @@ import {
   ZEST_SCRIPT,
 } from '../utils/constants';
 
-console.log('ZAP Service Worker 👋');
+console.log('DAST Service Worker 👋');
 
 /*
-  We check the storage on every page, so need to record which storage events we have reported to ZAP here so that we dont keep sending the same events.
+  We check the storage on every page, so need to record which storage events we have reported to DAST here so that we dont keep sending the same events.
 */
 const reportedStorage = new Set<string>();
 const zestScript = new ZestScript();
+
 /*
-  A callback URL will only be available if the browser has been launched from ZAP, otherwise call the individual endpoints
+  A callback URL will only be available if the browser has been launched from DAST, otherwise call the individual endpoints
 */
 
-function zapApiUrl(zapurl: string, action: string): string {
-  if (zapurl.indexOf('/zapCallBackUrl/') > 0) {
-    return zapurl;
+function dastApiUrl(dasturl: string, action: string): string {
+  if (dasturl.indexOf('/zapCallBackUrl/') > 0) {
+    return dasturl;
   }
-  return `${zapurl}JSON/client/action/${action}/`;
+  return `${dasturl}JSON/client/action/${action}/`;
 }
 
 function getUrlFromCookieDomain(domain: string): string {
@@ -94,8 +100,8 @@ function getCookieTabUrl(cookie: Cookies.Cookie): Promise<string> {
 
 function reportCookies(
   cookie: Cookies.Cookie,
-  zapurl: string,
-  zapkey: string
+  dasturl: string,
+  dastkey: string
 ): boolean {
   let cookieString = `${cookie.name}=${cookie.value}; path=${cookie.path}; domain=${cookie.domain}`;
   if (cookie.expirationDate) {
@@ -130,9 +136,9 @@ function reportCookies(
       ) {
         const body = `objectJson=${encodeURIComponent(
           repStorage.toString()
-        )}&apikey=${encodeURIComponent(zapkey)}`;
+        )}&apikey=${encodeURIComponent(dastkey)}`;
 
-        fetch(zapApiUrl(zapurl, REPORT_OBJECT), {
+        fetch(dastApiUrl(dasturl, REPORT_OBJECT), {
           method: 'POST',
           body,
           headers: {
@@ -151,17 +157,17 @@ function reportCookies(
   return true;
 }
 
-function sendZestScriptToZAP(
+function sendZestScriptToDAST(
   data: string,
-  zapkey: string,
-  zapurl: string
+  dastkey: string,
+  dasturl: string
 ): void {
   if (IS_FULL_EXTENSION) {
     const body = `statementJson=${encodeURIComponent(
       data
-    )}&apikey=${encodeURIComponent(zapkey)}`;
+    )}&apikey=${encodeURIComponent(dastkey)}`;
     console.log(`body = ${body}`);
-    fetch(zapApiUrl(zapurl, 'reportZestStatement'), {
+    fetch(dastApiUrl(dasturl, 'reportZestStatement'), {
       method: 'POST',
       body,
       headers: {
@@ -173,12 +179,12 @@ function sendZestScriptToZAP(
 
 async function handleMessage(
   request: MessageEvent,
-  zapurl: string,
-  zapkey: string
+  dasturl: string,
+  dastkey: string
 ): Promise<boolean | ZestScriptMessage> {
-  console.log(`ZAP Service worker calling ZAP on ${zapurl}`);
-  console.log(zapApiUrl(zapurl, REPORT_OBJECT));
-  console.log(encodeURIComponent(zapkey));
+  console.log(`DAST Service worker calling DAST on ${dasturl}`);
+  console.log(dastApiUrl(dasturl, REPORT_OBJECT));
+  console.log(encodeURIComponent(dastkey));
   console.log(`Type: ${request.type}`);
   console.log(`Data: ${request.data}`);
   switch (request.type) {
@@ -195,9 +201,9 @@ async function handleMessage(
       }
       const repObjBody = `objectJson=${encodeURIComponent(
         request.data
-      )}&apikey=${encodeURIComponent(zapkey)}`;
+      )}&apikey=${encodeURIComponent(dastkey)}`;
       console.log(`body = ${repObjBody}`);
-      fetch(zapApiUrl(zapurl, REPORT_OBJECT), {
+      fetch(dastApiUrl(dasturl, REPORT_OBJECT), {
         method: 'POST',
         body: repObjBody,
         headers: {
@@ -210,9 +216,9 @@ async function handleMessage(
     case REPORT_EVENT: {
       const eventBody = `eventJson=${encodeURIComponent(
         request.data
-      )}&apikey=${encodeURIComponent(zapkey)}`;
+      )}&apikey=${encodeURIComponent(dastkey)}`;
       console.log(`body = ${eventBody}`);
-      fetch(zapApiUrl(zapurl, REPORT_EVENT), {
+      fetch(dastApiUrl(dasturl, REPORT_EVENT), {
         method: 'POST',
         body: eventBody,
         headers: {
@@ -224,26 +230,50 @@ async function handleMessage(
 
     case ZEST_SCRIPT: {
       const data = zestScript.addStatement(request.data);
-      sendZestScriptToZAP(data, zapkey, zapurl);
+      sendZestScriptToDAST(data, dastkey, dasturl);
       break;
     }
 
     case GET_ZEST_SCRIPT:
       return zestScript.getZestScript();
 
-    case RESET_ZEST_SCRIPT:
+    case RESET_ZEST_SCRIPT: {
       zestScript.reset();
+      reportedStorage.clear();
+      const targetUrl = request.data as string;
+      let origin = '';
+      if (targetUrl) {
+        try {
+          origin = new URL(targetUrl).origin;
+        } catch {
+          // invalid URL — skip scoping
+        }
+      }
+      /* eslint-disable @typescript-eslint/no-explicit-any */
+      await Browser.browsingData.removeCookies(
+        (origin ? {origins: [origin]} : {}) as any
+      );
       break;
+    }
 
     case STOP_RECORDING: {
       if (zestScript.getZestStatementCount() > 0) {
-        const {zapclosewindowhandle} = await Browser.storage.sync.get({
-          zapclosewindowhandle: false,
+        const waitStmt = new ZestStatementClientWaitForMsec(
+          DAST_TRAILING_WAIT_MSEC
+        );
+        sendZestScriptToDAST(
+          zestScript.addStatement(waitStmt.toJSON()),
+          dastkey,
+          dasturl
+        );
+
+        const {dastclosewindowhandle} = await Browser.storage.sync.get({
+          dastclosewindowhandle: false,
         });
-        if (zapclosewindowhandle) {
+        if (dastclosewindowhandle) {
           const stmt = new ZestStatementWindowClose(0);
           const data = zestScript.addStatement(stmt.toJSON());
-          sendZestScriptToZAP(data, zapkey, zapurl);
+          sendZestScriptToDAST(data, dastkey, dasturl);
         }
       }
       break;
@@ -263,13 +293,13 @@ async function onMessageHandler(
 ): Promise<number | ZestScriptMessage> {
   let val: number | ZestScriptMessage = 2;
   const items = await Browser.storage.sync.get({
-    zapurl: 'http://zap/',
-    zapkey: 'not set',
+    dasturl: 'http://zap/',
+    dastkey: 'not set',
   });
   const msg = await handleMessage(
     message as MessageEvent,
-    items.zapurl as string,
-    items.zapkey as string
+    items.dasturl as string,
+    items.dastkey as string
   );
   if (!(typeof msg === 'boolean')) {
     val = msg;
@@ -282,14 +312,14 @@ function cookieChangeHandler(
 ): void {
   Browser.storage.sync
     .get({
-      zapurl: 'http://zap/',
-      zapkey: 'not set',
+      dasturl: 'http://zap/',
+      dastkey: 'not set',
     })
     .then((items) => {
       reportCookies(
         changeInfo.cookie,
-        items.zapurl as string,
-        items.zapkey as string
+        items.dasturl as string,
+        items.dastkey as string
       );
     });
 }
@@ -306,8 +336,8 @@ if (IS_FULL_EXTENSION) {
   Browser.runtime.onInstalled.addListener((): void => {
     console.emoji('🦄', 'extension installed');
     Browser.storage.sync.set({
-      zapurl: 'http://zap/',
-      zapkey: 'not set',
+      dasturl: 'http://zap/',
+      dastkey: 'not set',
     });
   });
 }

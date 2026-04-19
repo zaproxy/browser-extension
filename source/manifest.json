@@ -1,24 +1,25 @@
 {
   "manifest_version": 3,
-  "name": "ZAP by Checkmarx Browser Extension",
+  "name": "AccuKnox DAST Browser Extension",
   "version": "0.1.8",
 
   "icons": {
-    "16": "assets/icons/zap16x16.png",
-    "32": "assets/icons/zap32x32.png",
-    "48": "assets/icons/zap48x48.png",
-    "128": "assets/icons/zap128x128.png",
-    "512": "assets/icons/zap512x512.png"
+    "16": "assets/icons/accuknox-icon-16.png",
+    "32": "assets/icons/accuknox-icon-32.png",
+    "48": "assets/icons/accuknox-icon-48.png",
+    "128": "assets/icons/accuknox-icon-128.png",
+    "512": "assets/icons/accuknox-icon-512.png"
   },
-  "description": "A browser extension which allows ZAP to access the client side of a web app.",
-  "homepage_url": "https://github.com/zaproxy/browser-extension/",
-  "short_name": "ZAP by Checkmarx Extension",
+  "description": "AccuKnox security extension powered by DAST — intercepts and records browser interactions for web application security testing.",
+  "homepage_url": "https://www.accuknox.com/",
+  "short_name": "AccuKnox DAST Extension",
   "incognito": "spanning",
 
   "permissions": [
     "tabs",
     "cookies",
-    "storage"
+    "storage",
+    "browsingData"
   ],
 
   "host_permissions": [
@@ -30,9 +31,9 @@
     "extension_pages" : "script-src 'self'; object-src 'self'"
   },
 
-  "__chrome|firefox__author": "ZAP Core Team",
+  "__chrome|firefox__author": "AccuKnox",
   "__opera__developer": {
-    "name": "ZAP Core Team"
+    "name": "AccuKnox"
   },
 
   "__firefox__browser_specific_settings": {
@@ -46,13 +47,13 @@
 
   "action": {
     "default_icon": {
-      "16": "assets/icons/zap16x16.png",
-      "32": "assets/icons/zap32x32.png",
-      "48": "assets/icons/zap48x48.png",
-      "128": "assets/icons/zap128x128.png",
-      "512": "assets/icons/zap512x512.png"
+      "16": "assets/icons/accuknox-icon-16.png",
+      "32": "assets/icons/accuknox-icon-32.png",
+      "48": "assets/icons/accuknox-icon-48.png",
+      "128": "assets/icons/accuknox-icon-128.png",
+      "512": "assets/icons/accuknox-icon-512.png"
     },
-    "default_title": "ZAP by Checkmarx",
+    "default_title": "AccuKnox DAST",
     "default_popup": "popup.html",
     "__chrome|opera__chrome_style": false,
     "__firefox__browser_style": false
@@ -70,7 +71,7 @@
       "js/background.bundle.js"
     ]
   },
-  
+
   "content_scripts": [{
     "matches": [
       "http://*/*",
