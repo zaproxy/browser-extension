@@ -240,19 +240,25 @@ async function handleMessage(
     case RESET_ZEST_SCRIPT: {
       zestScript.reset();
       reportedStorage.clear();
-      const targetUrl = request.data as string;
       let origin = '';
-      if (targetUrl) {
-        try {
-          origin = new URL(targetUrl).origin;
-        } catch {
-          // invalid URL — skip scoping
+      try {
+        const parsed = new URL(request.data as string);
+        if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+          origin = parsed.origin;
         }
+      } catch {
+        // invalid/empty URL
       }
-      /* eslint-disable @typescript-eslint/no-explicit-any */
-      await Browser.browsingData.removeCookies(
-        (origin ? {origins: [origin]} : {}) as any
-      );
+      if (origin) {
+        /* eslint-disable @typescript-eslint/no-explicit-any */
+        await Browser.browsingData.remove({origins: [origin]} as any, {
+          cacheStorage: true,
+          cookies: true,
+          indexedDB: true,
+          localStorage: true,
+          serviceWorkers: true,
+        } as any);
+      }
       break;
     }
 

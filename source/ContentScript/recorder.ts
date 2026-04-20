@@ -20,9 +20,11 @@
 import debounce from 'lodash/debounce';
 import Browser from 'webextension-polyfill';
 import {
+  ElementLocator,
   ZestStatement,
   ZestStatementComment,
   ZestStatementElementClick,
+  ZestStatementElementScrollTo,
   ZestStatementElementSendKeys,
   ZestStatementElementSubmit,
   ZestStatementLaunchBrowser,
@@ -67,22 +69,27 @@ class Recorder {
   // We can get duplicate events for the enter key, this allows us to dedup them
   cachedTimeStamp = -1;
 
-  // Hold the most recent click so a SendKeys on the same element can drop it
-  // (typing implies focus, the click is redundant).
-  cachedClick?: ZestStatementElementClick;
-
-  // Dedup duplicate click events — any click on the same element as the last
-  // recorded click is dropped, regardless of how long ago it happened.
-  lastClickLocator = '';
-
   lastStatementTime: number;
+
+  // Fallback SendKeys path for widgets (e.g. split TOTP inputs) that don't fire native `change`
+  inputDebounceTimers = new Map<
+    HTMLElement,
+    {
+      timer: ReturnType<typeof setTimeout>;
+      params: {level: number; frame: number; element: Document};
+      value: string;
+    }
+  >();
+
+  lastSentValues = new WeakMap<HTMLElement, string>();
+
+  readonly inputDebounceMsec = 150;
 
   async sendZestScriptToDAST(
     zestStatement: ZestStatement,
     params: {sendCache: boolean; notify: boolean}
   ): Promise<number> {
     if (params.sendCache) {
-      this.flushCachedClick();
       this.handleCachedSubmit();
     }
     // console.log('DAST Sending statement', zestStatement);
@@ -109,8 +116,19 @@ class Recorder {
     return waited;
   }
 
+  sendScrollToToDast(elementLocator: ElementLocator, waitForMsec: number): void {
+    this.sendZestScriptToDAST(
+      new ZestStatementElementScrollTo(elementLocator, waitForMsec),
+      {sendCache: false, notify: false}
+    );
+  }
+
   handleCachedSubmit(): void {
     if (this.cachedSubmit) {
+      this.sendScrollToToDast(
+        this.cachedSubmit.elementLocator,
+        this.getWaited()
+      );
       // console.log('DAST Sending cached submit', this.cachedSubmit);
       this.sendZestScriptToDAST(this.cachedSubmit, {
         sendCache: false,
@@ -121,19 +139,10 @@ class Recorder {
     }
   }
 
-  flushCachedClick(): void {
-    if (this.cachedClick) {
-      const click = this.cachedClick;
-      delete this.cachedClick;
-      this.sendZestScriptToDAST(click, {sendCache: false, notify: true});
-    }
-  }
-
   handleFrameSwitches(level: number, frameIndex: number): void {
     if (this.curLevel === level && this.curFrame === frameIndex) {
       return;
     }
-    this.lastClickLocator = '';
     if (this.curLevel > level) {
       while (this.curLevel > level) {
         this.sendZestScriptToDAST(new ZestStatementSwitchToFrame(-1), {
@@ -161,6 +170,7 @@ class Recorder {
     event: Event
   ): void {
     if (!this.shouldRecord(event.target as HTMLElement)) return;
+    this.flushPendingInputs();
     const waited: number = this.getWaited();
     const {level, frame, element} = params;
     this.handleFrameSwitches(level, frame);
@@ -175,20 +185,20 @@ class Recorder {
       return;
     }
 
-    if (this.lastClickLocator === elementLocator.element) {
-      return;
-    }
-    this.lastClickLocator = elementLocator.element;
-
-    // Flush any prior cached click (the one that follows is on a different
-    // element, otherwise the dedup above would have returned), then cache
-    // this click so a SendKeys on the same element can drop it.
-    this.flushCachedClick();
-    if (this.cachedSubmit) {
-      this.handleCachedSubmit();
-    }
-    this.cachedClick = new ZestStatementElementClick(elementLocator, waited);
+    this.sendScrollToToDast(elementLocator, waited);
+    this.sendZestScriptToDAST(
+      new ZestStatementElementClick(elementLocator, waited),
+      {sendCache: true, notify: true}
+    );
     // click on target element
+  }
+
+  handleScroll(params: {level: number; frame: number}, event: Event): void {
+    if (!this.shouldRecord(event.target as HTMLElement)) return;
+    const {level, frame} = params;
+    this.handleFrameSwitches(level, frame);
+    console.log(event, 'DAST scrolling.. ');
+    // scroll the nearest ancestor with scrolling ability
   }
 
   handleMouseOver(
@@ -207,26 +217,91 @@ class Recorder {
     // send mouseover event
   }
 
+  resolveEventTarget(event: Event): HTMLElement | null {
+    const path =
+      typeof event.composedPath === 'function' ? event.composedPath() : [];
+    const deepest = (path[0] as HTMLElement) || (event.target as HTMLElement);
+    return deepest && (deepest as HTMLElement).tagName ? deepest : null;
+  }
+
   handleChange(
     params: {level: number; frame: number; element: Document},
     event: Event
   ): void {
-    if (!this.shouldRecord(event.target as HTMLElement)) return;
+    const target = this.resolveEventTarget(event) as HTMLInputElement | null;
+    if (!target || !this.shouldRecordInput(target)) return;
+    const value = target.value ?? '';
+    console.log(event, 'DAST change', value);
+    this.cancelInputDebounce(target);
+    this.sendSendKeysWithValue(params, target, value);
+  }
+
+  cancelInputDebounce(target: HTMLElement): void {
+    const existing = this.inputDebounceTimers.get(target);
+    if (existing) {
+      clearTimeout(existing.timer);
+      this.inputDebounceTimers.delete(target);
+    }
+  }
+
+  handleFocusOut(event: Event): void {
+    const target = this.resolveEventTarget(event) as HTMLInputElement | null;
+    if (!target) return;
+    const pending = this.inputDebounceTimers.get(target);
+    if (!pending) return;
+    this.cancelInputDebounce(target);
+    // Re-read at flush time — by blur the React state has fully reconciled.
+    const value = target.value ?? '';
+    this.sendSendKeysWithValue(pending.params, target, value);
+  }
+
+  // Fallback for widgets (e.g. some OTP libraries) that intercept `keydown` and
+  // never fire a native `input` event. We read `target.value` after the frame so
+  // any React state flush has already happened.
+  handleAnyKeydown(
+    params: {level: number; frame: number; element: Document},
+    event: KeyboardEvent
+  ): void {
+    const target = this.resolveEventTarget(event) as HTMLInputElement | null;
+    if (!target || !this.shouldRecordInput(target)) return;
+    const tag = target.tagName;
+    if (tag !== 'INPUT' && tag !== 'TEXTAREA') return;
+    requestAnimationFrame(() => {
+      const value = target.value ?? '';
+      if (this.lastSentValues.get(target) === value) return;
+      if (this.inputDebounceTimers.get(target)?.value === value) return;
+      console.log('DAST keydown-poll', target, value);
+      this.cancelInputDebounce(target);
+      const timer = setTimeout(() => {
+        this.inputDebounceTimers.delete(target);
+        this.sendSendKeysWithValue(params, target, value);
+      }, this.inputDebounceMsec);
+      this.inputDebounceTimers.set(target, {timer, params, value});
+    });
+  }
+
+  flushPendingInputs(): void {
+    const entries = Array.from(this.inputDebounceTimers.entries());
+    entries.forEach(([target, {params}]) => {
+      this.cancelInputDebounce(target);
+      const input = target as HTMLInputElement;
+      this.sendSendKeysWithValue(params, input, input.value ?? '');
+    });
+  }
+
+  sendSendKeysWithValue(
+    params: {level: number; frame: number; element: Document},
+    target: HTMLInputElement,
+    value: string
+  ): void {
+    if (!value) return;
+    if (this.lastSentValues.get(target) === value) return;
+    this.lastSentValues.set(target, value);
     const {level, frame, element} = params;
     const waited: number = this.getWaited();
     this.handleFrameSwitches(level, frame);
-    console.log(event, 'DAST change', (event.target as HTMLInputElement).value);
-    const elementLocator = getPath(event.target as HTMLElement, element);
-    // If the most recent click was on this same element, drop it: the focus
-    // implied by the click is already implicit in the SendKeys.
-    if (
-      this.cachedClick &&
-      this.cachedClick.elementLocator.element === elementLocator.element
-    ) {
-      delete this.cachedClick;
-    } else {
-      this.flushCachedClick();
-    }
+    const elementLocator = getPath(target, element);
+    console.log('DAST sendKeys ->', elementLocator, value);
     // Send the keys before a cached submit statement on the same element
     if (
       this.cachedSubmit &&
@@ -235,12 +310,9 @@ class Recorder {
       // The cached submit was not on the same element, so send it
       this.handleCachedSubmit();
     }
+    this.sendScrollToToDast(elementLocator, waited);
     this.sendZestScriptToDAST(
-      new ZestStatementElementSendKeys(
-        elementLocator,
-        (event.target as HTMLInputElement).value,
-        waited
-      ),
+      new ZestStatementElementSendKeys(elementLocator, value, waited),
       {sendCache: false, notify: true}
     );
     // Now send the cached submit, if there still is one
@@ -258,7 +330,6 @@ class Recorder {
         // console.log('DAST Ignoring dup Enter event', this.cachedSubmit);
         return;
       }
-      this.flushCachedClick();
       this.handleCachedSubmit();
       const elementLocator = getPath(event.target as HTMLElement, element);
       // console.log('DAST Enter key pressed', elementLocator, event.timeStamp);
@@ -377,6 +448,10 @@ class Recorder {
         capture: true,
       }
     );
+    element.addEventListener(
+      'scroll',
+      debounce(this.handleScroll.bind(this, {level, frame, element}), 1000)
+    );
     // Do not track mouse over events for now, they are not recorded.
     // element.addEventListener(
     //   'mouseover',
@@ -384,7 +459,18 @@ class Recorder {
     // );
     element.addEventListener(
       'change',
-      this.handleChange.bind(this, {level, frame, element})
+      this.handleChange.bind(this, {level, frame, element}),
+      {capture: true}
+    );
+    element.addEventListener(
+      'focusout',
+      this.handleFocusOut.bind(this),
+      {capture: true}
+    );
+    element.addEventListener(
+      'keydown',
+      this.handleAnyKeydown.bind(this, {level, frame, element}),
+      {capture: true}
     );
 
     // Add listeners to all the frames
@@ -460,6 +546,14 @@ class Recorder {
     return this.isVisible(element);
   }
 
+  // Used for input/change events: skip the visibility check because some widgets
+  // (e.g. split TOTP boxes) route typing to an offscreen/zero-size input.
+  shouldRecordInput(element: HTMLElement): boolean {
+    if (!this.active) return false;
+    if (element.className === DAST_FLOATING_DIV_ELEMENTS) return false;
+    return true;
+  }
+
   getBrowserName(): string {
     let browserName: string;
     const {userAgent} = navigator;
@@ -513,7 +607,6 @@ class Recorder {
       this.initializationScript(loginUrl, startTime);
     }
     this.active = true;
-    this.lastClickLocator = '';
     this.previousDOMState = document.documentElement.outerHTML;
     if (this.haveListenersBeenAdded) {
       this.insertFloatingPopup();
@@ -532,7 +625,7 @@ class Recorder {
 
   stopRecordingUserInteractions(): void {
     console.log('DAST Stopping Recording User Interactions ...');
-    this.flushCachedClick();
+    this.flushPendingInputs();
     this.handleCachedSubmit();
     Browser.storage.sync.set({dastrecordingactive: false});
     this.active = false;
@@ -724,6 +817,9 @@ class Recorder {
 
     if (stmt instanceof ZestStatementElementClick) {
       notifyMessage.title = 'Click';
+      notifyMessage.message = stmt.elementLocator.element;
+    } else if (stmt instanceof ZestStatementElementScrollTo) {
+      notifyMessage.title = 'Scroll To';
       notifyMessage.message = stmt.elementLocator.element;
     } else if (stmt instanceof ZestStatementElementSendKeys) {
       notifyMessage.title = 'Send Keys';

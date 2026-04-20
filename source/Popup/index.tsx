@@ -146,15 +146,12 @@ async function toggleRecording(e: Event): Promise<void> {
 
   const loginUrl = loginUrlInput.value;
 
-  // Resolve the target origin so the background can scope its cache clear.
   let targetUrl = loginUrl;
   if (!targetUrl) {
     const [activeTab] = await Browser.tabs.query({active: true, currentWindow: true});
     targetUrl = activeTab?.url ?? '';
   }
 
-  // Wait for background to clear HTTP cache (site-scoped) and activate
-  // no-cache rule BEFORE any tab is opened so the very first request is fresh.
   await Browser.runtime.sendMessage({type: RESET_ZEST_SCRIPT, data: targetUrl});
 
   startedAnimation();
