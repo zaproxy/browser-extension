@@ -106,7 +106,7 @@
     "terser-webpack-plugin": "^5.5.0",
     "tmp-promise": "^3.0.3",
     "ts-jest": "^29.4.9",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.3",
     "webpack": "^5.106.2",
     "webpack-cli": "^7.0.2",
     "webpack-ext-reloader": "^1.1.13",
