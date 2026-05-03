@@ -27,7 +27,9 @@ import {
   ZEST_CLIENT_ELEMENT_SUBMIT,
   ZEST_CLIENT_LAUNCH,
   ZEST_CLIENT_SWITCH_TO_FRAME,
+  ZEST_ACTION_SLEEP,
   ZEST_CLIENT_WINDOW_CLOSE,
+  ZEST_CLIENT_WINDOW_HANDLE,
   ZEST_COMMENT,
 } from '../../utils/constants';
 
@@ -273,6 +275,50 @@ class ZestStatementWindowClose extends ZestStatement {
   }
 }
 
+class ZestStatementWindowHandle extends ZestStatement {
+  windowHandle: string;
+
+  url: string;
+
+  regex: boolean;
+
+  constructor(windowHandle: string, url: string, regex = false) {
+    super(ZEST_CLIENT_WINDOW_HANDLE);
+    this.windowHandle = windowHandle;
+    this.url = url;
+    this.regex = regex;
+  }
+
+  toJSON(): string {
+    return JSON.stringify({
+      windowHandle: this.windowHandle,
+      url: this.url,
+      regex: this.regex,
+      index: this.index,
+      enabled: true,
+      elementType: this.elementType,
+    });
+  }
+}
+
+class ZestStatementActionSleep extends ZestStatement {
+  milliseconds: number;
+
+  constructor(milliseconds = 10000) {
+    super(ZEST_ACTION_SLEEP);
+    this.milliseconds = milliseconds;
+  }
+
+  toJSON(): string {
+    return JSON.stringify({
+      milliseconds: this.milliseconds,
+      index: this.index,
+      enabled: true,
+      elementType: this.elementType,
+    });
+  }
+}
+
 class ZestStatementSwitchToFrame extends ZestStatement {
   frameIndex: number;
 
@@ -329,4 +375,6 @@ export {
   ZestStatementElementSubmit,
   ZestStatementElementClear,
   ZestStatementWindowClose,
+  ZestStatementWindowHandle,
+  ZestStatementActionSleep,
 };
