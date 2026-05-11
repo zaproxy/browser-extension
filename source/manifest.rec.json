@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "ZAP by Checkmarx Recorder",
-  "version": "0.1.8",
+  "version": "0.1.9",
 
   "icons": {
     "16": "assets/icons/zap16x16.png",
@@ -16,7 +16,8 @@
   "incognito": "spanning",
 
   "permissions": [
-    "storage"
+    "storage",
+    "tabs"
   ],
 
   "host_permissions": [

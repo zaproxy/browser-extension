@@ -56,6 +56,16 @@ const Browser = {
   },
   tabs: {
     query: jest.fn(),
+    sendMessage: jest.fn(),
+    onCreated: {
+      addListener: jest.fn(),
+    },
+    onUpdated: {
+      addListener: jest.fn(),
+    },
+    onRemoved: {
+      addListener: jest.fn(),
+    },
   },
 };
 

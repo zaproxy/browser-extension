@@ -22,6 +22,11 @@
  */
 import {TextEncoder, TextDecoder} from 'util';
 import * as src from '../../source/Background/index';
+import {
+  DEFAULT_WINDOW_HANDLE,
+  RESET_ZEST_SCRIPT,
+  ZAP_REGISTER_POPUP,
+} from '../../source/utils/constants';
 
 console.log(src);
 console.log(TextEncoder);
@@ -35,6 +40,8 @@ global.TextDecoder = TextDecoder as typeof global.TextDecoder;
 
 // eslint-disable-next-line import/order,import/first
 import Browser from 'webextension-polyfill';
+
+global.fetch = jest.fn().mockResolvedValue({ok: true});
 
 test('Report storage', () => {
   // Given
@@ -57,5 +64,76 @@ test('Report storage', () => {
     );
     // Then
     expect(success).toBe(true);
+  });
+});
+
+describe('ZAP_REGISTER_POPUP handler', () => {
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  let onMessageHandler: Function;
+
+  beforeAll(() => {
+    const addListenerMock = Browser.runtime.onMessage
+      .addListener as jest.Mock;
+    onMessageHandler = addListenerMock.mock.calls[0][0];
+  });
+
+  beforeEach(async () => {
+    (Browser.storage.sync.get as jest.Mock).mockResolvedValue({
+      zapurl: 'http://zap/',
+      zapkey: 'testkey',
+      zapenable: false,
+    });
+    // Reset zest script state between tests (resets counter and popup map)
+    await onMessageHandler({type: RESET_ZEST_SCRIPT}, {});
+  });
+
+  test('assigns a new window handle for a new popup tab', async () => {
+    const result = await onMessageHandler(
+      {type: ZAP_REGISTER_POPUP, url: 'https://example.com/popup'},
+      {tab: {id: 42}}
+    );
+    expect(result).toBe('windowHandle2');
+  });
+
+  test('returns cached handle for the same popup tab on repeated calls', async () => {
+    const first = await onMessageHandler(
+      {type: ZAP_REGISTER_POPUP, url: 'https://example.com/popup'},
+      {tab: {id: 99}}
+    );
+    const second = await onMessageHandler(
+      {type: ZAP_REGISTER_POPUP, url: 'https://example.com/popup'},
+      {tab: {id: 99}}
+    );
+    expect(first).toBe('windowHandle2');
+    expect(second).toBe('windowHandle2');
+  });
+
+  test('assigns different handles for different popup tabs', async () => {
+    const first = await onMessageHandler(
+      {type: ZAP_REGISTER_POPUP, url: 'https://example.com/popup1'},
+      {tab: {id: 10}}
+    );
+    const second = await onMessageHandler(
+      {type: ZAP_REGISTER_POPUP, url: 'https://example.com/popup2'},
+      {tab: {id: 20}}
+    );
+    expect(first).toBe('windowHandle2');
+    expect(second).toBe('windowHandle3');
+  });
+
+  test('returns default handle when sender has no tab id', async () => {
+    const result = await onMessageHandler(
+      {type: ZAP_REGISTER_POPUP, url: 'https://example.com/popup'},
+      {}
+    );
+    expect(result).toBe(DEFAULT_WINDOW_HANDLE);
+  });
+
+  test('handles invalid popup URL gracefully', async () => {
+    const result = await onMessageHandler(
+      {type: ZAP_REGISTER_POPUP, url: 'not-a-valid-url'},
+      {tab: {id: 55}}
+    );
+    expect(result).toBe('windowHandle2');
   });
 });
