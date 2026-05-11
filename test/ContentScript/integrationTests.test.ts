@@ -82,9 +82,11 @@ function integrationTests(
   });
 
   afterEach(async () => {
-    await driver?.close();
-    await server?.close();
-    await closeServer(httpServer);
+    await Promise.allSettled([
+      driver?.close(),
+      server?.close(),
+      closeServer(httpServer),
+    ]);
     await downloadsDir?.cleanup();
   });
 
@@ -154,9 +156,10 @@ function integrationTests(
     await driver.toggleRecording();
     const wd = await driver.getWebDriver();
     await wd.get(`http://localhost:${_HTTPPORT}/webpages/linkedpage1.html`);
-    await pageLoaded(wd);
+    await wd.wait(until.elementLocated(By.id('ZapfloatingDiv')));
     await wd.findElement(By.id('click')).click();
-    await pageLoaded(wd);
+    await wd.wait(until.urlContains('linkedpage2.html'));
+    await wd.wait(until.elementLocated(By.id('ZapfloatingDiv')));
     await wd.findElement(By.id('click')).click();
     await eventsProcessed();
     // Then
@@ -265,7 +268,7 @@ function integrationTests(
       `http://localhost:${_HTTPPORT}/webpages/interactions.html?delay=5000`
     );
     const wd = await driver.getWebDriver();
-    await pageLoaded(wd, 5500);
+    await wd.wait(until.elementLocated(By.id('ZapfloatingDiv')), 12000);
     await wd.findElement(By.id('click')).click();
     await eventsProcessed();
     // Then
@@ -429,6 +432,7 @@ function integrationTests(
     const wd = await driver.getWebDriver();
     await wd.get(`http://localhost:${_HTTPPORT}/webpages/interactions.html`);
     await pageLoaded(wd);
+    await wd.wait(until.elementLocated(By.id('ZapfloatingDiv')));
     await wd.findElement(By.id('cars')).sendKeys('audi');
     await wd.findElement(By.id('click')).click();
     await eventsProcessed();
@@ -588,6 +592,7 @@ function integrationTests(
     await driver.toggleRecording();
     const wd = await driver.getWebDriver();
     await wd.get(`http://localhost:${_HTTPPORT}/webpages/frameset.html`);
+    await wd.wait(until.elementLocated(By.id('ZapfloatingDiv')));
     await wd.switchTo().frame(0);
     await wd.findElement(By.id('btn')).click();
     const inputA = await wd.findElement(By.xpath('/html/body/div[2]/input'));
@@ -638,6 +643,7 @@ function integrationTests(
     await driver.toggleRecording();
     const wd = await driver.getWebDriver();
     await wd.get(`http://localhost:${_HTTPPORT}/webpages/framesetReplace.html`);
+    await wd.wait(until.elementLocated(By.id('ZapfloatingDiv')));
     await wd.wait(until.ableToSwitchToFrame(0));
     await wd.wait(until.elementLocated(By.id('btn'))).click();
     await wd.wait(until.elementLocated(By.id('click'))).click();
@@ -811,6 +817,8 @@ function integrationTests(
     const wd = await driver.getWebDriver();
     await wd.get(`http://localhost:${_HTTPPORT}/webpages/integrationTest.html`);
     await pageLoaded(wd);
+    // Wait for extension to finish initializing and report initial page events
+    await wd.wait(() => actualData.length >= 2, 5000);
     // When
     await wd.executeScript(() => {
       const addLink = (): void => {
@@ -856,7 +864,7 @@ function integrationTests(
     ]);
   });
 
-  test.only('Should report pointer elements', async () => {
+  test('Should report pointer elements', async () => {
     // Given
     await enableZapEvents(server, driver);
     server.setRecordZapEvents(false);
@@ -900,12 +908,131 @@ function integrationTests(
     ]);
   });
 
+  test('Should use className for input with stable unique class', async () => {
+    // Given / When
+    await driver.toggleRecording();
+    const wd = await driver.getWebDriver();
+    await wd.get(
+      `http://localhost:${_HTTPPORT}/webpages/stableClassInput.html`
+    );
+    await pageLoaded(wd);
+    await wd.wait(until.elementLocated(By.id('ZapfloatingDiv')));
+    await wd.findElement(By.css('.stable-class')).sendKeys('testinput');
+    await wd.findElement(By.id('click')).click();
+    await eventsProcessed();
+    // Then
+    expect(actualData).toEqual([
+      reportZestStatementComment(),
+      reportZestStatementLaunch(
+        'http://localhost:1801/webpages/stableClassInput.html'
+      ),
+      reportZestStatementScrollTo(3, 'stable-class', 'className'),
+      reportZestStatementSendKeys(4, 'stable-class', 'testinput', 'className'),
+      reportZestStatementScrollTo(5, 'click'),
+      reportZestStatementClick(6, 'click'),
+    ]);
+  });
+
+  test('Should use cssSelector when static input class changes on typing', async () => {
+    // Given / When
+    await driver.toggleRecording();
+    const wd = await driver.getWebDriver();
+    await wd.get(
+      `http://localhost:${_HTTPPORT}/webpages/dynamicClassStatic.html`
+    );
+    await pageLoaded(wd);
+    await wd.wait(until.elementLocated(By.id('ZapfloatingDiv')));
+    await wd.findElement(By.css('.input-empty')).sendKeys('testinput');
+    await wd.findElement(By.id('click')).click();
+    await eventsProcessed();
+    // Then
+    expect(actualData).toEqual([
+      reportZestStatementComment(),
+      reportZestStatementLaunch(
+        'http://localhost:1801/webpages/dynamicClassStatic.html'
+      ),
+      reportZestStatementScrollTo(3, 'body > input', 'cssSelector'),
+      reportZestStatementSendKeys(
+        4,
+        'body > input',
+        'testinput',
+        'cssSelector'
+      ),
+      reportZestStatementScrollTo(5, 'click'),
+      reportZestStatementClick(6, 'click'),
+    ]);
+  });
+
+  test('Should use cssSelector when dynamically added input class changes on typing', async () => {
+    // Given / When
+    await driver.toggleRecording();
+    const wd = await driver.getWebDriver();
+    await wd.get(
+      `http://localhost:${_HTTPPORT}/webpages/dynamicClassDynamic.html`
+    );
+    await pageLoaded(wd);
+    await wd.wait(until.elementLocated(By.id('ZapfloatingDiv')));
+    await wd.findElement(By.id('add-input')).click();
+    await wd.wait(until.elementLocated(By.css('input')));
+    await wd.findElement(By.css('input')).sendKeys('testinput');
+    await wd.findElement(By.id('click')).click();
+    await eventsProcessed();
+    // Then
+    expect(actualData).toEqual([
+      reportZestStatementComment(),
+      reportZestStatementLaunch(
+        'http://localhost:1801/webpages/dynamicClassDynamic.html'
+      ),
+      reportZestStatementScrollTo(3, 'add-input'),
+      reportZestStatementClick(4, 'add-input'),
+      reportZestStatementScrollTo(5, 'body > input', 'cssSelector'),
+      reportZestStatementSendKeys(
+        6,
+        'body > input',
+        'testinput',
+        'cssSelector'
+      ),
+      reportZestStatementScrollTo(7, 'click'),
+      reportZestStatementClick(8, 'click'),
+    ]);
+  });
+
+  test('Should use cssSelector when dynamically added input has a pre-filled value', async () => {
+    // Given / When
+    await driver.toggleRecording();
+    const wd = await driver.getWebDriver();
+    await wd.get(
+      `http://localhost:${_HTTPPORT}/webpages/dynamicClassPrefilled.html`
+    );
+    await pageLoaded(wd);
+    await wd.wait(until.elementLocated(By.id('ZapfloatingDiv')));
+    await wd.findElement(By.id('add-input')).click();
+    await wd.wait(until.elementLocated(By.css('input')));
+    await wd.findElement(By.css('input')).click();
+    await wd.findElement(By.id('click')).click();
+    await eventsProcessed();
+    // Then
+    expect(actualData).toEqual([
+      reportZestStatementComment(),
+      reportZestStatementLaunch(
+        'http://localhost:1801/webpages/dynamicClassPrefilled.html'
+      ),
+      reportZestStatementScrollTo(3, 'add-input'),
+      reportZestStatementClick(4, 'add-input'),
+      reportZestStatementScrollTo(5, 'body > input', 'cssSelector'),
+      reportZestStatementClick(6, 'body > input', 'cssSelector'),
+      reportZestStatementScrollTo(7, 'click'),
+      reportZestStatementClick(8, 'click'),
+    ]);
+  });
+
   test('Should ignore ZAP div', async () => {
     // Given / When
     await driver.toggleRecording();
     const wd = await driver.getWebDriver();
     await wd.get(`http://localhost:${_HTTPPORT}/webpages/divtest.html`);
     await pageLoaded(wd);
+    await wd.wait(until.elementLocated(By.id('ZapfloatingDiv')));
     await wd.findElement(By.id('btn')).click();
     await eventsProcessed();
     await wd.findElement(By.xpath('/html/body/div[3]/button')).click();

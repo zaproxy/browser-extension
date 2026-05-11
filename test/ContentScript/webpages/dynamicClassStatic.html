@@ -1,0 +1,12 @@
+<html>
+    <head></head>
+    <body>
+        <input class="input-empty"/>
+        <button id="click">click</button>
+        <script>
+            document.querySelector('input').addEventListener('input', function() {
+                this.className = this.value ? 'input-filled' : 'input-empty';
+            });
+        </script>
+    </body>
+</html>

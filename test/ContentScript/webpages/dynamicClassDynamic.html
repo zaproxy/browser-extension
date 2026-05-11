@@ -1,0 +1,17 @@
+<html>
+    <head></head>
+    <body>
+        <button id="add-input">Add Input</button>
+        <button id="click">click</button>
+        <script>
+            document.getElementById('add-input').addEventListener('click', function() {
+                const input = document.createElement('input');
+                input.className = 'dynamic-empty';
+                input.addEventListener('input', function() {
+                    this.className = this.value ? 'dynamic-filled' : 'dynamic-empty';
+                });
+                document.body.appendChild(input);
+            });
+        </script>
+    </body>
+</html>

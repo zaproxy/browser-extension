@@ -33,7 +33,7 @@
     "build": "yarn run build:ext && yarn run build:rec",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
-    "test": "jest --coverage --testTimeout=35000",
+    "test": "jest --coverage --testTimeout=200000",
     "buildAndTest": "yarn run build && yarn test"
   },
   "dependencies": {

@@ -1,0 +1,15 @@
+<html>
+    <head></head>
+    <body>
+        <button id="add-input">Add Input</button>
+        <button id="click">click</button>
+        <script>
+            document.getElementById('add-input').addEventListener('click', function() {
+                const input = document.createElement('input');
+                input.value = 'prefilled';
+                input.className = 'prefilled-class';
+                document.body.appendChild(input);
+            });
+        </script>
+    </body>
+</html>
