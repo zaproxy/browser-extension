@@ -205,6 +205,56 @@ function reportPointerElements(
   });
 }
 
+const STANDARD_INTERACTIVE_TAGS = [
+  'A',
+  'BUTTON',
+  'INPUT',
+  'SELECT',
+  'TEXTAREA',
+  'FORM',
+];
+
+const INTERACTIVE_ARIA_ROLES = [
+  'button',
+  'link',
+  'checkbox',
+  'radio',
+  'switch',
+  'tab',
+  'menuitem',
+  'menuitemcheckbox',
+  'menuitemradio',
+  'option',
+  'treeitem',
+  'combobox',
+  'listbox',
+  'slider',
+  'spinbutton',
+  'searchbox',
+  'textbox',
+];
+
+function hasInteractiveAriaRole(element: Element): boolean {
+  const role = element.getAttribute('role');
+  return role !== null && INTERACTIVE_ARIA_ROLES.includes(role.toLowerCase());
+}
+
+function reportAriaElements(
+  source: Element | Document,
+  fn: (re: ReportedObject) => void
+): void {
+  const url = window.location.href;
+
+  source.querySelectorAll('[role]').forEach((element) => {
+    if (
+      hasInteractiveAriaRole(element) &&
+      !STANDARD_INTERACTIVE_TAGS.includes(element.tagName.toUpperCase())
+    ) {
+      fn(new ReportedElement(element, url));
+    }
+  });
+}
+
 function reportPageLoaded(
   doc: Document,
   fn: (re: ReportedObject) => void
@@ -219,6 +269,7 @@ function reportPageLoaded(
   reportElements(doc.getElementsByTagName('input'), fn);
   reportElements(doc.getElementsByTagName('button'), fn);
   reportPointerElements(doc, fn);
+  reportAriaElements(doc, fn);
   reportStorage(LOCAL_STORAGE, localStorage, fn);
   reportStorage(SESSION_STORAGE, sessionStorage, fn);
 }
@@ -232,12 +283,14 @@ const domMutated = function domMutation(
     reportPageLinks(document, reportObject);
     reportPageForms(document, reportObject);
     reportPointerElements(document, reportObject);
+    reportAriaElements(document, reportObject);
     for (const mutation of mutationList) {
       if (mutation.type === 'childList') {
         reportNodeElements(mutation.target, 'input', reportObject);
         reportNodeElements(mutation.target, 'button', reportObject);
         if (mutation.target.nodeType === Node.ELEMENT_NODE) {
           reportPointerElements(mutation.target as Element, reportObject);
+          reportAriaElements(mutation.target as Element, reportObject);
         }
       }
     }
@@ -350,6 +403,7 @@ export {
   reportPageForms,
   reportNodeElements,
   reportStorage,
+  reportAriaElements,
   ReportedElement,
   ReportedObject,
   ReportedStorage,

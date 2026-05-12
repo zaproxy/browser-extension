@@ -58,7 +58,7 @@ class ReportedObject {
   }
 
   public toShortString(): string {
-    return JSON.stringify(this, function replacer(k: string, v: string) {
+    return JSON.stringify(this, function replacer(k: string, v: unknown) {
       if (k === 'xpath') {
         // Dont return the xpath value - it can change too often in many cases
         return undefined;
@@ -69,7 +69,7 @@ class ReportedObject {
 
   // Use this for tests
   public toNonTimestampString(): string {
-    return JSON.stringify(this, function replacer(k: string, v: string) {
+    return JSON.stringify(this, function replacer(k: string, v: unknown) {
       if (k === 'timestamp') {
         return undefined;
       }
@@ -100,6 +100,10 @@ class ReportedElement extends ReportedObject {
 
   public formId: number | null;
 
+  public role: string | null;
+
+  public ariaIdentification: Record<string, string> | null;
+
   public constructor(element: Element, url: string) {
     super(
       'nodeAdded',
@@ -128,10 +132,56 @@ class ReportedElement extends ReportedObject {
     } else if (element.hasAttribute('href')) {
       this.href = element.getAttribute('href');
     }
+
+    this.captureAriaInfo(element);
+  }
+
+  private captureAriaInfo(element: Element): void {
+    const ariaLabel = element.getAttribute('aria-label');
+    if (ariaLabel !== null) {
+      this.text = ariaLabel;
+    }
+
+    const role = element.getAttribute('role');
+    if (role !== null) {
+      this.role = role;
+    }
+
+    if (!this.id) {
+      const ariaAttrs: Record<string, string> = {};
+
+      Array.from(element.attributes)
+        .filter((attr) => attr.name.startsWith('aria-'))
+        .forEach((attr) => {
+          ariaAttrs[attr.name] = attr.value;
+        });
+
+      if (Object.keys(ariaAttrs).length > 0) {
+        if (this.isAriaSelectorUnique(ariaAttrs, element)) {
+          this.ariaIdentification = ariaAttrs;
+        }
+      }
+    }
+  }
+
+  private isAriaSelectorUnique(
+    ariaAttrs: Record<string, string>,
+    element: Element
+  ): boolean {
+    const doc = element.ownerDocument;
+    if (!doc || !element.isConnected) {
+      return true;
+    }
+
+    const selector = Object.entries(ariaAttrs)
+      .map(([key, value]) => `[${key}="${CSS.escape(value)}"]`)
+      .join('');
+    const elements = doc.querySelectorAll(selector);
+    return elements.length === 1;
   }
 
   public toShortString(): string {
-    return JSON.stringify(this, function replacer(k: string, v: string) {
+    return JSON.stringify(this, function replacer(k: string, v: unknown) {
       if (k === 'timestamp') {
         // No point reporting the same element lots of times
         return undefined;
