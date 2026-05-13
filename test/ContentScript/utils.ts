@@ -318,9 +318,9 @@ export async function enableZapEvents(
 
 export async function closeServer(_server: http.Server): Promise<void> {
   return new Promise((resolve) => {
-    _server.close(() => {
-      resolve();
-    });
+    _server.close();
+    _server.closeAllConnections();
+    resolve();
   });
 }
 

@@ -31,7 +31,7 @@ import {
   ZestStatementSwitchToFrame,
 } from '../types/zestScript/ZestStatement';
 import {ZestScriptMessage} from '../types/zestScript/ZestScript';
-import {getPath} from './util';
+import {getPath, markClassAsDynamic, snapshotInputClass} from './util';
 import {downloadJson} from '../utils/util';
 import {
   GET_ZEST_SCRIPT,
@@ -382,6 +382,7 @@ class Recorder {
 
     // Add listeners to all of the text fields
     element.querySelectorAll('input').forEach((input) => {
+      snapshotInputClass(input);
       this.addListenerToInputField(textElements, input, level, frame, element);
     });
     // Observer callback function to handle DOM mutations to detect added text fields
@@ -395,6 +396,8 @@ class Recorder {
               'input'
             );
             for (let j = 0; j < inputs.length; j += 1) {
+              const isNewInput = !textElements.has(inputs[j] as HTMLElement);
+              snapshotInputClass(inputs[j]);
               this.addListenerToInputField(
                 textElements,
                 inputs[j],
@@ -402,6 +405,12 @@ class Recorder {
                 frame,
                 element
               );
+              // If a newly added input already has a value, its state class was
+              // likely set on the detached node before insertion and won't be
+              // caught by comparing against the snapshot.
+              if (isNewInput && (inputs[j] as HTMLInputElement).value) {
+                markClassAsDynamic(inputs[j]);
+              }
             }
           }
         }

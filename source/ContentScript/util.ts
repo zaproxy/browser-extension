@@ -20,6 +20,26 @@
 import {ElementLocator} from '../types/zestScript/ZestStatement';
 import {ZAP_FLOATING_DIV} from '../utils/constants';
 
+const dynamicClassElements = new WeakSet<Element>();
+const inputClassSnapshots = new WeakMap<Element, string>();
+
+function markClassAsDynamic(element: Element): void {
+  dynamicClassElements.add(element);
+}
+
+function snapshotInputClass(element: Element): void {
+  if (!inputClassSnapshots.has(element)) {
+    inputClassSnapshots.set(element, element.getAttribute('class') ?? '');
+  }
+}
+
+function hasClassChangedSinceSnapshot(element: Element): boolean {
+  if (!inputClassSnapshots.has(element)) return false;
+  return (
+    inputClassSnapshots.get(element) !== (element.getAttribute('class') ?? '')
+  );
+}
+
 function isElementPathUnique(path: string, documentElement: Document): boolean {
   const elements = documentElement.querySelectorAll(path);
   return elements.length === 1;
@@ -128,6 +148,8 @@ function getPath(
     path.type = 'id';
     path.element = element.id;
   } else if (
+    !dynamicClassElements.has(element) &&
+    !hasClassChangedSinceSnapshot(element) &&
     element.classList.length === 1 &&
     element.classList.item(0) != null &&
     isElementPathUnique(`.${element.classList.item(0)}`, documentElement)
@@ -151,4 +173,4 @@ function getPath(
   return path;
 }
 
-export {getPath};
+export {getPath, markClassAsDynamic, snapshotInputClass};
