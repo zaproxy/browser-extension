@@ -71,6 +71,16 @@ class Recorder {
 
   lastStatementTime: number;
 
+  lastUserInteractionTime = 0;
+
+  lastMouseDownTarget: EventTarget | null = null;
+
+  readonly USER_INTERACTION_WINDOW_MS = 500;
+
+  pendingSyntheticClickTarget: Element | null = null;
+
+  pendingSyntheticClickTimer: ReturnType<typeof setTimeout> | null = null;
+
   async sendZestScriptToZAP(
     zestStatement: ZestStatement,
     params: {sendCache: boolean; notify: boolean}
@@ -156,26 +166,75 @@ class Recorder {
     event: Event
   ): void {
     if (!this.shouldRecord(event.target as HTMLElement)) return;
-    const waited: number = this.getWaited();
     const {level, frame, element} = params;
+    const clickTarget = event.target as Element;
     this.handleFrameSwitches(level, frame);
     console.log(event, 'ZAP clicked');
-    const elementLocator = getPath(event.target as HTMLElement, element);
 
     if ((event as MouseEvent).detail === 0) {
-      // Not a user click.
-      if (this.cachedSubmit) {
-        this.handleCachedSubmit();
+      const timeSinceInteraction = Date.now() - this.lastUserInteractionTime;
+      const mouseDownWasOnTarget =
+        this.lastMouseDownTarget !== null &&
+        clickTarget.contains(this.lastMouseDownTarget as Node);
+      if (
+        timeSinceInteraction >= this.USER_INTERACTION_WINDOW_MS ||
+        !mouseDownWasOnTarget
+      ) {
+        // Pure programmatic click: no recent user interaction on this target.
+        if (this.cachedSubmit) {
+          this.handleCachedSubmit();
+        }
+        return;
       }
+      // Synthetic click with recent user interaction on this target.
+      // Defer recording: if the real click arrives before the timer fires the
+      // site fired an extra click but didn't suppress the real one, so we
+      // discard the synthetic and record the real click instead.
+      const elementLocator = getPath(event.target as HTMLElement, element);
+      if (this.pendingSyntheticClickTimer !== null) {
+        clearTimeout(this.pendingSyntheticClickTimer);
+      }
+      this.pendingSyntheticClickTarget = clickTarget;
+      this.pendingSyntheticClickTimer = setTimeout(() => {
+        // No real click arrived — site suppressed it; record the synthetic.
+        this.pendingSyntheticClickTarget = null;
+        this.pendingSyntheticClickTimer = null;
+        const waited = this.getWaited();
+        this.sendScrollToToZap(elementLocator, waited);
+        this.sendZestScriptToZAP(
+          new ZestStatementElementClick(elementLocator, waited),
+          {sendCache: true, notify: true}
+        );
+      }, 0);
       return;
     }
 
+    // Real user click (detail > 0).
+    // If a synthetic was pending for this exact target, the site fired an
+    // extra click but did not suppress the real one — discard the synthetic.
+    if (
+      this.pendingSyntheticClickTarget !== null &&
+      this.pendingSyntheticClickTarget === clickTarget
+    ) {
+      if (this.pendingSyntheticClickTimer !== null) {
+        clearTimeout(this.pendingSyntheticClickTimer);
+      }
+      this.pendingSyntheticClickTarget = null;
+      this.pendingSyntheticClickTimer = null;
+    }
+
+    const waited = this.getWaited();
+    const elementLocator = getPath(event.target as HTMLElement, element);
     this.sendScrollToToZap(elementLocator, waited);
     this.sendZestScriptToZAP(
       new ZestStatementElementClick(elementLocator, waited),
       {sendCache: true, notify: true}
     );
-    // click on target element
+  }
+
+  handleUserInteraction(event: Event): void {
+    this.lastUserInteractionTime = Date.now();
+    this.lastMouseDownTarget = event.target;
   }
 
   handleScroll(params: {level: number; frame: number}, event: Event): void {
@@ -374,6 +433,11 @@ class Recorder {
     element.addEventListener(
       'change',
       this.handleChange.bind(this, {level, frame, element})
+    );
+    element.addEventListener(
+      'mousedown',
+      this.handleUserInteraction.bind(this),
+      {capture: true}
     );
 
     // Add listeners to all the frames
