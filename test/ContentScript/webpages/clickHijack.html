@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Click Hijack Test</title>
+  </head>
+  <body>
+    <button id="hijacked">Hijacked Button</button>
+
+    <!-- Simulates a site that fires an extra programmatic click on top of the
+         real user click without suppressing it — both clicks reach the recorder -->
+    <button id="extra-click">Extra Click Button</button>
+
+    <!-- Used to test that two real user clicks are both recorded -->
+    <button id="normal">Normal Button</button>
+
+    <!-- Used to test that a purely programmatic click with no user
+         interaction is not recorded -->
+    <button id="programmatic">Programmatic Button</button>
+
+    <script>
+      document.addEventListener('click', function (e) {
+        if (e.detail > 0 && e.target.id === 'hijacked') {
+          e.stopImmediatePropagation();
+          e.target.dispatchEvent(
+            new MouseEvent('click', {bubbles: true, cancelable: true})
+          );
+        }
+      }, {capture: true});
+
+      document.addEventListener('click', function (e) {
+        if (e.detail > 0 && e.target.id === 'extra-click') {
+          e.target.dispatchEvent(
+            new MouseEvent('click', {bubbles: true, cancelable: true})
+          );
+        }
+      }, {capture: true});
+    </script>
+  </body>
+</html>

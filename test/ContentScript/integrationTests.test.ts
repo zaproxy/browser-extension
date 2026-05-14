@@ -722,6 +722,87 @@ function integrationTests(
     ]);
   });
 
+  test('Should record click re-fired by site', async () => {
+    // Given / When
+    await driver.toggleRecording();
+    const wd = await driver.getWebDriver();
+    await wd.get(`http://localhost:${_HTTPPORT}/webpages/clickHijack.html`);
+    await wd.wait(until.elementLocated(By.id('ZapfloatingDiv')));
+    await wd.findElement(By.id('hijacked')).click();
+    await eventsProcessed();
+    // Then
+    expect(actualData).toEqual([
+      reportZestStatementComment(),
+      reportZestStatementLaunch(
+        'http://localhost:1801/webpages/clickHijack.html'
+      ),
+      reportZestStatementScrollTo(3, 'hijacked'),
+      reportZestStatementClick(4, 'hijacked'),
+    ]);
+  });
+
+  test('Should record both clicks when site adds extra click without suppressing real one', async () => {
+    // Given / When
+    await driver.toggleRecording();
+    const wd = await driver.getWebDriver();
+    await wd.get(`http://localhost:${_HTTPPORT}/webpages/clickHijack.html`);
+    await wd.wait(until.elementLocated(By.id('ZapfloatingDiv')));
+    await wd.findElement(By.id('extra-click')).click();
+    await eventsProcessed();
+    // Then
+    expect(actualData).toEqual([
+      reportZestStatementComment(),
+      reportZestStatementLaunch(
+        'http://localhost:1801/webpages/clickHijack.html'
+      ),
+      reportZestStatementScrollTo(3, 'extra-click'),
+      reportZestStatementClick(4, 'extra-click'),
+    ]);
+  });
+
+  test('Should record two clicks when user clicks same button twice', async () => {
+    // Given / When
+    await driver.toggleRecording();
+    const wd = await driver.getWebDriver();
+    await wd.get(`http://localhost:${_HTTPPORT}/webpages/clickHijack.html`);
+    await wd.wait(until.elementLocated(By.id('ZapfloatingDiv')));
+    const btn = await wd.findElement(By.id('normal'));
+    await btn.click();
+    await btn.click();
+    await eventsProcessed();
+    // Then
+    expect(actualData).toEqual([
+      reportZestStatementComment(),
+      reportZestStatementLaunch(
+        'http://localhost:1801/webpages/clickHijack.html'
+      ),
+      reportZestStatementScrollTo(3, 'normal'),
+      reportZestStatementClick(4, 'normal'),
+      reportZestStatementScrollTo(5, 'normal'),
+      reportZestStatementClick(6, 'normal'),
+    ]);
+  });
+
+  test('Should not record programmatic click without user interaction', async () => {
+    // Given / When
+    await driver.toggleRecording();
+    const wd = await driver.getWebDriver();
+    await wd.get(`http://localhost:${_HTTPPORT}/webpages/clickHijack.html`);
+    await wd.wait(until.elementLocated(By.id('ZapfloatingDiv')));
+    // Fire a click with no preceding mousedown — purely programmatic
+    await wd.executeScript(() => {
+      (document.getElementById('programmatic') as HTMLButtonElement).click();
+    });
+    await eventsProcessed();
+    // Then — no click recorded: detail=0 with no recent mousedown on this target
+    expect(actualData).toEqual([
+      reportZestStatementComment(),
+      reportZestStatementLaunch(
+        'http://localhost:1801/webpages/clickHijack.html'
+      ),
+    ]);
+  });
+
   test('Should record set localStorage', async () => {
     // Given
     await enableZapEvents(server, driver);
