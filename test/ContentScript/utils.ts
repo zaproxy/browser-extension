@@ -329,3 +329,7 @@ export function downloadScriptName(dir: string): string {
     (item) => !item.isDirectory()
   )[0].name;
 }
+
+export function readDownloadedScript(dir: string): string {
+  return fs.readFileSync(path.join(dir, downloadScriptName(dir)), 'utf8');
+}

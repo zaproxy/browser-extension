@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 - Report elements that have cursor pointer style.
+- Recorder: statement delay option.
 
 ### Fixed
 - Do not use class to identify elements if it is seen to change.

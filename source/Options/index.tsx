@@ -19,6 +19,7 @@
  */
 import Browser from 'webextension-polyfill';
 import {ZAP_ENABLE, ZAP_KEY, ZAP_URL} from '../utils/constants';
+import {DEFAULT_STATEMENT_DELAY} from '../types/zestScript/ZestScript';
 
 console.log('Options loading');
 
@@ -32,11 +33,17 @@ function saveOptions(): void {
   const zapclosewindowhandle = (
     document.getElementById('window-close-input') as HTMLInputElement
   ).checked;
+  const zapstatementdelay = parseInt(
+    (document.getElementById('statement-delay-input') as HTMLInputElement)
+      .value,
+    10
+  );
   Browser.storage.sync.set({
     zapurl,
     zapkey,
     zapenable,
     zapclosewindowhandle,
+    zapstatementdelay,
   });
 }
 
@@ -51,6 +58,7 @@ function restoreOptions(): void {
       zapenable: false,
       zaprecordingactive: false,
       zapclosewindowhandle: true,
+      zapstatementdelay: DEFAULT_STATEMENT_DELAY,
     })
     .then((items) => {
       (document.getElementById(ZAP_URL) as HTMLInputElement).value =
@@ -62,6 +70,9 @@ function restoreOptions(): void {
       (
         document.getElementById('window-close-input') as HTMLInputElement
       ).checked = items.zapclosewindowhandle as boolean;
+      (
+        document.getElementById('statement-delay-input') as HTMLInputElement
+      ).value = String(items.zapstatementdelay);
     });
 }
 document.addEventListener('DOMContentLoaded', restoreOptions);

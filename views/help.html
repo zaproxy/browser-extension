@@ -67,8 +67,20 @@
 	You must have recorded something and specified a script name.
 
     <h3>Config Button</h3>
-	Shows the extension configuration screen. This is only available in the full ZAP extension, the recorder extension 
+	Shows the extension configuration screen. This is only available in the full ZAP extension, the recorder extension
 	does not have this button or any configuration options.
+
+    <h2>Configuration Options</h2>
+    The configuration screen (accessible via the Config Button) has the following options:
+
+    <h3>Auto-close</h3>
+	When enabled, the recorded scripts will automatically close the browser window at the end of the recording.
+
+    <h3>Statement Delay</h3>
+	The number of milliseconds to wait between each statement when the recorded Zest script is run.
+	The default is 1000ms (1 second).
+	Set to 0 to disable the delay. A delay can be useful if the application being recorded cannot cope with actions 
+	being replayed much more quickly that a user will typically perform.
 
     <h3>Help Button</h3>
 	Shows this screen.
