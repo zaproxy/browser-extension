@@ -44,7 +44,9 @@ import {
   pageLoaded,
   focus,
   downloadScriptName,
+  readDownloadedScript,
 } from './utils';
+import {DEFAULT_STATEMENT_DELAY} from '../../source/types/zestScript/ZestScript';
 
 const testif = (condition: boolean): jest.It => (condition ? it : it.skip);
 
@@ -522,6 +524,62 @@ function integrationTests(
     await eventsProcessed();
     // Then
     expect(downloadScriptName(downloadsDir.path)).toBe('recordedScript.zst');
+  });
+
+  test('Should download script with default statement delay option', async () => {
+    // Given
+    await driver.toggleRecording();
+    const wd = await driver.getWebDriver();
+    await wd.get(await driver.getPopupURL());
+    await wd.findElement(By.id('script-name-input')).sendKeys('recordedScript');
+    await wd.get(`http://localhost:${_HTTPPORT}/webpages/interactions.html`);
+    await wd.findElement(By.id('click')).click();
+    await wd.get(await driver.getPopupURL());
+    await wd.findElement(By.id('save-script')).click();
+    // When
+    await eventsProcessed();
+    // Then
+    expect(JSON.parse(readDownloadedScript(downloadsDir.path)).options).toEqual(
+      {statementDelay: String(DEFAULT_STATEMENT_DELAY)}
+    );
+  });
+
+  test('Should download script with no options when statement delay is 0', async () => {
+    // Given
+    await driver.setStatementDelay(0);
+    await driver.toggleRecording();
+    const wd = await driver.getWebDriver();
+    await wd.get(await driver.getPopupURL());
+    await wd.findElement(By.id('script-name-input')).sendKeys('recordedScript');
+    await wd.get(`http://localhost:${_HTTPPORT}/webpages/interactions.html`);
+    await wd.findElement(By.id('click')).click();
+    await wd.get(await driver.getPopupURL());
+    await wd.findElement(By.id('save-script')).click();
+    // When
+    await eventsProcessed();
+    // Then
+    expect(
+      JSON.parse(readDownloadedScript(downloadsDir.path)).options
+    ).toBeUndefined();
+  });
+
+  test('Should download script with custom statement delay option', async () => {
+    // Given
+    await driver.setStatementDelay(5000);
+    await driver.toggleRecording();
+    const wd = await driver.getWebDriver();
+    await wd.get(await driver.getPopupURL());
+    await wd.findElement(By.id('script-name-input')).sendKeys('recordedScript');
+    await wd.get(`http://localhost:${_HTTPPORT}/webpages/interactions.html`);
+    await wd.findElement(By.id('click')).click();
+    await wd.get(await driver.getPopupURL());
+    await wd.findElement(By.id('save-script')).click();
+    // When
+    await eventsProcessed();
+    // Then
+    expect(JSON.parse(readDownloadedScript(downloadsDir.path)).options).toEqual(
+      {statementDelay: '5000'}
+    );
   });
 
   test('Should send window handle close script when enabled', async () => {

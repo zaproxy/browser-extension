@@ -19,6 +19,8 @@
  */
 import Browser from 'webextension-polyfill';
 
+const DEFAULT_STATEMENT_DELAY = 1000;
+
 interface ZestScriptMessage {
   script: string;
   title: string;
@@ -31,6 +33,8 @@ class ZestScript {
   private curIndex = 1;
 
   private title: string;
+
+  private statementDelay = 0;
 
   constructor(title = '') {
     this.title = title;
@@ -62,47 +66,51 @@ class ZestScript {
   }
 
   toJSON(): string {
-    return JSON.stringify(
-      {
-        about:
-          'This is a Zest script. For more details about Zest visit https://github.com/zaproxy/zest/',
-        zestVersion: '0.3',
-        title: this.title,
-        description: '',
-        prefix: '',
-        type: 'StandAlone',
-        parameters: {
-          tokenStart: '{{',
-          tokenEnd: '}}',
-          tokens: {},
-          elementType: 'ZestVariables',
-        },
-        statements: this.zestStatements.map((statement) =>
-          JSON.parse(statement)
-        ),
-        authentication: [],
-        index: 0,
-        enabled: true,
-        elementType: 'ZestScript',
+    const script: Record<string, unknown> = {
+      about:
+        'This is a Zest script. For more details about Zest visit https://github.com/zaproxy/zest/',
+      zestVersion: '0.3',
+      title: this.title,
+      description: '',
+      prefix: '',
+      type: 'StandAlone',
+      parameters: {
+        tokenStart: '{{',
+        tokenEnd: '}}',
+        tokens: {},
+        elementType: 'ZestVariables',
       },
-      null,
-      2
-    );
+      statements: this.zestStatements.map((statement) => JSON.parse(statement)),
+      authentication: [],
+      index: 0,
+      enabled: true,
+      elementType: 'ZestScript',
+    };
+    if (this.statementDelay > 0) {
+      script.options = {statementDelay: String(this.statementDelay)};
+    }
+    return JSON.stringify(script, null, 2);
   }
 
   getZestScript(): Promise<ZestScriptMessage> {
     return new Promise((resolve) => {
-      Browser.storage.sync.get({zapscriptname: this.title}).then((items) => {
-        this.title = items.zapscriptname as string;
-        resolve({
-          script: this.toJSON(),
-          title: this.title,
-          statementCount: this.getZestStatementCount(),
+      Browser.storage.sync
+        .get({
+          zapscriptname: this.title,
+          zapstatementdelay: DEFAULT_STATEMENT_DELAY,
+        })
+        .then((items) => {
+          this.title = items.zapscriptname as string;
+          this.statementDelay = items.zapstatementdelay as number;
+          resolve({
+            script: this.toJSON(),
+            title: this.title,
+            statementCount: this.getZestStatementCount(),
+          });
         });
-      });
     });
   }
 }
 
-export {ZestScript};
+export {ZestScript, DEFAULT_STATEMENT_DELAY};
 export type {ZestScriptMessage};

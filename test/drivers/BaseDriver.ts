@@ -76,6 +76,21 @@ abstract class BaseDriver {
     await this.setEnableAndSave(wd, value);
   }
 
+  public async setStatementDelay(value: number): Promise<void> {
+    const wd = await this.getWebDriver();
+    await wd.switchTo().newWindow('tab');
+    await wd.get(await this.getOptionsURL());
+    const input = await wd.findElement(By.id('statement-delay-input'));
+    await input.clear();
+    await input.sendKeys(String(value));
+    await wd.findElement(By.id('save')).click();
+    await new Promise((f) => {
+      setTimeout(f, 500);
+    });
+    await wd.close();
+    await this.selectLatestWindow(wd);
+  }
+
   private async setEnableAndSave(wd: WebDriver, value: boolean): Promise<void> {
     const zapenable = await wd.findElement(By.id('zapenable'));
     if (value !== (await zapenable.isSelected())) {
