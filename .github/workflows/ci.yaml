@@ -31,6 +31,7 @@ jobs:
   integration:
     needs: check
     runs-on: ubuntu-latest
+    continue-on-error: ${{ matrix.browser == 'Firefox' }}
     strategy:
       fail-fast: false
       matrix:

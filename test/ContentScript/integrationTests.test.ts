@@ -443,7 +443,30 @@ function integrationTests(
         'http://localhost:1801/webpages/interactions.html'
       ),
       reportZestStatementScrollTo(3, 'cars'),
-      reportZestStatementSendKeys(4, 'cars', 'audi'),
+      reportZestStatementSendKeys(4, 'cars', 'Audi'),
+      reportZestStatementScrollTo(5, 'click'),
+      reportZestStatementClick(6, 'click'),
+    ]);
+  });
+
+  test('Should record long select with option near the bottom', async () => {
+    // Given / When
+    await driver.toggleRecording();
+    const wd = await driver.getWebDriver();
+    await wd.get(`http://localhost:${_HTTPPORT}/webpages/interactions.html`);
+    await pageLoaded(wd);
+    await wd.wait(until.elementLocated(By.id('ZapfloatingDiv')));
+    await wd.findElement(By.id('longlist')).sendKeys('Spinach');
+    await wd.findElement(By.id('click')).click();
+    await eventsProcessed();
+    // Then
+    expect(actualData).toEqual([
+      reportZestStatementComment(),
+      reportZestStatementLaunch(
+        'http://localhost:1801/webpages/interactions.html'
+      ),
+      reportZestStatementScrollTo(3, 'longlist'),
+      reportZestStatementSendKeys(4, 'longlist', 'Spinach'),
       reportZestStatementScrollTo(5, 'click'),
       reportZestStatementClick(6, 'click'),
     ]);
