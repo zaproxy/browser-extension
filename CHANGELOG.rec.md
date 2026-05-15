@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Fixed
 - Do not use class to identify elements if it is seen to change.
 - Recording: handle sites which catch and regenerate clicks.
+- Recording of select statements.
 
 ## 0.1.8 - 2025-12-12
 

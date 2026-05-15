@@ -279,13 +279,15 @@ class Recorder {
       // The cached submit was not on the same element, so send it
       this.handleCachedSubmit();
     }
+    const select = event.target as HTMLSelectElement;
+    const keys =
+      select.tagName === 'SELECT'
+        ? ((select.selectedOptions[0] as HTMLOptionElement | undefined)?.text ??
+          '')
+        : (event.target as HTMLInputElement).value;
     this.sendScrollToToZap(elementLocator, waited);
     this.sendZestScriptToZAP(
-      new ZestStatementElementSendKeys(
-        elementLocator,
-        (event.target as HTMLInputElement).value,
-        waited
-      ),
+      new ZestStatementElementSendKeys(elementLocator, keys, waited),
       {sendCache: false, notify: true}
     );
     // Now send the cached submit, if there still is one
