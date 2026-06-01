@@ -125,6 +125,20 @@ class ReportedElement extends ReportedObject {
         // This will not work if form tags are not used
         this.formId = Array.prototype.slice.call(document.forms).indexOf(form);
       }
+    } else if (element.tagName === 'TEXTAREA') {
+      const textarea: HTMLTextAreaElement = element as HTMLTextAreaElement;
+      this.text = textarea.value;
+      const {form} = textarea;
+      if (form) {
+        this.formId = Array.prototype.slice.call(document.forms).indexOf(form);
+      }
+    } else if (element.tagName === 'SELECT') {
+      const select: HTMLSelectElement = element as HTMLSelectElement;
+      this.text = select.value;
+      const {form} = select;
+      if (form) {
+        this.formId = Array.prototype.slice.call(document.forms).indexOf(form);
+      }
     } else if (element.hasAttribute('href')) {
       this.href = element.getAttribute('href');
     }

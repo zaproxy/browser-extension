@@ -1070,6 +1070,59 @@ function integrationTests(
     ]);
   });
 
+  test('Should report textarea', async () => {
+    // Given
+    await enableZapEvents(server, driver);
+    const wd = await driver.getWebDriver();
+    // When
+    await wd.get(`http://localhost:${_HTTPPORT}/webpages/interactions.html`);
+    await eventsProcessed();
+    // Then
+    expect(actualData).toContainEqual(
+      reportObject(
+        'nodeAdded',
+        'TEXTAREA',
+        'textarea-1',
+        'TEXTAREA',
+        `http://localhost:${_HTTPPORT}/webpages/interactions.html`,
+        undefined,
+        'Existing text'
+      )
+    );
+  });
+
+  test('Should report select', async () => {
+    // Given
+    await enableZapEvents(server, driver);
+    const wd = await driver.getWebDriver();
+    // When
+    await wd.get(`http://localhost:${_HTTPPORT}/webpages/interactions.html`);
+    await eventsProcessed();
+    // Then
+    expect(actualData).toContainEqual(
+      reportObject(
+        'nodeAdded',
+        'SELECT',
+        'cars',
+        'SELECT',
+        `http://localhost:${_HTTPPORT}/webpages/interactions.html`,
+        undefined,
+        'volvo'
+      )
+    );
+    expect(actualData).toContainEqual(
+      reportObject(
+        'nodeAdded',
+        'SELECT',
+        'longlist',
+        'SELECT',
+        `http://localhost:${_HTTPPORT}/webpages/interactions.html`,
+        undefined,
+        'v01'
+      )
+    );
+  });
+
   test('Should use className for input with stable unique class', async () => {
     // Given / When
     await driver.toggleRecording();
