@@ -193,6 +193,8 @@ function reportPointerElements(
     const url = window.location.href;
     if (
       tagName !== 'input' &&
+      tagName !== 'textarea' &&
+      tagName !== 'select' &&
       tagName !== 'button' &&
       tagName !== 'a' &&
       element instanceof Element
@@ -217,6 +219,8 @@ function reportPageLoaded(
   reportPageLinks(doc, fn);
   reportPageForms(doc, fn);
   reportElements(doc.getElementsByTagName('input'), fn);
+  reportElements(doc.getElementsByTagName('textarea'), fn);
+  reportElements(doc.getElementsByTagName('select'), fn);
   reportElements(doc.getElementsByTagName('button'), fn);
   reportPointerElements(doc, fn);
   reportStorage(LOCAL_STORAGE, localStorage, fn);
@@ -235,6 +239,8 @@ const domMutated = function domMutation(
     for (const mutation of mutationList) {
       if (mutation.type === 'childList') {
         reportNodeElements(mutation.target, 'input', reportObject);
+        reportNodeElements(mutation.target, 'textarea', reportObject);
+        reportNodeElements(mutation.target, 'select', reportObject);
         reportNodeElements(mutation.target, 'button', reportObject);
         if (mutation.target.nodeType === Node.ELEMENT_NODE) {
           reportPointerElements(mutation.target as Element, reportObject);
