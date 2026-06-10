@@ -114,7 +114,8 @@ function integrationTests(
           'A',
           'http://localhost:1801/webpages/integrationTest.html',
           'http://localhost:1801/webpages/integrationTest.html#test',
-          'Link'
+          'Link',
+          {interactable: {visible: true, enabled: true, pointer: true}}
         ),
         reportObject(
           'localStorage',
@@ -1008,7 +1009,8 @@ function integrationTests(
         'A',
         'http://localhost:1801/webpages/integrationTest.html',
         'http://localhost:1801/webpages/integrationTest.html#test',
-        'Link'
+        'Link',
+        {interactable: {visible: true, enabled: true, pointer: true}}
       ),
       reportEvent(
         'domMutation',
@@ -1021,7 +1023,8 @@ function integrationTests(
         'A',
         'http://localhost:1801/webpages/integrationTest.html',
         'https://www.example.com/',
-        'Test link'
+        'Test link',
+        {interactable: {visible: true, enabled: true, pointer: true}}
       ),
     ]);
   });
@@ -1047,7 +1050,8 @@ function integrationTests(
         'IMG',
         'http://localhost:1801/webpages/pointerelements.html',
         undefined,
-        ''
+        '',
+        {interactable: {visible: true, enabled: true, pointer: true}}
       ),
       reportObject(
         'nodeAdded',
@@ -1056,7 +1060,8 @@ function integrationTests(
         'DIV',
         'http://localhost:1801/webpages/pointerelements.html',
         undefined,
-        'Page 1'
+        'Page 1',
+        {interactable: {visible: true, enabled: true, pointer: true}}
       ),
       reportObject(
         'nodeAdded',
@@ -1065,7 +1070,8 @@ function integrationTests(
         'DIV',
         'http://localhost:1801/webpages/pointerelements.html',
         undefined,
-        'Page 2'
+        'Page 2',
+        {interactable: {visible: true, enabled: true, pointer: true}}
       ),
     ]);
   });
@@ -1086,7 +1092,8 @@ function integrationTests(
         'TEXTAREA',
         `http://localhost:${_HTTPPORT}/webpages/interactions.html`,
         undefined,
-        'Existing text'
+        'Existing text',
+        {interactable: {visible: true, enabled: true, pointer: false}}
       )
     );
   });
@@ -1107,7 +1114,8 @@ function integrationTests(
         'SELECT',
         `http://localhost:${_HTTPPORT}/webpages/interactions.html`,
         undefined,
-        'volvo'
+        'volvo',
+        {interactable: {visible: true, enabled: true, pointer: false}}
       )
     );
     expect(actualData).toContainEqual(
@@ -1118,7 +1126,8 @@ function integrationTests(
         'SELECT',
         `http://localhost:${_HTTPPORT}/webpages/interactions.html`,
         undefined,
-        'v01'
+        'v01',
+        {interactable: {visible: true, enabled: true, pointer: false}}
       )
     );
   });
@@ -1306,6 +1315,245 @@ function integrationTests(
       expect(await wd.getPageSource()).toContain('Summary');
     }
   );
+
+  test('Should report non interactable for disabled/hidden elements', async () => {
+    // Given
+    await enableZapEvents(server, driver);
+    const wd = await driver.getWebDriver();
+    const url = `http://localhost:${_HTTPPORT}/webpages/interactableTest.html`;
+    // When
+    await wd.get(url);
+    await eventsProcessed();
+    // Then
+    expect(actualData).toEqual(
+      expect.arrayContaining([
+        reportObject(
+          'nodeAdded',
+          'BUTTON',
+          'btn-aria-disabled',
+          'BUTTON',
+          url,
+          undefined,
+          'aria disabled',
+          {interactable: {visible: true, enabled: false, pointer: false}}
+        ),
+        reportObject(
+          'nodeAdded',
+          'INPUT',
+          'input-disabled',
+          'INPUT',
+          url,
+          undefined,
+          '',
+          {
+            interactable: {visible: true, enabled: false, pointer: false},
+            tagType: 'text',
+          }
+        ),
+        reportObject(
+          'nodeAdded',
+          'BUTTON',
+          'btn-aria-hidden',
+          'BUTTON',
+          url,
+          undefined,
+          'aria hidden',
+          {interactable: {visible: false, enabled: true, pointer: false}}
+        ),
+        reportObject(
+          'nodeAdded',
+          'BUTTON',
+          'btn-css-display',
+          'BUTTON',
+          url,
+          undefined,
+          'css display',
+          {interactable: {visible: false, enabled: true, pointer: false}}
+        ),
+        reportObject(
+          'nodeAdded',
+          'BUTTON',
+          'btn-css-opacity',
+          'BUTTON',
+          url,
+          undefined,
+          'css opacity',
+          {interactable: {visible: false, enabled: true, pointer: false}}
+        ),
+        reportObject(
+          'nodeAdded',
+          'BUTTON',
+          'btn-css-visibility',
+          'BUTTON',
+          url,
+          undefined,
+          'css visibility',
+          {interactable: {visible: false, enabled: true, pointer: false}}
+        ),
+        reportObject(
+          'nodeAdded',
+          'BUTTON',
+          'btn-css-offset',
+          'BUTTON',
+          url,
+          undefined,
+          'css offset',
+          {interactable: {visible: false, enabled: true, pointer: false}}
+        ),
+        reportObject(
+          'nodeAdded',
+          'BUTTON',
+          'btn-css-transition',
+          'BUTTON',
+          url,
+          undefined,
+          'css transition',
+          {interactable: {visible: false, enabled: true, pointer: false}}
+        ),
+        reportObject(
+          'nodeAdded',
+          'BUTTON',
+          'btn-pointer',
+          'BUTTON',
+          url,
+          undefined,
+          'pointer style',
+          {interactable: {visible: true, enabled: false, pointer: true}}
+        ),
+        reportObject(
+          'nodeAdded',
+          'BUTTON',
+          'btn-in-transition-parent',
+          'BUTTON',
+          url,
+          undefined,
+          'child of transition',
+          {interactable: {visible: false, enabled: true, pointer: false}}
+        ),
+      ])
+    );
+  });
+
+  test('Should send nodeChanged when elements become interactable', async () => {
+    // Given
+    await enableZapEvents(server, driver);
+    const wd = await driver.getWebDriver();
+    const url = `http://localhost:${_HTTPPORT}/webpages/interactableTest.html`;
+    await wd.get(url);
+    await eventsProcessed();
+    actualData.length = 0;
+    // When
+    await wd.findElement(By.id('enable-btn')).click();
+    await eventsProcessed();
+    // Then
+    expect(actualData).toEqual(
+      expect.arrayContaining([
+        reportObject(
+          'nodeChanged',
+          'BUTTON',
+          'btn-aria-disabled',
+          'BUTTON',
+          url,
+          undefined,
+          'aria disabled',
+          {interactable: {visible: true, enabled: true, pointer: false}}
+        ),
+        reportObject(
+          'nodeChanged',
+          'INPUT',
+          'input-disabled',
+          'INPUT',
+          url,
+          undefined,
+          '',
+          {
+            interactable: {visible: true, enabled: true, pointer: false},
+            tagType: 'text',
+          }
+        ),
+        reportObject(
+          'nodeChanged',
+          'BUTTON',
+          'btn-aria-hidden',
+          'BUTTON',
+          url,
+          undefined,
+          'aria hidden',
+          {interactable: {visible: true, enabled: true, pointer: false}}
+        ),
+        reportObject(
+          'nodeChanged',
+          'BUTTON',
+          'btn-css-display',
+          'BUTTON',
+          url,
+          undefined,
+          'css display',
+          {interactable: {visible: true, enabled: true, pointer: false}}
+        ),
+        reportObject(
+          'nodeChanged',
+          'BUTTON',
+          'btn-css-opacity',
+          'BUTTON',
+          url,
+          undefined,
+          'css opacity',
+          {interactable: {visible: true, enabled: true, pointer: false}}
+        ),
+        reportObject(
+          'nodeChanged',
+          'BUTTON',
+          'btn-css-visibility',
+          'BUTTON',
+          url,
+          undefined,
+          'css visibility',
+          {interactable: {visible: true, enabled: true, pointer: false}}
+        ),
+        reportObject(
+          'nodeChanged',
+          'BUTTON',
+          'btn-css-offset',
+          'BUTTON',
+          url,
+          undefined,
+          'css offset',
+          {interactable: {visible: true, enabled: true, pointer: false}}
+        ),
+        reportObject(
+          'nodeChanged',
+          'BUTTON',
+          'btn-css-transition',
+          'BUTTON',
+          url,
+          undefined,
+          'css transition',
+          {interactable: {visible: true, enabled: true, pointer: false}}
+        ),
+        reportObject(
+          'nodeChanged',
+          'BUTTON',
+          'btn-pointer',
+          'BUTTON',
+          url,
+          undefined,
+          'pointer style',
+          {interactable: {visible: true, enabled: true, pointer: true}}
+        ),
+        reportObject(
+          'nodeChanged',
+          'BUTTON',
+          'btn-in-transition-parent',
+          'BUTTON',
+          url,
+          undefined,
+          'child of transition',
+          {interactable: {visible: true, enabled: true, pointer: false}}
+        ),
+      ])
+    );
+  });
 }
 
 describe('Chrome Integration Test', () => {

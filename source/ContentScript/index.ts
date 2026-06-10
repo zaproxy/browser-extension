@@ -23,8 +23,10 @@ import {
   ReportedObject,
   ReportedStorage,
   ReportedEvent,
+  InteractableState,
 } from '../types/ReportedModel';
 import Recorder from './recorder';
+import {hasPointerStyle, getInteractableState} from './util';
 import {
   IS_FULL_EXTENSION,
   LOCAL_STORAGE,
@@ -42,6 +44,10 @@ import {
 const reportedObjects = new Set<string>();
 
 const reportedEvents: {[key: string]: ReportedEvent} = {};
+
+const elementInteractableState = new WeakMap<Element, InteractableState>();
+
+let trackedElementRefs: WeakRef<Element>[] = [];
 
 const recorder = new Recorder();
 
@@ -141,13 +147,25 @@ function reportEvent(event: ReportedEvent): void {
   }
 }
 
+function trackInteractableElement(re: ReportedElement, element: Element): void {
+  const state = getInteractableState(element);
+  re.interactable = state;
+
+  if (!elementInteractableState.has(element)) {
+    elementInteractableState.set(element, state);
+    trackedElementRefs.push(new WeakRef(element));
+  }
+}
+
 function reportPageForms(
   doc: Document,
   fn: (re: ReportedObject) => void
 ): void {
   const url = window.location.href;
   Array.prototype.forEach.call(doc.forms, (form: HTMLFormElement) => {
-    fn(new ReportedElement(form, url));
+    const re = new ReportedElement(form, url);
+    trackInteractableElement(re, form);
+    fn(re);
   });
 }
 
@@ -159,7 +177,9 @@ function reportPageLinks(
   Array.prototype.forEach.call(
     doc.links,
     (link: HTMLAnchorElement | HTMLAreaElement) => {
-      fn(new ReportedElement(link, url));
+      const re = new ReportedElement(link, url);
+      trackInteractableElement(re, link);
+      fn(re);
     }
   );
 }
@@ -170,7 +190,9 @@ function reportElements(
 ): void {
   const url = window.location.href;
   Array.prototype.forEach.call(collection, (element: Element) => {
-    fn(new ReportedElement(element, url));
+    const re = new ReportedElement(element, url);
+    trackInteractableElement(re, element);
+    fn(re);
   });
 }
 
@@ -199,9 +221,10 @@ function reportPointerElements(
       tagName !== 'a' &&
       element instanceof Element
     ) {
-      const compStyles = window.getComputedStyle(element, 'hover');
-      if (compStyles.getPropertyValue('cursor') === 'pointer') {
-        fn(new ReportedElement(element, url));
+      if (hasPointerStyle(element)) {
+        const re = new ReportedElement(element, url);
+        trackInteractableElement(re, element);
+        fn(re);
       }
     }
   });
@@ -272,6 +295,59 @@ function enableExtension(): void {
   observer.observe(document, {
     attributes: false,
     childList: true,
+    subtree: true,
+  });
+
+  const attributeObserver = new MutationObserver(() => {
+    withZapEnableSetting(async () => {
+      const pendingAnimations = document.getAnimations().map((a) => a.finished);
+      if (pendingAnimations.length > 0) {
+        await Promise.race([
+          Promise.all(pendingAnimations),
+          new Promise<void>((resolve) => {
+            setTimeout(resolve, 2000);
+          }),
+        ]);
+      }
+
+      const alive: WeakRef<Element>[] = [];
+      for (const ref of trackedElementRefs) {
+        const el = ref.deref();
+        if (el) {
+          alive.push(ref);
+          const newState = getInteractableState(el);
+          const prevState = elementInteractableState.get(el);
+          if (
+            prevState !== undefined &&
+            (prevState.visible !== newState.visible ||
+              prevState.enabled !== newState.enabled ||
+              prevState.pointer !== newState.pointer)
+          ) {
+            elementInteractableState.set(el, newState);
+            const re = new ReportedElement(
+              el,
+              window.location.href,
+              'nodeChanged'
+            );
+            re.interactable = newState;
+            sendObjectToZAP(re);
+          }
+        }
+      }
+      trackedElementRefs = alive;
+    });
+  });
+  attributeObserver.observe(document, {
+    attributes: true,
+    attributeFilter: [
+      'aria-disabled',
+      'aria-hidden',
+      'class',
+      'disabled',
+      'hidden',
+      'href',
+      'style',
+    ],
     subtree: true,
   });
 
