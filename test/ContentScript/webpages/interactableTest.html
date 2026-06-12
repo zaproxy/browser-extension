@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Interactable Test</title>
+  <style>
+    #btn-css-display { display: none; }
+    #btn-css-opacity { opacity: 0; }
+    #btn-css-visibility { visibility: hidden; }
+    #css-offset { display: none; }
+    #btn-css-transition { opacity: 0; transition: opacity 0.5s; }
+    #transition-parent { opacity: 0; transition: opacity 1s; }
+  </style>
+  <script>
+    function showElements() {
+      document.getElementById('btn-aria-disabled').removeAttribute('aria-disabled');
+      document.getElementById('input-disabled').removeAttribute('disabled');
+      document.getElementById('btn-aria-hidden').removeAttribute('aria-hidden');
+      document.getElementById('btn-css-display').style.display = 'block';
+      document.getElementById('btn-css-opacity').style.opacity = '1';
+      document.getElementById('btn-css-visibility').style.visibility = 'visible';
+      document.getElementById('css-offset').style.display = 'block';
+      document.getElementById('btn-css-transition').style.opacity = '1';
+      document.getElementById('btn-pointer').removeAttribute('aria-disabled');
+      document.getElementById('transition-parent').style.opacity = '1';
+    }
+  </script>
+</head>
+<body>
+
+  <button id="btn-aria-disabled" aria-disabled="true">aria disabled</button>
+  <input id="input-disabled" type="text" disabled />
+  <button id="btn-aria-hidden" aria-hidden="true" tabindex="-1">aria hidden</button>
+  <button id="btn-css-display">css display</button>
+  <button id="btn-css-opacity">css opacity</button>
+  <button id="btn-css-visibility">css visibility</button>
+  <div id="css-offset">
+    <button id="btn-css-offset">css offset</button>
+  </div>
+  <button id="btn-css-transition">css transition</button>
+  <button id="btn-pointer" aria-disabled="true" style="cursor: pointer;">pointer style</button>
+  <div id="transition-parent">
+    <button id="btn-in-transition-parent">child of transition</button>
+  </div>
+
+  <button id="enable-btn" onclick="showElements()">Enable All</button>
+
+</body>
+</html>

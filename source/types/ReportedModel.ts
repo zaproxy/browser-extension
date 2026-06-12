@@ -17,6 +17,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+interface InteractableState {
+  visible: boolean;
+  enabled: boolean;
+  pointer: boolean;
+}
+
 class ReportedObject {
   public timestamp: number;
 
@@ -100,9 +106,11 @@ class ReportedElement extends ReportedObject {
 
   public formId: number | null;
 
-  public constructor(element: Element, url: string) {
+  public interactable: InteractableState | undefined;
+
+  public constructor(element: Element, url: string, type = 'nodeAdded') {
     super(
-      'nodeAdded',
+      type,
       element.tagName,
       element.id,
       element.nodeName,
@@ -146,7 +154,7 @@ class ReportedElement extends ReportedObject {
 
   public toShortString(): string {
     return JSON.stringify(this, function replacer(k: string, v: string) {
-      if (k === 'timestamp') {
+      if (k === 'timestamp' || k === 'interactable') {
         // No point reporting the same element lots of times
         return undefined;
       }
@@ -177,3 +185,4 @@ class ReportedEvent {
 }
 
 export {ReportedElement, ReportedObject, ReportedStorage, ReportedEvent};
+export type {InteractableState};

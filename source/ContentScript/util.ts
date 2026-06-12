@@ -19,6 +19,7 @@
  */
 import {ElementLocator} from '../types/zestScript/ZestStatement';
 import {ZAP_FLOATING_DIV} from '../utils/constants';
+import {InteractableState} from '../types/ReportedModel';
 
 const dynamicClassElements = new WeakSet<Element>();
 const inputClassSnapshots = new WeakMap<Element, string>();
@@ -173,4 +174,55 @@ function getPath(
   return path;
 }
 
-export {getPath, markClassAsDynamic, snapshotInputClass};
+function hasPointerStyle(el: Element): boolean {
+  const compStyles = window.getComputedStyle(el, 'hover');
+  return compStyles.getPropertyValue('cursor') === 'pointer';
+}
+
+function isHiddenByParent(el: HTMLElement): boolean {
+  let node: HTMLElement | null = el;
+  while (node) {
+    const nodeStyle = node.ownerDocument.defaultView?.getComputedStyle(node);
+    if (
+      nodeStyle?.display === 'none' ||
+      nodeStyle?.opacity === '0' ||
+      (nodeStyle as CSSStyleDeclaration & {contentVisibility?: string})
+        ?.contentVisibility === 'hidden'
+    ) {
+      return true;
+    }
+    node = node.parentElement;
+  }
+  return false;
+}
+
+function getInteractableState(el: Element): InteractableState {
+  if (!(el instanceof HTMLElement)) {
+    return {visible: false, enabled: false, pointer: false};
+  }
+
+  const enabled =
+    !(el as HTMLElement & {disabled?: boolean}).disabled &&
+    el.getAttribute('aria-disabled') !== 'true';
+
+  const s = window.getComputedStyle(el);
+  const visible =
+    el.getAttribute('aria-hidden') !== 'true' &&
+    s.display !== 'none' &&
+    s.visibility !== 'hidden' &&
+    s.visibility !== 'collapse' &&
+    s.opacity !== '0' &&
+    (el.offsetWidth > 0 || el.offsetHeight > 0) &&
+    !isHiddenByParent(el);
+  const pointer = hasPointerStyle(el);
+
+  return {visible, enabled, pointer};
+}
+
+export {
+  getPath,
+  hasPointerStyle,
+  getInteractableState,
+  markClassAsDynamic,
+  snapshotInputClass,
+};

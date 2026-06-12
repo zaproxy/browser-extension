@@ -89,7 +89,11 @@ export function reportObject(
   nodeName: string,
   url: string,
   href: string | undefined,
-  text: string
+  text: string,
+  extras?: {
+    tagType?: string;
+    interactable?: {visible: boolean; enabled: boolean; pointer: boolean};
+  }
 ): object {
   const data = {
     action: {action: 'reportObject'},
@@ -103,12 +107,20 @@ export function reportObject(
         url,
         href,
         text,
+        tagType: extras?.tagType,
+        interactable: extras?.interactable,
       },
       apikey: 'not set',
     },
   };
   if (href === undefined) {
     delete data.body.objectJson.href;
+  }
+  if (extras?.tagType === undefined) {
+    delete data.body.objectJson.tagType;
+  }
+  if (extras?.interactable === undefined) {
+    delete data.body.objectJson.interactable;
   }
   return data;
 }
