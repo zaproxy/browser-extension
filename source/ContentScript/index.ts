@@ -26,7 +26,12 @@ import {
   InteractableState,
 } from '../types/ReportedModel';
 import Recorder from './recorder';
-import {hasPointerStyle, getInteractableState} from './util';
+import {
+  hasPointerStyle,
+  getInteractableState,
+  hasInteractableTagAncestor,
+  INTERACTABLE_TAG_NAMES,
+} from './util';
 import {
   IS_FULL_EXTENSION,
   LOCAL_STORAGE,
@@ -214,12 +219,9 @@ function reportPointerElements(
     const {tagName} = element;
     const url = window.location.href;
     if (
-      tagName !== 'input' &&
-      tagName !== 'textarea' &&
-      tagName !== 'select' &&
-      tagName !== 'button' &&
-      tagName !== 'a' &&
-      element instanceof Element
+      !INTERACTABLE_TAG_NAMES.has(tagName) &&
+      element instanceof Element &&
+      !hasInteractableTagAncestor(element)
     ) {
       if (hasPointerStyle(element)) {
         const re = new ReportedElement(element, url);

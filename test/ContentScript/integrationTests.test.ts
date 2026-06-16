@@ -1076,6 +1076,66 @@ function integrationTests(
     ]);
   });
 
+  test('Should not report pointer elements with interactable tag ancestor', async () => {
+    // Given
+    await enableZapEvents(server, driver);
+    server.setRecordZapEvents(false);
+    const wd = await driver.getWebDriver();
+    const url = `http://localhost:${_HTTPPORT}/webpages/pointerelementsparent.html`;
+    // When
+    await wd.get(url);
+    await eventsProcessed();
+    // Then
+    expect(actualData).toEqual([
+      reportEvent('pageLoad', url),
+      reportObject('nodeAdded', 'A', '', 'A', url, `${url}#`, 'link child', {
+        interactable: {visible: true, enabled: true, pointer: true},
+      }),
+      reportObject(
+        'nodeAdded',
+        'BUTTON',
+        'btn-deep',
+        'BUTTON',
+        url,
+        undefined,
+        'deep',
+        {interactable: {visible: true, enabled: true, pointer: false}}
+      ),
+      reportObject(
+        'nodeAdded',
+        'BUTTON',
+        'btn-outer',
+        'BUTTON',
+        url,
+        undefined,
+        'beyond',
+        {interactable: {visible: true, enabled: true, pointer: false}}
+      ),
+      reportObject(
+        'nodeAdded',
+        'DIV',
+        'div1',
+        'DIV',
+        url,
+        undefined,
+        'Standalone',
+        {
+          interactable: {visible: true, enabled: true, pointer: true},
+        }
+      ),
+      reportObject(
+        'nodeAdded',
+        'SPAN',
+        'span-beyond-limit',
+        'SPAN',
+        url,
+        undefined,
+        'beyond',
+        {interactable: {visible: true, enabled: true, pointer: true}}
+      ),
+    ]);
+  });
+
   test('Should report textarea', async () => {
     // Given
     await enableZapEvents(server, driver);
