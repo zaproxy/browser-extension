@@ -41,9 +41,13 @@ class FirefoxDriver extends BaseDriver {
         })
       )
       .addArguments('-headless');
+    const service = new firefox.ServiceBuilder().addArguments(
+      '--allow-system-access'
+    );
     const wd = (await new Builder()
       .forBrowser(Browser.FIREFOX)
       .setFirefoxOptions(options)
+      .setFirefoxService(service)
       .build()) as firefox.Driver;
     wd.installAddon(`${extensionPath.FIREFOX}.ext.xpi`, true);
     return wd;
