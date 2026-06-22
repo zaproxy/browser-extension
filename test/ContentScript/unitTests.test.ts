@@ -23,7 +23,7 @@
 import {TextEncoder, TextDecoder} from 'util';
 import * as src from '../../source/ContentScript/index';
 import {ZestScript} from '../../source/types/zestScript/ZestScript';
-import {getPath} from '../../source/ContentScript/util';
+import {getPath, safeXPathString} from '../../source/ContentScript/util';
 import {
   ElementLocator,
   ZestStatementElementClick,
@@ -474,6 +474,26 @@ test('should return correct path for element with XPath', () => {
   expect(path1.element).toBe('/html/body/div/button[1]');
   expect(path2.type).toBe('xpath');
   expect(path2.element).toBe('/html/body/div/button[2]');
+});
+
+describe('safeXPathString', () => {
+  test('wraps plain value in single quotes', () => {
+    expect(safeXPathString('amount')).toBe("'amount'");
+  });
+
+  test('wraps value containing single quote in double quotes', () => {
+    expect(safeXPathString("it's")).toBe('"it\'s"');
+  });
+
+  test('wraps value containing double quote in single quotes', () => {
+    expect(safeXPathString('say "hello"')).toBe('\'say "hello"\'');
+  });
+
+  test('uses concat() for value containing both quote types', () => {
+    expect(safeXPathString(`it's "complex"`)).toBe(
+      `concat('it', "'", 's "complex"')`
+    );
+  });
 });
 
 test('should generate valid frame switch statement', () => {
