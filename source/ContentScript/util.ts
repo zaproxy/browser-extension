@@ -188,6 +188,28 @@ function getPath(
   return path;
 }
 
+const INTERACTABLE_TAG_NAMES = new Set([
+  'INPUT',
+  'TEXTAREA',
+  'SELECT',
+  'BUTTON',
+  'A',
+]);
+
+function hasInteractableTagAncestor(el: Element): boolean {
+  let parent = el.parentElement;
+  let depth = 0;
+  // Do not traverse the whole tree.
+  while (parent && depth < 15) {
+    if (INTERACTABLE_TAG_NAMES.has(parent.tagName)) {
+      return true;
+    }
+    parent = parent.parentElement;
+    depth += 1;
+  }
+  return false;
+}
+
 function hasPointerStyle(el: Element): boolean {
   const compStyles = window.getComputedStyle(el, 'hover');
   return compStyles.getPropertyValue('cursor') === 'pointer';
@@ -237,6 +259,8 @@ export {
   getPath,
   hasPointerStyle,
   getInteractableState,
+  hasInteractableTagAncestor,
+  INTERACTABLE_TAG_NAMES,
   markClassAsDynamic,
   safeXPathString,
   snapshotInputClass,
