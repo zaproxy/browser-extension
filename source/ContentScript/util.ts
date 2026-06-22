@@ -86,6 +86,20 @@ function isZapDiv(node: ChildNode): boolean {
   return false;
 }
 
+function safeXPathString(value: string): string {
+  if (!value.includes("'")) {
+    return `'${value}'`;
+  }
+  if (!value.includes('"')) {
+    return `"${value}"`;
+  }
+  const parts = value
+    .split("'")
+    .map((part) => `'${part}'`)
+    .join(`, "'", `);
+  return `concat(${parts})`;
+}
+
 function getXPath(element: HTMLElement, documentElement: Document): string {
   if (!element.tagName) {
     return '';
@@ -94,7 +108,7 @@ function getXPath(element: HTMLElement, documentElement: Document): string {
   let selector = element.tagName.toLowerCase();
 
   if (element.id && isElementXPathUnique(selector, documentElement)) {
-    selector += `[@id="${element.id}"]`;
+    selector += `[@id=${safeXPathString(element.id)}]`;
   } else {
     let index = 1;
     let sibling = element.previousSibling;
@@ -224,5 +238,6 @@ export {
   hasPointerStyle,
   getInteractableState,
   markClassAsDynamic,
+  safeXPathString,
   snapshotInputClass,
 };
