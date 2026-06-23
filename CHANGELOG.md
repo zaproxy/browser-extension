@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 - Ignore cursor pointer style elements whose ancestor is already handled (e.g. `a`, `button`), as they should be only for decoration/aesthetic purposes of the latter.
+- Use more specific element locators.
 
 ## 0.1.9 - 2026-05-15
 
