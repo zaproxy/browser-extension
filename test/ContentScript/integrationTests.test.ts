@@ -115,7 +115,10 @@ function integrationTests(
           'http://localhost:1801/webpages/integrationTest.html',
           'http://localhost:1801/webpages/integrationTest.html#test',
           'Link',
-          {interactable: {visible: true, enabled: true, pointer: true}}
+          {
+            elementLocator: {type: 'cssSelector', element: 'body > a'},
+            interactable: {visible: true, enabled: true, pointer: true},
+          }
         ),
         reportObject(
           'localStorage',
@@ -134,6 +137,95 @@ function integrationTests(
           'http://localhost:1801/webpages/integrationTest.html',
           undefined,
           'true'
+        ),
+      ])
+    );
+  });
+
+  test('Should report elementLocator for all locator types', async () => {
+    // Given
+    await enableZapEvents(server, driver);
+    const wd = await driver.getWebDriver();
+    const pageUrl = `http://localhost:${_HTTPPORT}/webpages/elementLocator.html`;
+    // When
+    await wd.get(pageUrl);
+    await eventsProcessed();
+    // Then
+    expect(actualData).toEqual(
+      expect.arrayContaining([
+        reportObject(
+          'nodeAdded',
+          'A',
+          'link-by-id',
+          'A',
+          pageUrl,
+          `${pageUrl}#`,
+          'Link by ID',
+          {
+            elementLocator: {type: 'id', element: 'link-by-id'},
+            interactable: {visible: true, enabled: true, pointer: true},
+          }
+        ),
+        reportObject(
+          'nodeAdded',
+          'A',
+          '',
+          'A',
+          pageUrl,
+          `${pageUrl}#`,
+          'Link by class',
+          {
+            elementLocator: {type: 'className', element: 'unique-link-class'},
+            interactable: {visible: true, enabled: true, pointer: true},
+          }
+        ),
+        reportObject(
+          'nodeAdded',
+          'A',
+          '',
+          'A',
+          pageUrl,
+          `${pageUrl}#css1`,
+          'Link css 1',
+          {
+            elementLocator: {
+              type: 'xpath',
+              element: '/html/body/a[3]',
+            },
+            interactable: {visible: true, enabled: true, pointer: true},
+          }
+        ),
+        reportObject(
+          'nodeAdded',
+          'A',
+          '',
+          'A',
+          pageUrl,
+          `${pageUrl}#css2`,
+          'Link css 2',
+          {
+            elementLocator: {
+              type: 'xpath',
+              element: '/html/body/a[4]',
+            },
+            interactable: {visible: true, enabled: true, pointer: true},
+          }
+        ),
+        reportObject(
+          'nodeAdded',
+          'A',
+          '',
+          'A',
+          pageUrl,
+          `${pageUrl}#xpath`,
+          'Link by xpath',
+          {
+            elementLocator: {
+              type: 'xpath',
+              element: '/html/body/a[5]',
+            },
+            interactable: {visible: true, enabled: true, pointer: true},
+          }
         ),
       ])
     );
@@ -1010,7 +1102,10 @@ function integrationTests(
         'http://localhost:1801/webpages/integrationTest.html',
         'http://localhost:1801/webpages/integrationTest.html#test',
         'Link',
-        {interactable: {visible: true, enabled: true, pointer: true}}
+        {
+          elementLocator: {type: 'cssSelector', element: 'body > a'},
+          interactable: {visible: true, enabled: true, pointer: true},
+        }
       ),
       reportEvent(
         'domMutation',
@@ -1024,7 +1119,10 @@ function integrationTests(
         'http://localhost:1801/webpages/integrationTest.html',
         'https://www.example.com/',
         'Test link',
-        {interactable: {visible: true, enabled: true, pointer: true}}
+        {
+          elementLocator: {type: 'xpath', element: '/html/body/a[2]'},
+          interactable: {visible: true, enabled: true, pointer: true},
+        }
       ),
     ]);
   });
@@ -1051,7 +1149,10 @@ function integrationTests(
         'http://localhost:1801/webpages/pointerelements.html',
         undefined,
         '',
-        {interactable: {visible: true, enabled: true, pointer: true}}
+        {
+          elementLocator: {type: 'id', element: 'img1'},
+          interactable: {visible: true, enabled: true, pointer: true},
+        }
       ),
       reportObject(
         'nodeAdded',
@@ -1061,7 +1162,10 @@ function integrationTests(
         'http://localhost:1801/webpages/pointerelements.html',
         undefined,
         'Page 1',
-        {interactable: {visible: true, enabled: true, pointer: true}}
+        {
+          elementLocator: {type: 'id', element: 'div1'},
+          interactable: {visible: true, enabled: true, pointer: true},
+        }
       ),
       reportObject(
         'nodeAdded',
@@ -1071,7 +1175,10 @@ function integrationTests(
         'http://localhost:1801/webpages/pointerelements.html',
         undefined,
         'Page 2',
-        {interactable: {visible: true, enabled: true, pointer: true}}
+        {
+          elementLocator: {type: 'id', element: 'div2'},
+          interactable: {visible: true, enabled: true, pointer: true},
+        }
       ),
     ]);
   });
@@ -1089,6 +1196,7 @@ function integrationTests(
     expect(actualData).toEqual([
       reportEvent('pageLoad', url),
       reportObject('nodeAdded', 'A', '', 'A', url, `${url}#`, 'link child', {
+        elementLocator: {type: 'cssSelector', element: 'body > a'},
         interactable: {visible: true, enabled: true, pointer: true},
       }),
       reportObject(
@@ -1099,7 +1207,10 @@ function integrationTests(
         url,
         undefined,
         'deep',
-        {interactable: {visible: true, enabled: true, pointer: false}}
+        {
+          elementLocator: {type: 'id', element: 'btn-deep'},
+          interactable: {visible: true, enabled: true, pointer: false},
+        }
       ),
       reportObject(
         'nodeAdded',
@@ -1109,7 +1220,10 @@ function integrationTests(
         url,
         undefined,
         'beyond',
-        {interactable: {visible: true, enabled: true, pointer: false}}
+        {
+          elementLocator: {type: 'id', element: 'btn-outer'},
+          interactable: {visible: true, enabled: true, pointer: false},
+        }
       ),
       reportObject(
         'nodeAdded',
@@ -1120,6 +1234,7 @@ function integrationTests(
         undefined,
         'Standalone',
         {
+          elementLocator: {type: 'id', element: 'div1'},
           interactable: {visible: true, enabled: true, pointer: true},
         }
       ),
@@ -1131,7 +1246,10 @@ function integrationTests(
         url,
         undefined,
         'beyond',
-        {interactable: {visible: true, enabled: true, pointer: true}}
+        {
+          elementLocator: {type: 'id', element: 'span-beyond-limit'},
+          interactable: {visible: true, enabled: true, pointer: true},
+        }
       ),
     ]);
   });
@@ -1153,7 +1271,10 @@ function integrationTests(
         `http://localhost:${_HTTPPORT}/webpages/interactions.html`,
         undefined,
         'Existing text',
-        {interactable: {visible: true, enabled: true, pointer: false}}
+        {
+          elementLocator: {type: 'id', element: 'textarea-1'},
+          interactable: {visible: true, enabled: true, pointer: false},
+        }
       )
     );
   });
@@ -1175,7 +1296,10 @@ function integrationTests(
         `http://localhost:${_HTTPPORT}/webpages/interactions.html`,
         undefined,
         'volvo',
-        {interactable: {visible: true, enabled: true, pointer: false}}
+        {
+          elementLocator: {type: 'id', element: 'cars'},
+          interactable: {visible: true, enabled: true, pointer: false},
+        }
       )
     );
     expect(actualData).toContainEqual(
@@ -1187,7 +1311,10 @@ function integrationTests(
         `http://localhost:${_HTTPPORT}/webpages/interactions.html`,
         undefined,
         'v01',
-        {interactable: {visible: true, enabled: true, pointer: false}}
+        {
+          elementLocator: {type: 'id', element: 'longlist'},
+          interactable: {visible: true, enabled: true, pointer: false},
+        }
       )
     );
   });
@@ -1395,7 +1522,10 @@ function integrationTests(
           url,
           undefined,
           'aria disabled',
-          {interactable: {visible: true, enabled: false, pointer: false}}
+          {
+            elementLocator: {type: 'id', element: 'btn-aria-disabled'},
+            interactable: {visible: true, enabled: false, pointer: false},
+          }
         ),
         reportObject(
           'nodeAdded',
@@ -1406,6 +1536,7 @@ function integrationTests(
           undefined,
           '',
           {
+            elementLocator: {type: 'id', element: 'input-disabled'},
             interactable: {visible: true, enabled: false, pointer: false},
             tagType: 'text',
           }
@@ -1418,7 +1549,10 @@ function integrationTests(
           url,
           undefined,
           'aria hidden',
-          {interactable: {visible: false, enabled: true, pointer: false}}
+          {
+            elementLocator: {type: 'id', element: 'btn-aria-hidden'},
+            interactable: {visible: false, enabled: true, pointer: false},
+          }
         ),
         reportObject(
           'nodeAdded',
@@ -1428,7 +1562,10 @@ function integrationTests(
           url,
           undefined,
           'css display',
-          {interactable: {visible: false, enabled: true, pointer: false}}
+          {
+            elementLocator: {type: 'id', element: 'btn-css-display'},
+            interactable: {visible: false, enabled: true, pointer: false},
+          }
         ),
         reportObject(
           'nodeAdded',
@@ -1438,7 +1575,10 @@ function integrationTests(
           url,
           undefined,
           'css opacity',
-          {interactable: {visible: false, enabled: true, pointer: false}}
+          {
+            elementLocator: {type: 'id', element: 'btn-css-opacity'},
+            interactable: {visible: false, enabled: true, pointer: false},
+          }
         ),
         reportObject(
           'nodeAdded',
@@ -1448,7 +1588,10 @@ function integrationTests(
           url,
           undefined,
           'css visibility',
-          {interactable: {visible: false, enabled: true, pointer: false}}
+          {
+            elementLocator: {type: 'id', element: 'btn-css-visibility'},
+            interactable: {visible: false, enabled: true, pointer: false},
+          }
         ),
         reportObject(
           'nodeAdded',
@@ -1458,7 +1601,10 @@ function integrationTests(
           url,
           undefined,
           'css offset',
-          {interactable: {visible: false, enabled: true, pointer: false}}
+          {
+            elementLocator: {type: 'id', element: 'btn-css-offset'},
+            interactable: {visible: false, enabled: true, pointer: false},
+          }
         ),
         reportObject(
           'nodeAdded',
@@ -1468,7 +1614,10 @@ function integrationTests(
           url,
           undefined,
           'css transition',
-          {interactable: {visible: false, enabled: true, pointer: false}}
+          {
+            elementLocator: {type: 'id', element: 'btn-css-transition'},
+            interactable: {visible: false, enabled: true, pointer: false},
+          }
         ),
         reportObject(
           'nodeAdded',
@@ -1478,7 +1627,10 @@ function integrationTests(
           url,
           undefined,
           'pointer style',
-          {interactable: {visible: true, enabled: false, pointer: true}}
+          {
+            elementLocator: {type: 'id', element: 'btn-pointer'},
+            interactable: {visible: true, enabled: false, pointer: true},
+          }
         ),
         reportObject(
           'nodeAdded',
@@ -1488,7 +1640,10 @@ function integrationTests(
           url,
           undefined,
           'child of transition',
-          {interactable: {visible: false, enabled: true, pointer: false}}
+          {
+            elementLocator: {type: 'id', element: 'btn-in-transition-parent'},
+            interactable: {visible: false, enabled: true, pointer: false},
+          }
         ),
       ])
     );
@@ -1516,7 +1671,10 @@ function integrationTests(
           url,
           undefined,
           'aria disabled',
-          {interactable: {visible: true, enabled: true, pointer: false}}
+          {
+            elementLocator: {type: 'id', element: 'btn-aria-disabled'},
+            interactable: {visible: true, enabled: true, pointer: false},
+          }
         ),
         reportObject(
           'nodeChanged',
@@ -1527,6 +1685,7 @@ function integrationTests(
           undefined,
           '',
           {
+            elementLocator: {type: 'id', element: 'input-disabled'},
             interactable: {visible: true, enabled: true, pointer: false},
             tagType: 'text',
           }
@@ -1539,7 +1698,10 @@ function integrationTests(
           url,
           undefined,
           'aria hidden',
-          {interactable: {visible: true, enabled: true, pointer: false}}
+          {
+            elementLocator: {type: 'id', element: 'btn-aria-hidden'},
+            interactable: {visible: true, enabled: true, pointer: false},
+          }
         ),
         reportObject(
           'nodeChanged',
@@ -1549,7 +1711,10 @@ function integrationTests(
           url,
           undefined,
           'css display',
-          {interactable: {visible: true, enabled: true, pointer: false}}
+          {
+            elementLocator: {type: 'id', element: 'btn-css-display'},
+            interactable: {visible: true, enabled: true, pointer: false},
+          }
         ),
         reportObject(
           'nodeChanged',
@@ -1559,7 +1724,10 @@ function integrationTests(
           url,
           undefined,
           'css opacity',
-          {interactable: {visible: true, enabled: true, pointer: false}}
+          {
+            elementLocator: {type: 'id', element: 'btn-css-opacity'},
+            interactable: {visible: true, enabled: true, pointer: false},
+          }
         ),
         reportObject(
           'nodeChanged',
@@ -1569,7 +1737,10 @@ function integrationTests(
           url,
           undefined,
           'css visibility',
-          {interactable: {visible: true, enabled: true, pointer: false}}
+          {
+            elementLocator: {type: 'id', element: 'btn-css-visibility'},
+            interactable: {visible: true, enabled: true, pointer: false},
+          }
         ),
         reportObject(
           'nodeChanged',
@@ -1579,7 +1750,10 @@ function integrationTests(
           url,
           undefined,
           'css offset',
-          {interactable: {visible: true, enabled: true, pointer: false}}
+          {
+            elementLocator: {type: 'id', element: 'btn-css-offset'},
+            interactable: {visible: true, enabled: true, pointer: false},
+          }
         ),
         reportObject(
           'nodeChanged',
@@ -1589,7 +1763,10 @@ function integrationTests(
           url,
           undefined,
           'css transition',
-          {interactable: {visible: true, enabled: true, pointer: false}}
+          {
+            elementLocator: {type: 'id', element: 'btn-css-transition'},
+            interactable: {visible: true, enabled: true, pointer: false},
+          }
         ),
         reportObject(
           'nodeChanged',
@@ -1599,7 +1776,10 @@ function integrationTests(
           url,
           undefined,
           'pointer style',
-          {interactable: {visible: true, enabled: true, pointer: true}}
+          {
+            elementLocator: {type: 'id', element: 'btn-pointer'},
+            interactable: {visible: true, enabled: true, pointer: true},
+          }
         ),
         reportObject(
           'nodeChanged',
@@ -1609,7 +1789,10 @@ function integrationTests(
           url,
           undefined,
           'child of transition',
-          {interactable: {visible: true, enabled: true, pointer: false}}
+          {
+            elementLocator: {type: 'id', element: 'btn-in-transition-parent'},
+            interactable: {visible: true, enabled: true, pointer: false},
+          }
         ),
       ])
     );

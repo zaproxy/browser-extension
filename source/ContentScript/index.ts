@@ -29,6 +29,7 @@ import Recorder from './recorder';
 import {
   hasPointerStyle,
   getInteractableState,
+  getPath,
   hasInteractableTagAncestor,
   INTERACTABLE_TAG_NAMES,
 } from './util';
@@ -169,6 +170,7 @@ function reportPageForms(
   const url = window.location.href;
   Array.prototype.forEach.call(doc.forms, (form: HTMLFormElement) => {
     const re = new ReportedElement(form, url);
+    re.elementLocator = getPath(form, doc);
     trackInteractableElement(re, form);
     fn(re);
   });
@@ -183,6 +185,7 @@ function reportPageLinks(
     doc.links,
     (link: HTMLAnchorElement | HTMLAreaElement) => {
       const re = new ReportedElement(link, url);
+      re.elementLocator = getPath(link as HTMLElement, doc);
       trackInteractableElement(re, link);
       fn(re);
     }
@@ -196,6 +199,7 @@ function reportElements(
   const url = window.location.href;
   Array.prototype.forEach.call(collection, (element: Element) => {
     const re = new ReportedElement(element, url);
+    re.elementLocator = getPath(element as HTMLElement, document);
     trackInteractableElement(re, element);
     fn(re);
   });
@@ -225,6 +229,7 @@ function reportPointerElements(
     ) {
       if (hasPointerStyle(element)) {
         const re = new ReportedElement(element, url);
+        re.elementLocator = getPath(element as HTMLElement, document);
         trackInteractableElement(re, element);
         fn(re);
       }
@@ -332,6 +337,7 @@ function enableExtension(): void {
               'nodeChanged'
             );
             re.interactable = newState;
+            re.elementLocator = getPath(el as HTMLElement, document);
             sendObjectToZAP(re);
           }
         }
