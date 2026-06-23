@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## Unreleased
 ### Added
 - Report `textarea` and `select` elements.
-- Report interactable state of elements.
+- Report interactable state and locator of elements.
 
 ### Changed
 - Ignore cursor pointer style elements whose ancestor is already handled (e.g. `a`, `button`), as they should be only for decoration/aesthetic purposes of the latter.

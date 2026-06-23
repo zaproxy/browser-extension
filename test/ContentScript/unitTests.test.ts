@@ -115,10 +115,10 @@ test('Report standard page links', () => {
   // Then
   expect(mockFn.mock.calls.length).toBe(2);
   expect(mockFn.mock.calls[0][0].toNonTimestampString()).toBe(
-    '{"type":"nodeAdded","tagName":"A","id":"","nodeName":"A","url":"http://localhost/","href":"https://www.example.com/1","text":"link1","interactable":{"visible":false,"enabled":false,"pointer":false}}'
+    '{"type":"nodeAdded","tagName":"A","id":"","nodeName":"A","url":"http://localhost/","href":"https://www.example.com/1","text":"link1","interactable":{"visible":false,"enabled":false,"pointer":false},"elementLocator":{"type":"xpath","element":"/html/body/a[1]"}}'
   );
   expect(mockFn.mock.calls[1][0].toNonTimestampString()).toBe(
-    '{"type":"nodeAdded","tagName":"A","id":"","nodeName":"A","url":"http://localhost/","href":"https://www.example.com/2","text":"link2","interactable":{"visible":false,"enabled":false,"pointer":false}}'
+    '{"type":"nodeAdded","tagName":"A","id":"","nodeName":"A","url":"http://localhost/","href":"https://www.example.com/2","text":"link2","interactable":{"visible":false,"enabled":false,"pointer":false},"elementLocator":{"type":"xpath","element":"/html/body/a[2]"}}'
   );
 });
 
@@ -135,10 +135,10 @@ test('Report area page links', () => {
   // Then
   expect(mockFn.mock.calls.length).toBe(2);
   expect(mockFn.mock.calls[0][0].toNonTimestampString()).toBe(
-    '{"type":"nodeAdded","tagName":"AREA","id":"","nodeName":"AREA","url":"http://localhost/","href":"https://www.example.com/1","text":"","interactable":{"visible":false,"enabled":false,"pointer":false}}'
+    '{"type":"nodeAdded","tagName":"AREA","id":"","nodeName":"AREA","url":"http://localhost/","href":"https://www.example.com/1","text":"","interactable":{"visible":false,"enabled":false,"pointer":false},"elementLocator":{"type":"xpath","element":"/html/body/map/area[1]"}}'
   );
   expect(mockFn.mock.calls[1][0].toNonTimestampString()).toBe(
-    '{"type":"nodeAdded","tagName":"AREA","id":"","nodeName":"AREA","url":"http://localhost/","href":"https://www.example.com/2","text":"","interactable":{"visible":false,"enabled":false,"pointer":false}}'
+    '{"type":"nodeAdded","tagName":"AREA","id":"","nodeName":"AREA","url":"http://localhost/","href":"https://www.example.com/2","text":"","interactable":{"visible":false,"enabled":false,"pointer":false},"elementLocator":{"type":"xpath","element":"/html/body/map/area[2]"}}'
   );
 });
 
@@ -169,10 +169,10 @@ test('Report page forms', () => {
   // Then
   expect(mockFn.mock.calls.length).toBe(2);
   expect(mockFn.mock.calls[0][0].toNonTimestampString()).toBe(
-    '{"type":"nodeAdded","tagName":"FORM","id":"form1","nodeName":"FORM","url":"http://localhost/","text":"Content1","formId":-1,"interactable":{"visible":false,"enabled":false,"pointer":false}}'
+    '{"type":"nodeAdded","tagName":"FORM","id":"form1","nodeName":"FORM","url":"http://localhost/","text":"Content1","formId":-1,"interactable":{"visible":false,"enabled":false,"pointer":false},"elementLocator":{"type":"id","element":"form1"}}'
   );
   expect(mockFn.mock.calls[1][0].toNonTimestampString()).toBe(
-    '{"type":"nodeAdded","tagName":"FORM","id":"form2","nodeName":"FORM","url":"http://localhost/","text":"Content2","formId":-1,"interactable":{"visible":false,"enabled":false,"pointer":false}}'
+    '{"type":"nodeAdded","tagName":"FORM","id":"form2","nodeName":"FORM","url":"http://localhost/","text":"Content2","formId":-1,"interactable":{"visible":false,"enabled":false,"pointer":false},"elementLocator":{"type":"id","element":"form2"}}'
   );
 });
 
@@ -200,10 +200,10 @@ test('Report node elements', () => {
   // Then
   expect(mockFn.mock.calls.length).toBe(2);
   expect(mockFn.mock.calls[0][0].toNonTimestampString()).toBe(
-    '{"type":"nodeAdded","tagName":"INPUT","id":"input1","nodeName":"INPUT","url":"http://localhost/","text":"","tagType":"text","formId":-1,"interactable":{"visible":false,"enabled":true,"pointer":false}}'
+    '{"type":"nodeAdded","tagName":"INPUT","id":"input1","nodeName":"INPUT","url":"http://localhost/","text":"","tagType":"text","formId":-1,"interactable":{"visible":false,"enabled":true,"pointer":false},"elementLocator":{"type":"id","element":"input1"}}'
   );
   expect(mockFn.mock.calls[1][0].toNonTimestampString()).toBe(
-    '{"type":"nodeAdded","tagName":"INPUT","id":"input2","nodeName":"INPUT","url":"http://localhost/","text":"","tagType":"text","formId":-1,"interactable":{"visible":false,"enabled":true,"pointer":false}}'
+    '{"type":"nodeAdded","tagName":"INPUT","id":"input2","nodeName":"INPUT","url":"http://localhost/","text":"","tagType":"text","formId":-1,"interactable":{"visible":false,"enabled":true,"pointer":false},"elementLocator":{"type":"id","element":"input2"}}'
   );
 });
 
@@ -257,22 +257,22 @@ test('Reported page loaded', () => {
   // Then
   expect(mockFn.mock.calls.length).toBe(8);
   expect(mockFn.mock.calls[0][0].toNonTimestampString()).toBe(
-    '{"type":"nodeAdded","tagName":"A","id":"","nodeName":"A","url":"http://localhost/","href":"https://www.example.com/1","text":"link1","interactable":{"visible":false,"enabled":false,"pointer":false}}'
+    '{"type":"nodeAdded","tagName":"A","id":"","nodeName":"A","url":"http://localhost/","href":"https://www.example.com/1","text":"link1","interactable":{"visible":false,"enabled":false,"pointer":false},"elementLocator":{"type":"cssSelector","element":"body > a"}}'
   );
   expect(mockFn.mock.calls[1][0].toNonTimestampString()).toBe(
-    '{"type":"nodeAdded","tagName":"AREA","id":"","nodeName":"AREA","url":"http://localhost/","href":"https://www.example.com/1","text":"","interactable":{"visible":false,"enabled":false,"pointer":false}}'
+    '{"type":"nodeAdded","tagName":"AREA","id":"","nodeName":"AREA","url":"http://localhost/","href":"https://www.example.com/1","text":"","interactable":{"visible":false,"enabled":false,"pointer":false},"elementLocator":{"type":"cssSelector","element":"body > area"}}'
   );
   expect(mockFn.mock.calls[2][0].toNonTimestampString()).toBe(
-    '{"type":"nodeAdded","tagName":"FORM","id":"form1","nodeName":"FORM","url":"http://localhost/","text":"FormContent","formId":-1,"interactable":{"visible":false,"enabled":false,"pointer":false}}'
+    '{"type":"nodeAdded","tagName":"FORM","id":"form1","nodeName":"FORM","url":"http://localhost/","text":"FormContent","formId":-1,"interactable":{"visible":false,"enabled":false,"pointer":false},"elementLocator":{"type":"id","element":"form1"}}'
   );
   expect(mockFn.mock.calls[3][0].toNonTimestampString()).toBe(
-    '{"type":"nodeAdded","tagName":"INPUT","id":"input1","nodeName":"INPUT","url":"http://localhost/","text":"default","tagType":"text","interactable":{"visible":false,"enabled":false,"pointer":false}}'
+    '{"type":"nodeAdded","tagName":"INPUT","id":"input1","nodeName":"INPUT","url":"http://localhost/","text":"default","tagType":"text","interactable":{"visible":false,"enabled":false,"pointer":false},"elementLocator":{"type":"id","element":"input1"}}'
   );
   expect(mockFn.mock.calls[4][0].toNonTimestampString()).toBe(
-    '{"type":"nodeAdded","tagName":"INPUT","id":"submit","nodeName":"INPUT","url":"http://localhost/","text":"Submit","tagType":"submit","interactable":{"visible":false,"enabled":false,"pointer":false}}'
+    '{"type":"nodeAdded","tagName":"INPUT","id":"submit","nodeName":"INPUT","url":"http://localhost/","text":"Submit","tagType":"submit","interactable":{"visible":false,"enabled":false,"pointer":false},"elementLocator":{"type":"id","element":"submit"}}'
   );
   expect(mockFn.mock.calls[5][0].toNonTimestampString()).toBe(
-    '{"type":"nodeAdded","tagName":"BUTTON","id":"button1","nodeName":"BUTTON","url":"http://localhost/","text":"Button","interactable":{"visible":false,"enabled":false,"pointer":false}}'
+    '{"type":"nodeAdded","tagName":"BUTTON","id":"button1","nodeName":"BUTTON","url":"http://localhost/","text":"Button","interactable":{"visible":false,"enabled":false,"pointer":false},"elementLocator":{"type":"id","element":"button1"}}'
   );
   expect(mockFn.mock.calls[6][0].toNonTimestampString()).toBe(
     '{"type":"localStorage","tagName":"","id":"lsKey","nodeName":"","url":"http://localhost/","text":"value1"}'

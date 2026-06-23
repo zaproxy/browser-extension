@@ -93,6 +93,7 @@ export function reportObject(
   extras?: {
     tagType?: string;
     interactable?: {visible: boolean; enabled: boolean; pointer: boolean};
+    elementLocator?: {type: string; element: string};
   }
 ): object {
   const data = {
@@ -109,6 +110,7 @@ export function reportObject(
         text,
         tagType: extras?.tagType,
         interactable: extras?.interactable,
+        elementLocator: extras?.elementLocator,
       },
       apikey: 'not set',
     },
@@ -121,6 +123,9 @@ export function reportObject(
   }
   if (extras?.interactable === undefined) {
     delete data.body.objectJson.interactable;
+  }
+  if (extras?.elementLocator === undefined) {
+    delete data.body.objectJson.elementLocator;
   }
   return data;
 }

@@ -17,6 +17,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {ElementLocator} from './zestScript/ZestStatement';
+
 interface InteractableState {
   visible: boolean;
   enabled: boolean;
@@ -108,6 +110,8 @@ class ReportedElement extends ReportedObject {
 
   public interactable: InteractableState | undefined;
 
+  public elementLocator: ElementLocator | undefined;
+
   public constructor(element: Element, url: string, type = 'nodeAdded') {
     super(
       type,
@@ -154,7 +158,7 @@ class ReportedElement extends ReportedObject {
 
   public toShortString(): string {
     return JSON.stringify(this, function replacer(k: string, v: string) {
-      if (k === 'timestamp' || k === 'interactable') {
+      if (k === 'timestamp' || k === 'interactable' || k === 'elementLocator') {
         // No point reporting the same element lots of times
         return undefined;
       }
