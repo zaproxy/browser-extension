@@ -36,8 +36,6 @@ class ReportedObject {
 
   public url: string;
 
-  public xpath: string;
-
   public href: string | null;
 
   public text: string | null;
@@ -64,13 +62,7 @@ class ReportedObject {
   }
 
   public toShortString(): string {
-    return JSON.stringify(this, function replacer(k: string, v: string) {
-      if (k === 'xpath') {
-        // Dont return the xpath value - it can change too often in many cases
-        return undefined;
-      }
-      return v;
-    });
+    return JSON.stringify(this);
   }
 
   // Use this for tests
@@ -88,7 +80,6 @@ class ReportedStorage extends ReportedObject {
   public toShortString(): string {
     return JSON.stringify(this, function replacer(k: string, v: string) {
       if (
-        k === 'xpath' ||
         k === 'href' ||
         k === 'timestamp' ||
         (k === 'url' && !(this.type === 'cookies'))
