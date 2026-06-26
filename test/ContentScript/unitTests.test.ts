@@ -115,10 +115,10 @@ test('Report standard page links', () => {
   // Then
   expect(mockFn.mock.calls.length).toBe(2);
   expect(mockFn.mock.calls[0][0].toNonTimestampString()).toBe(
-    '{"type":"nodeAdded","tagName":"A","id":"","nodeName":"A","url":"http://localhost/","href":"https://www.example.com/1","text":"link1","interactable":{"visible":false,"enabled":false,"pointer":false},"elementLocator":{"type":"xpath","element":"/html/body/a[1]"}}'
+    '{"type":"nodeAdded","tagName":"A","id":"","nodeName":"A","url":"http://localhost/","href":"https://www.example.com/1","text":"link1","interactable":{"visible":false,"enabled":false,"pointer":false},"elementLocator":{"type":"xpath","element":"//a[text()=\'link1\']"}}'
   );
   expect(mockFn.mock.calls[1][0].toNonTimestampString()).toBe(
-    '{"type":"nodeAdded","tagName":"A","id":"","nodeName":"A","url":"http://localhost/","href":"https://www.example.com/2","text":"link2","interactable":{"visible":false,"enabled":false,"pointer":false},"elementLocator":{"type":"xpath","element":"/html/body/a[2]"}}'
+    '{"type":"nodeAdded","tagName":"A","id":"","nodeName":"A","url":"http://localhost/","href":"https://www.example.com/2","text":"link2","interactable":{"visible":false,"enabled":false,"pointer":false},"elementLocator":{"type":"xpath","element":"//a[text()=\'link2\']"}}'
   );
 });
 
@@ -169,10 +169,10 @@ test('Report page forms', () => {
   // Then
   expect(mockFn.mock.calls.length).toBe(2);
   expect(mockFn.mock.calls[0][0].toNonTimestampString()).toBe(
-    '{"type":"nodeAdded","tagName":"FORM","id":"form1","nodeName":"FORM","url":"http://localhost/","text":"Content1","formId":-1,"interactable":{"visible":false,"enabled":false,"pointer":false},"elementLocator":{"type":"id","element":"form1"}}'
+    '{"type":"nodeAdded","tagName":"FORM","id":"form1","nodeName":"FORM","url":"http://localhost/","text":"Content1","formId":-1,"interactable":{"visible":false,"enabled":false,"pointer":false},"elementLocator":{"type":"xpath","element":"//form[1]"}}'
   );
   expect(mockFn.mock.calls[1][0].toNonTimestampString()).toBe(
-    '{"type":"nodeAdded","tagName":"FORM","id":"form2","nodeName":"FORM","url":"http://localhost/","text":"Content2","formId":-1,"interactable":{"visible":false,"enabled":false,"pointer":false},"elementLocator":{"type":"id","element":"form2"}}'
+    '{"type":"nodeAdded","tagName":"FORM","id":"form2","nodeName":"FORM","url":"http://localhost/","text":"Content2","formId":-1,"interactable":{"visible":false,"enabled":false,"pointer":false},"elementLocator":{"type":"xpath","element":"//form[2]"}}'
   );
 });
 
@@ -263,7 +263,7 @@ test('Reported page loaded', () => {
     '{"type":"nodeAdded","tagName":"AREA","id":"","nodeName":"AREA","url":"http://localhost/","href":"https://www.example.com/1","text":"","interactable":{"visible":false,"enabled":false,"pointer":false},"elementLocator":{"type":"cssSelector","element":"body > area"}}'
   );
   expect(mockFn.mock.calls[2][0].toNonTimestampString()).toBe(
-    '{"type":"nodeAdded","tagName":"FORM","id":"form1","nodeName":"FORM","url":"http://localhost/","text":"FormContent","formId":-1,"interactable":{"visible":false,"enabled":false,"pointer":false},"elementLocator":{"type":"id","element":"form1"}}'
+    '{"type":"nodeAdded","tagName":"FORM","id":"form1","nodeName":"FORM","url":"http://localhost/","text":"FormContent","formId":-1,"interactable":{"visible":false,"enabled":false,"pointer":false},"elementLocator":{"type":"xpath","element":"//form[1]"}}'
   );
   expect(mockFn.mock.calls[3][0].toNonTimestampString()).toBe(
     '{"type":"nodeAdded","tagName":"INPUT","id":"input1","nodeName":"INPUT","url":"http://localhost/","text":"default","tagType":"text","interactable":{"visible":false,"enabled":false,"pointer":false},"elementLocator":{"type":"id","element":"input1"}}'

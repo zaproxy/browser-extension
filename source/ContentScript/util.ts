@@ -100,7 +100,46 @@ function safeXPathString(value: string): string {
   return `concat(${parts})`;
 }
 
-function getXPath(element: HTMLElement, documentElement: Document): string {
+function getFormAbsoluteXPath(
+  form: HTMLElement,
+  documentElement: Document
+): string {
+  const {name} = form as HTMLFormElement;
+  if (name) {
+    const nameXPath = `//form[@name=${safeXPathString(name)}]`;
+    if (isElementXPathUnique(nameXPath, documentElement)) {
+      return nameXPath;
+    }
+  }
+
+  const forms = documentElement.getElementsByTagName('form');
+  let index = 1;
+  for (let i = 0; i < forms.length; i += 1) {
+    if (forms[i] === form) {
+      index = i + 1;
+      break;
+    }
+  }
+  return `//form[${index}]`;
+}
+
+function isUniqueClassName(
+  element: HTMLElement,
+  documentElement: Document
+): boolean {
+  return (
+    element.classList.length === 1 &&
+    element.classList.item(0) != null &&
+    !dynamicClassElements.has(element) &&
+    !hasClassChangedSinceSnapshot(element) &&
+    isElementPathUnique(`.${element.classList.item(0)}`, documentElement)
+  );
+}
+
+function buildFullXPath(
+  element: HTMLElement,
+  documentElement: Document
+): string {
   if (!element.tagName) {
     return '';
   }
@@ -145,7 +184,7 @@ function getXPath(element: HTMLElement, documentElement: Document): string {
   }
 
   if (element.parentNode) {
-    const parentSelector = getXPath(
+    const parentSelector = buildFullXPath(
       element.parentNode as HTMLElement,
       documentElement
     );
@@ -154,21 +193,57 @@ function getXPath(element: HTMLElement, documentElement: Document): string {
   return selector;
 }
 
+function getXPath(element: HTMLElement, documentElement: Document): string {
+  if (!element.tagName) {
+    return '';
+  }
+
+  const tag = element.tagName;
+
+  if (tag === 'A') {
+    const text = element.textContent;
+    if (text) {
+      const textXPath = `//a[text()=${safeXPathString(text)}]`;
+      if (isElementXPathUnique(textXPath, documentElement)) {
+        return textXPath;
+      }
+    }
+  }
+
+  return buildFullXPath(element, documentElement);
+}
+
 function getPath(
   element: HTMLElement,
   documentElement: Document
 ): ElementLocator {
   const path: ElementLocator = new ElementLocator('', '');
+
+  if (element.tagName === 'FORM') {
+    path.type = 'xpath';
+    path.element = getFormAbsoluteXPath(element, documentElement);
+    return path;
+  }
+
+  const labelable = element as HTMLInputElement;
+  if (labelable.labels?.length) {
+    const firstLabel = labelable.labels[0] as HTMLLabelElement;
+    const text = firstLabel.textContent;
+    if (text) {
+      const tag = element.tagName.toLowerCase();
+      const labelXPath = `//${tag}[@id=//label[text()=${safeXPathString(text)}]/@for]`;
+      if (isElementXPathUnique(labelXPath, documentElement)) {
+        path.type = 'xpath';
+        path.element = labelXPath;
+        return path;
+      }
+    }
+  }
+
   if (element.id) {
     path.type = 'id';
     path.element = element.id;
-  } else if (
-    !dynamicClassElements.has(element) &&
-    !hasClassChangedSinceSnapshot(element) &&
-    element.classList.length === 1 &&
-    element.classList.item(0) != null &&
-    isElementPathUnique(`.${element.classList.item(0)}`, documentElement)
-  ) {
+  } else if (isUniqueClassName(element, documentElement)) {
     path.type = 'className';
     path.element = `${element.classList.item(0)}`;
   } else {

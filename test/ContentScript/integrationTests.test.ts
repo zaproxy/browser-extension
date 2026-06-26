@@ -142,93 +142,182 @@ function integrationTests(
     );
   });
 
-  test('Should report elementLocator for all locator types', async () => {
-    // Given
-    await enableZapEvents(server, driver);
-    const wd = await driver.getWebDriver();
-    const pageUrl = `http://localhost:${_HTTPPORT}/webpages/elementLocator.html`;
-    // When
-    await wd.get(pageUrl);
-    await eventsProcessed();
-    // Then
-    expect(actualData).toEqual(
-      expect.arrayContaining([
-        reportObject(
-          'nodeAdded',
-          'A',
-          'link-by-id',
-          'A',
-          pageUrl,
-          `${pageUrl}#`,
-          'Link by ID',
-          {
-            elementLocator: {type: 'id', element: 'link-by-id'},
-            interactable: {visible: true, enabled: true, pointer: true},
-          }
-        ),
-        reportObject(
-          'nodeAdded',
-          'A',
-          '',
-          'A',
-          pageUrl,
-          `${pageUrl}#`,
-          'Link by class',
-          {
-            elementLocator: {type: 'className', element: 'unique-link-class'},
-            interactable: {visible: true, enabled: true, pointer: true},
-          }
-        ),
-        reportObject(
-          'nodeAdded',
-          'A',
-          '',
-          'A',
-          pageUrl,
-          `${pageUrl}#css1`,
-          'Link css 1',
-          {
-            elementLocator: {
-              type: 'xpath',
-              element: '/html/body/a[3]',
-            },
-            interactable: {visible: true, enabled: true, pointer: true},
-          }
-        ),
-        reportObject(
-          'nodeAdded',
-          'A',
-          '',
-          'A',
-          pageUrl,
-          `${pageUrl}#css2`,
-          'Link css 2',
-          {
-            elementLocator: {
-              type: 'xpath',
-              element: '/html/body/a[4]',
-            },
-            interactable: {visible: true, enabled: true, pointer: true},
-          }
-        ),
-        reportObject(
-          'nodeAdded',
-          'A',
-          '',
-          'A',
-          pageUrl,
-          `${pageUrl}#xpath`,
-          'Link by xpath',
-          {
-            elementLocator: {
-              type: 'xpath',
-              element: '/html/body/a[5]',
-            },
-            interactable: {visible: true, enabled: true, pointer: true},
-          }
-        ),
-      ])
-    );
+  describe('Should Report elementLocator', () => {
+    test('for form in order by name > index', async () => {
+      // Given
+      await enableZapEvents(server, driver);
+      const wd = await driver.getWebDriver();
+      const pageUrl = `http://localhost:${_HTTPPORT}/webpages/locators/form.html`;
+      // When
+      await wd.get(pageUrl);
+      await eventsProcessed();
+      // Then
+      expect(actualData).toEqual(
+        expect.arrayContaining([
+          reportObject(
+            'nodeAdded',
+            'FORM',
+            '',
+            'FORM',
+            pageUrl,
+            undefined,
+            '',
+            {
+              formId: 0,
+              elementLocator: {type: 'xpath', element: "//form[@name='A']"},
+              interactable: {visible: true, enabled: true, pointer: false},
+            }
+          ),
+          reportObject(
+            'nodeAdded',
+            'FORM',
+            '',
+            'FORM',
+            pageUrl,
+            undefined,
+            '',
+            {
+              formId: 1,
+              elementLocator: {type: 'xpath', element: '//form[2]'},
+              interactable: {visible: true, enabled: true, pointer: false},
+            }
+          ),
+        ])
+      );
+    });
+
+    test('for input in order by label > default', async () => {
+      // Given
+      await enableZapEvents(server, driver);
+      const wd = await driver.getWebDriver();
+      const pageUrl = `http://localhost:${_HTTPPORT}/webpages/locators/input.html`;
+      // When
+      await wd.get(pageUrl);
+      await eventsProcessed();
+      // Then
+      expect(actualData).toEqual(
+        expect.arrayContaining([
+          reportObject(
+            'nodeAdded',
+            'INPUT',
+            'id',
+            'INPUT',
+            pageUrl,
+            undefined,
+            '1',
+            {
+              elementLocator: {
+                type: 'xpath',
+                element: "//input[@id=//label[text()='Label']/@for]",
+              },
+              interactable: {visible: true, enabled: true, pointer: false},
+              tagType: 'text',
+            }
+          ),
+        ])
+      );
+    });
+
+    test('for a in order by default > xpath text > default xpath', async () => {
+      // Given
+      await enableZapEvents(server, driver);
+      const wd = await driver.getWebDriver();
+      const pageUrl = `http://localhost:${_HTTPPORT}/webpages/locators/a.html`;
+      // When
+      await wd.get(pageUrl);
+      await eventsProcessed();
+      // Then
+      expect(actualData).toEqual(
+        expect.arrayContaining([
+          reportObject(
+            'nodeAdded',
+            'A',
+            '',
+            'A',
+            pageUrl,
+            `${pageUrl}#1`,
+            'By text',
+            {
+              elementLocator: {type: 'xpath', element: "//a[text()='By text']"},
+              interactable: {visible: true, enabled: true, pointer: true},
+            }
+          ),
+        ])
+      );
+    });
+
+    test('by default in order by id > className > cssSelector > xpath', async () => {
+      // Given
+      await enableZapEvents(server, driver);
+      const wd = await driver.getWebDriver();
+      const pageUrl = `http://localhost:${_HTTPPORT}/webpages/locators/default.html`;
+      // When
+      await wd.get(pageUrl);
+      await eventsProcessed();
+      // Then
+      expect(actualData).toEqual(
+        expect.arrayContaining([
+          reportObject(
+            'nodeAdded',
+            'DIV',
+            'by-id',
+            'DIV',
+            pageUrl,
+            undefined,
+            'By ID',
+            {
+              elementLocator: {type: 'id', element: 'by-id'},
+              interactable: {visible: true, enabled: true, pointer: true},
+            }
+          ),
+          reportObject(
+            'nodeAdded',
+            'DIV',
+            '',
+            'DIV',
+            pageUrl,
+            undefined,
+            'By class',
+            {
+              elementLocator: {type: 'className', element: 'unique-class'},
+              interactable: {visible: true, enabled: true, pointer: true},
+            }
+          ),
+          reportObject(
+            'nodeAdded',
+            'DIV',
+            '',
+            'DIV',
+            pageUrl,
+            undefined,
+            'By css',
+            {
+              elementLocator: {
+                type: 'cssSelector',
+                element: 'body > div > div',
+              },
+              interactable: {visible: true, enabled: true, pointer: true},
+            }
+          ),
+          reportObject(
+            'nodeAdded',
+            'DIV',
+            '',
+            'DIV',
+            pageUrl,
+            undefined,
+            'By xpath',
+            {
+              elementLocator: {
+                type: 'xpath',
+                element: '/html/body/div[4]',
+              },
+              interactable: {visible: true, enabled: true, pointer: true},
+            }
+          ),
+        ])
+      );
+    });
   });
 
   test.skip('Should init script for page accessed before starting recorder', async () => {

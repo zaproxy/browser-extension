@@ -109,6 +109,7 @@ export function reportObject(
         href,
         text,
         tagType: extras?.tagType,
+        formId: extras?.formId,
         interactable: extras?.interactable,
         elementLocator: extras?.elementLocator,
       },
@@ -126,6 +127,9 @@ export function reportObject(
   }
   if (extras?.elementLocator === undefined) {
     delete data.body.objectJson.elementLocator;
+  }
+  if (extras?.formId === undefined) {
+    delete data.body.objectJson.formId;
   }
   return data;
 }
