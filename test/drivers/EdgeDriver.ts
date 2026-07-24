@@ -26,7 +26,7 @@ class EdgeDriver extends ChromeDriver {
   protected async createWebDriver(): Promise<WebDriver> {
     const options = new edge.Options();
     options
-      .addArguments('--headless=new')
+      .addArguments('--headless=new', '--no-sandbox')
       .addExtensions(`${extensionPath.CHROME}.ext.zip`)
       .setUserPreferences({'download.default_directory': this.downloadsDir});
     const wd = await new Builder()
