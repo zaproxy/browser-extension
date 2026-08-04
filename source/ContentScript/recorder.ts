@@ -353,7 +353,13 @@ class Recorder {
     level: number;
   }): void {
     const frame = params.element;
-    const doc = frame.contentDocument || frame.contentWindow?.document;
+    let doc;
+    try {
+      doc = frame.contentDocument || frame.contentWindow?.document;
+    } catch {
+      // Ignore cross-origin permission exceptions.
+      return;
+    }
     if (doc != null) {
       this.addListenersToDocument(doc, params.level, this.indexOfFrame(frame));
     }
@@ -361,12 +367,18 @@ class Recorder {
 
   processFrame(frame: Element, level: number): void {
     const htmlElement = frame as HTMLIFrameElement | HTMLFrameElement;
-    const frameDocument = htmlElement.contentWindow?.document;
+    let frameDocument;
+    try {
+      frameDocument = htmlElement.contentWindow?.document;
+    } catch {
+      // Ignore cross-origin permission exceptions.
+      return;
+    }
     if (
       frameDocument != null &&
       frameDocument.readyState === 'complete' &&
-      // Chrome/Edge report completed with different src
-      frameDocument.documentURI === htmlElement.src
+      // Allow blank iframes (no src); also Chrome/Edge report completed with different src
+      (!htmlElement.src || frameDocument.documentURI === htmlElement.src)
     ) {
       this.addListenersToDocument(
         frameDocument,
@@ -399,10 +411,20 @@ class Recorder {
     });
   }
 
+  processFrames(element: Document | Element, level: number): void {
+    element
+      .querySelectorAll('frame, iframe')
+      .forEach((frame) => this.processFrame(frame, level + 1));
+  }
+
   indexOfFrame(element: Element): number {
     for (let i = 0; i < window.frames.length; i += 1) {
-      if (window.frames[i].frameElement === element) {
-        return i;
+      try {
+        if (window.frames[i].frameElement === element) {
+          return i;
+        }
+      } catch {
+        // Ignore cross-origin permission exceptions.
       }
     }
     return -1;
@@ -442,16 +464,14 @@ class Recorder {
       {capture: true}
     );
 
-    // Add listeners to all the frames
-    const frames = element.querySelectorAll('frame, iframe');
-    frames.forEach((_frame) => this.processFrame(_frame, level + 1));
+    this.processFrames(element, level);
 
     // Add listeners to all of the text fields
     element.querySelectorAll('input').forEach((input) => {
       snapshotInputClass(input);
       this.addListenerToInputField(textElements, input, level, frame, element);
     });
-    // Observer callback function to handle DOM mutations to detect added text fields
+    // Observer callback function to handle DOM mutations to detect wanted elements
     const domMutated: MutationCallback = (mutationsList: MutationRecord[]) => {
       mutationsList.forEach((mutation) => {
         if (mutation.type === 'childList') {
@@ -478,6 +498,18 @@ class Recorder {
                 markClassAsDynamic(inputs[j]);
               }
             }
+
+            mutation.addedNodes.forEach((node) => {
+              if (node.nodeType === Node.ELEMENT_NODE) {
+                const el = node as Element;
+                const tag = el.tagName;
+                if (tag === 'IFRAME' || tag === 'FRAME') {
+                  this.processFrame(el, level + 1);
+                } else {
+                  this.processFrames(el, level);
+                }
+              }
+            });
           }
         }
       });
