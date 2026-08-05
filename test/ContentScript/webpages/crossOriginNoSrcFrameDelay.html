@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head></head>
+<body>
+    <script>
+        setTimeout(() => {
+            const crossOrigin = document.createElement('iframe');
+            crossOrigin.src = 'https://www.example.org';
+            document.body.appendChild(crossOrigin);
+
+            const sameOrigin = document.createElement('iframe');
+            document.body.appendChild(sameOrigin);
+
+            const btn = sameOrigin.contentDocument.createElement('button');
+            btn.id = 'test-btn';
+            btn.textContent = 'Button';
+            sameOrigin.contentDocument.body.appendChild(btn);
+        }, 500);
+    </script>
+</body>
+</html>

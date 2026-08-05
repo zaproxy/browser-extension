@@ -925,6 +925,72 @@ function integrationTests(
     ]);
   });
 
+  test('Should record interactions in same-origin frame after cross-origin frame', async () => {
+    // Given / When
+    await driver.toggleRecording();
+    const wd = await driver.getWebDriver();
+    await wd.get(
+      `http://localhost:${_HTTPPORT}/webpages/crossOriginFrame.html`
+    );
+    await wd.wait(until.ableToSwitchToFrame(1));
+    wd.findElement(By.id('test-btn')).click();
+    await eventsProcessed();
+    // Then
+    expect(actualData).toEqual([
+      reportZestStatementComment(),
+      reportZestStatementLaunch(
+        `http://localhost:${_HTTPPORT}/webpages/crossOriginFrame.html`
+      ),
+      reportZestStatementSwitchToFrame(3, 1, ''),
+      reportZestStatementScrollTo(4, 'test-btn'),
+      reportZestStatementClick(5, 'test-btn'),
+    ]);
+  });
+
+  test('Should record interactions in same-origin frame added after timeout with cross-origin frame', async () => {
+    // Given / When
+    await driver.toggleRecording();
+    const wd = await driver.getWebDriver();
+    await wd.get(
+      `http://localhost:${_HTTPPORT}/webpages/crossOriginFrameDelay.html`
+    );
+    await wd.wait(until.ableToSwitchToFrame(1));
+    wd.findElement(By.id('test-btn')).click();
+    await eventsProcessed();
+    // Then
+    expect(actualData).toEqual([
+      reportZestStatementComment(),
+      reportZestStatementLaunch(
+        `http://localhost:${_HTTPPORT}/webpages/crossOriginFrameDelay.html`
+      ),
+      reportZestStatementSwitchToFrame(3, 1, ''),
+      reportZestStatementScrollTo(4, 'test-btn'),
+      reportZestStatementClick(5, 'test-btn'),
+    ]);
+  });
+
+  test('Should record interactions in same-origin no-src frame added after timeout with cross-origin frame', async () => {
+    // Given / When
+    await driver.toggleRecording();
+    const wd = await driver.getWebDriver();
+    await wd.get(
+      `http://localhost:${_HTTPPORT}/webpages/crossOriginNoSrcFrameDelay.html`
+    );
+    await wd.wait(until.ableToSwitchToFrame(1));
+    wd.findElement(By.id('test-btn')).click();
+    await eventsProcessed();
+    // Then
+    expect(actualData).toEqual([
+      reportZestStatementComment(),
+      reportZestStatementLaunch(
+        `http://localhost:${_HTTPPORT}/webpages/crossOriginNoSrcFrameDelay.html`
+      ),
+      reportZestStatementSwitchToFrame(3, 1, ''),
+      reportZestStatementScrollTo(4, 'test-btn'),
+      reportZestStatementClick(5, 'test-btn'),
+    ]);
+  });
+
   test('Should not record interactions on floating container', async () => {
     // Given / When
     await driver.toggleRecording();

@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head></head>
+<body>
+    <div id="container"></div>
+    <script>
+        setTimeout(() => {
+            const crossOrigin = document.createElement('iframe');
+            crossOrigin.src = 'https://www.example.org';
+            document.getElementById('container').appendChild(crossOrigin);
+
+            const sameOrigin = document.createElement('iframe');
+            sameOrigin.src = './testFrame.html';
+            sameOrigin.name = 'frame1';
+            document.getElementById('container').appendChild(sameOrigin);
+        }, 500);
+    </script>
+</body>
+</html>
