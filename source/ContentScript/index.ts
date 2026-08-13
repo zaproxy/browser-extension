@@ -36,6 +36,7 @@ import {
 import {
   IS_FULL_EXTENSION,
   LOCAL_STORAGE,
+  LOCAL_ZAP_CONFIGURED,
   LOCAL_ZAP_ENABLE,
   LOCAL_ZAP_RECORD,
   REPORT_EVENT,
@@ -368,7 +369,7 @@ function enableExtension(): void {
   reportPageLoaded(document, reportObject);
 }
 
-function configureExtension(): void {
+async function configureExtension(): Promise<void> {
   if (isConfigurationRequest()) {
     // The Browser has been launched from ZAP - use this URL for configuration
     const params = new URLSearchParams(window.location.search);
@@ -380,37 +381,44 @@ function configureExtension(): void {
       params.has(URL_ZAP_RECORD);
 
     console.log('ZAP Configure', enable, record);
-    Browser.storage.sync.set({
-      zapurl: window.location.href.split('?')[0],
-      zapenable: enable,
-      zaprecordingactive: record,
-    });
+    try {
+      await Browser.storage.sync.set({
+        zapurl: window.location.href.split('?')[0],
+        zapenable: enable,
+        zaprecordingactive: record,
+      });
+    } catch (e) {
+      console.error('ZAP Configure failed to write sync storage', e);
+      return;
+    }
+    try {
+      localStorage.setItem(LOCAL_ZAP_CONFIGURED, 'true');
+    } catch (e) {
+      console.error('ZAP Configure failed to write localStorage flag', e);
+    }
   }
 }
 
-function injectScript(): Promise<boolean> {
-  return new Promise((resolve) => {
-    configureExtension();
-    withZapRecordingActive(() => {
-      Browser.storage.sync
-        .get({initScript: false, loginUrl: '', startTime: 0})
-        .then((items) => {
-          console.log(
-            `ZAP injectScript items ${items.initScript} ${items.loginUrl}`
-          );
-          recorder.recordUserInteractions(
-            items.initScript === true,
-            items.loginUrl as string,
-            items.startTime as number
-          );
-        });
-    });
-    withZapEnableSetting(() => {
-      enableExtension();
-      resolve(true);
-    });
-    resolve(false);
+async function injectScript(): Promise<boolean> {
+  await configureExtension();
+  withZapRecordingActive(() => {
+    Browser.storage.sync
+      .get({initScript: false, loginUrl: '', startTime: 0})
+      .then((items) => {
+        console.log(
+          `ZAP injectScript items ${items.initScript} ${items.loginUrl}`
+        );
+        recorder.recordUserInteractions(
+          items.initScript === true,
+          items.loginUrl as string,
+          items.startTime as number
+        );
+      });
   });
+  withZapEnableSetting(() => {
+    enableExtension();
+  });
+  return false;
 }
 
 injectScript();
