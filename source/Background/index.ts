@@ -305,10 +305,6 @@ if (IS_FULL_EXTENSION) {
 
   Browser.runtime.onInstalled.addListener((): void => {
     console.emoji('🦄', 'extension installed');
-    Browser.storage.sync.set({
-      zapurl: 'http://zap/',
-      zapkey: 'not set',
-    });
   });
 }
 

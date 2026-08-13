@@ -53,6 +53,7 @@ export const SESSION_STORAGE = 'sessionStorage';
 export const LOCAL_ZAP_URL = 'localzapurl';
 export const LOCAL_ZAP_ENABLE = 'localzapenable';
 export const LOCAL_ZAP_RECORD = 'localzaprecord';
+export const LOCAL_ZAP_CONFIGURED = 'localzapconfigured';
 export const URL_ZAP_ENABLE = 'zapenable';
 export const URL_ZAP_RECORD = 'zaprecord';
 

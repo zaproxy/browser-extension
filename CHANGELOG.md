@@ -3,6 +3,10 @@ All notable changes to the full browser extension will be documented in this fil
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 0.2.2 - 2026-08-14
+### Fixed
+- Correct and signal when auto-configuration is done.
+
 ## 0.2.1 - 2026-08-10
 ### Fixed
 - Handle cross-origin frames.
