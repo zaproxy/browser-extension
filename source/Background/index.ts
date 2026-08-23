@@ -222,12 +222,6 @@ async function handleMessage(
       break;
     }
 
-    case ZEST_SCRIPT: {
-      const data = zestScript.addStatement(request.data);
-      sendZestScriptToZAP(data, zapkey, zapurl);
-      break;
-    }
-
     case GET_ZEST_SCRIPT:
       return zestScript.getZestScript();
 
@@ -261,19 +255,38 @@ async function onMessageHandler(
   message: unknown,
   _sender: Runtime.MessageSender
 ): Promise<number | ZestScriptMessage> {
+  const request = message as MessageEvent;
+  // Assign the index synchronously before any await. Multiple concurrent
+  // invocations of this async handler would otherwise race on the storage read
+  // and assign indices in a different order than messages arrived.
+  let preIndexedZestData: string | undefined;
+  if (request.type === ZEST_SCRIPT) {
+    preIndexedZestData = zestScript.addStatement(request.data);
+  }
+
   let val: number | ZestScriptMessage = 2;
   const items = await Browser.storage.sync.get({
     zapurl: 'http://zap/',
     zapkey: 'not set',
   });
-  const msg = await handleMessage(
-    message as MessageEvent,
-    items.zapurl as string,
-    items.zapkey as string
-  );
-  if (!(typeof msg === 'boolean')) {
-    val = msg;
+
+  if (preIndexedZestData !== undefined) {
+    sendZestScriptToZAP(
+      preIndexedZestData,
+      items.zapkey as string,
+      items.zapurl as string
+    );
+  } else {
+    const msg = await handleMessage(
+      request,
+      items.zapurl as string,
+      items.zapkey as string
+    );
+    if (!(typeof msg === 'boolean')) {
+      val = msg;
+    }
   }
+
   return Promise.resolve(val);
 }
 
