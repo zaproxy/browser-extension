@@ -251,6 +251,27 @@ export function reportZestStatementClick(
   );
 }
 
+export function reportZestStatementClear(
+  index: number,
+  element: string,
+  statementType = 'id'
+): object {
+  return {
+    action: {action: 'reportZestStatement'},
+    body: {
+      statementJson: {
+        windowHandle: 'windowHandle1',
+        type: statementType,
+        element,
+        index,
+        enabled: true,
+        elementType: 'ZestClientElementClear',
+      },
+      apikey: 'not set',
+    },
+  };
+}
+
 export function reportZestStatementSubmit(
   index: number,
   element: string,

@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Chat Test</title>
+</head>
+<body>
+  <textarea id="chat-input"></textarea>
+  <button id="chat-send">Send</button>
+  <script>
+    document.getElementById('chat-send').addEventListener('click', () => {
+      document.getElementById('chat-input').value = '';
+    });
+  </script>
+</body>
+</html>

@@ -31,6 +31,7 @@ import {
   getStaticHttpServer,
   reportEvent,
   reportObject,
+  reportZestStatementClear,
   reportZestStatementClick,
   reportZestStatementClose,
   reportZestStatementComment,
@@ -529,13 +530,14 @@ function integrationTests(
         'http://localhost:1801/webpages/interactions.html'
       ),
       reportZestStatementScrollTo(3, 'input-3-filled'),
+      reportZestStatementClear(4, 'input-3-filled'),
       reportZestStatementSendKeys(
-        4,
+        5,
         'input-3-filled',
         'Existing texttestinput'
       ),
-      reportZestStatementScrollTo(5, 'click'),
-      reportZestStatementClick(6, 'click'),
+      reportZestStatementScrollTo(6, 'click'),
+      reportZestStatementClick(7, 'click'),
     ]);
   });
 
@@ -556,13 +558,14 @@ function integrationTests(
         'http://localhost:1801/webpages/interactions.html'
       ),
       reportZestStatementScrollTo(3, 'input-3-filled'),
+      reportZestStatementClear(4, 'input-3-filled'),
       reportZestStatementSendKeys(
-        4,
+        5,
         'input-3-filled',
         'testinputExisting text'
       ),
-      reportZestStatementScrollTo(5, 'click'),
-      reportZestStatementClick(6, 'click'),
+      reportZestStatementScrollTo(6, 'click'),
+      reportZestStatementClick(7, 'click'),
     ]);
   });
 
@@ -581,9 +584,10 @@ function integrationTests(
         'http://localhost:1801/webpages/interactions.html'
       ),
       reportZestStatementScrollTo(3, 'textarea-1'),
-      reportZestStatementSendKeys(4, 'textarea-1', 'Existing texttestinput'),
-      reportZestStatementScrollTo(5, 'click'),
-      reportZestStatementClick(6, 'click'),
+      reportZestStatementClear(4, 'textarea-1'),
+      reportZestStatementSendKeys(5, 'textarea-1', 'Existing texttestinput'),
+      reportZestStatementScrollTo(6, 'click'),
+      reportZestStatementClick(7, 'click'),
     ]);
   });
 
@@ -604,9 +608,118 @@ function integrationTests(
         'http://localhost:1801/webpages/interactions.html'
       ),
       reportZestStatementScrollTo(3, 'textarea-1'),
-      reportZestStatementSendKeys(4, 'textarea-1', 'testinputExisting text'),
+      reportZestStatementClear(4, 'textarea-1'),
+      reportZestStatementSendKeys(5, 'textarea-1', 'testinputExisting text'),
+      reportZestStatementScrollTo(6, 'click'),
+      reportZestStatementClick(7, 'click'),
+    ]);
+  });
+
+  test('Should record clear before send keys for input with existing value', async () => {
+    // Given / When
+    await driver.toggleRecording();
+    const wd = await driver.getWebDriver();
+    await wd.get(`http://localhost:${_HTTPPORT}/webpages/interactions.html`);
+    await wd.findElement(By.id('input-3-filled')).sendKeys('new');
+    await wd.findElement(By.id('click')).click();
+    await eventsProcessed();
+    // Then
+    expect(actualData).toEqual([
+      reportZestStatementComment(),
+      reportZestStatementLaunch(
+        'http://localhost:1801/webpages/interactions.html'
+      ),
+      reportZestStatementScrollTo(3, 'input-3-filled'),
+      reportZestStatementClear(4, 'input-3-filled'),
+      reportZestStatementSendKeys(5, 'input-3-filled', 'Existing textnew'),
+      reportZestStatementScrollTo(6, 'click'),
+      reportZestStatementClick(7, 'click'),
+    ]);
+  });
+
+  test('Should not record clear for empty input', async () => {
+    // Given / When
+    await driver.toggleRecording();
+    const wd = await driver.getWebDriver();
+    await wd.get(`http://localhost:${_HTTPPORT}/webpages/interactions.html`);
+    await wd.findElement(By.id('input-1')).sendKeys('testinput');
+    await wd.findElement(By.id('click')).click();
+    await eventsProcessed();
+    // Then
+    expect(actualData).toEqual([
+      reportZestStatementComment(),
+      reportZestStatementLaunch(
+        'http://localhost:1801/webpages/interactions.html'
+      ),
+      reportZestStatementScrollTo(3, 'input-1'),
+      reportZestStatementSendKeys(4, 'input-1', 'testinput'),
       reportZestStatementScrollTo(5, 'click'),
       reportZestStatementClick(6, 'click'),
+    ]);
+  });
+
+  test('Should record clear before send keys for dynamically set input value', async () => {
+    // Given / When
+    await driver.toggleRecording();
+    const wd = await driver.getWebDriver();
+    await wd.get(`http://localhost:${_HTTPPORT}/webpages/dynamic-fill.html`);
+    await pageLoaded(wd);
+    await wd.findElement(By.id('fill-button')).click();
+    const inputElement = await wd.findElement(By.id('dynamic-input'));
+    await inputElement.click();
+    await inputElement.sendKeys(Key.END, ' + new text');
+    await wd.findElement(By.id('submit')).click();
+    await eventsProcessed();
+    // Then
+    expect(actualData).toEqual([
+      reportZestStatementComment(),
+      reportZestStatementLaunch(
+        `http://localhost:${_HTTPPORT}/webpages/dynamic-fill.html`
+      ),
+      reportZestStatementScrollTo(3, 'fill-button'),
+      reportZestStatementClick(4, 'fill-button'),
+      reportZestStatementScrollTo(5, 'dynamic-input'),
+      reportZestStatementClick(6, 'dynamic-input'),
+      reportZestStatementScrollTo(7, 'dynamic-input'),
+      reportZestStatementClear(8, 'dynamic-input'),
+      reportZestStatementSendKeys(
+        9,
+        'dynamic-input',
+        'filled by button + new text'
+      ),
+      reportZestStatementScrollTo(10, 'submit'),
+      reportZestStatementClick(11, 'submit'),
+    ]);
+  });
+
+  test('Should not record clear on automatically reset input', async () => {
+    // Given / When
+    await driver.toggleRecording();
+    const wd = await driver.getWebDriver();
+    await wd.get(`http://localhost:${_HTTPPORT}/webpages/chat.html`);
+    await wd.findElement(By.id('chat-input')).sendKeys('hello');
+    await wd.findElement(By.id('chat-send')).click();
+    await wd.findElement(By.id('chat-input')).sendKeys('world');
+    await wd.findElement(By.id('chat-send')).click();
+    await wd.findElement(By.id('chat-input')).sendKeys('bye');
+    await wd.findElement(By.id('chat-send')).click();
+    await eventsProcessed();
+    // Then
+    expect(actualData).toEqual([
+      reportZestStatementComment(),
+      reportZestStatementLaunch('http://localhost:1801/webpages/chat.html'),
+      reportZestStatementScrollTo(3, 'chat-input'),
+      reportZestStatementSendKeys(4, 'chat-input', 'hello'),
+      reportZestStatementScrollTo(5, 'chat-send'),
+      reportZestStatementClick(6, 'chat-send'),
+      reportZestStatementScrollTo(7, 'chat-input'),
+      reportZestStatementSendKeys(8, 'chat-input', 'world'),
+      reportZestStatementScrollTo(9, 'chat-send'),
+      reportZestStatementClick(10, 'chat-send'),
+      reportZestStatementScrollTo(11, 'chat-input'),
+      reportZestStatementSendKeys(12, 'chat-input', 'bye'),
+      reportZestStatementScrollTo(13, 'chat-send'),
+      reportZestStatementClick(14, 'chat-send'),
     ]);
   });
 
