@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Dynamic Value Test</title>
+</head>
+<body>
+  <input type="text" id="dynamic-input" />
+  <button id="fill-button">Fill</button>
+  <button id="submit">Submit</button>
+  <script>
+    document.getElementById('fill-button').addEventListener('click', () => {
+      document.getElementById('dynamic-input').value = 'filled by button';
+    });
+  </script>
+</body>
+</html>

@@ -3,6 +3,10 @@ All notable changes to the recorder browser extension will be documented in this
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## Unreleased
+### Fixed
+- Record a clear statement before send keys when a text element has a preexisting value.
+
 ## 0.2.1 - 2026-08-10
 ### Fixed
 - Handle cross-origin frames.

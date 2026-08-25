@@ -23,6 +23,7 @@ import {
   ElementLocator,
   ZestStatement,
   ZestStatementComment,
+  ZestStatementElementClear,
   ZestStatementElementClick,
   ZestStatementElementScrollTo,
   ZestStatementElementSendKeys,
@@ -80,6 +81,8 @@ class Recorder {
   pendingSyntheticClickTarget: Element | null = null;
 
   pendingSyntheticClickTimer: ReturnType<typeof setTimeout> | null = null;
+
+  private focusedInput: {element: Element; value: string} | null = null;
 
   async sendZestScriptToZAP(
     zestStatement: ZestStatement,
@@ -261,6 +264,17 @@ class Recorder {
     // send mouseover event
   }
 
+  private isTrackedInputType(
+    target: HTMLElement
+  ): target is HTMLInputElement | HTMLTextAreaElement {
+    return (
+      (target instanceof HTMLInputElement &&
+        target.type !== 'checkbox' &&
+        target.type !== 'radio') ||
+      target instanceof HTMLTextAreaElement
+    );
+  }
+
   handleChange(
     params: {level: number; frame: number; element: Document},
     event: Event
@@ -286,6 +300,17 @@ class Recorder {
           '')
         : (event.target as HTMLInputElement).value;
     this.sendScrollToToZap(elementLocator, waited);
+    const target = event.target as HTMLElement;
+    const hadPreExistingValue =
+      this.focusedInput?.element === target ||
+      (this.isTrackedInputType(target) && !!target.defaultValue);
+    this.focusedInput = null;
+    if (hadPreExistingValue) {
+      this.sendZestScriptToZAP(new ZestStatementElementClear(elementLocator), {
+        sendCache: false,
+        notify: false,
+      });
+    }
     this.sendZestScriptToZAP(
       new ZestStatementElementSendKeys(elementLocator, keys, waited),
       {sendCache: false, notify: true}
@@ -460,7 +485,14 @@ class Recorder {
     );
     element.addEventListener(
       'mousedown',
-      this.handleUserInteraction.bind(this),
+      (event: Event) => {
+        this.handleUserInteraction(event);
+        const target = event.target as HTMLElement;
+        if (this.isTrackedInputType(target)) {
+          const {value} = target;
+          this.focusedInput = value ? {element: target, value} : null;
+        }
+      },
       {capture: true}
     );
 
