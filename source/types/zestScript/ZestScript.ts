@@ -57,6 +57,19 @@ class ZestScript {
     this.curIndex = 1;
   }
 
+  getStatements(): string[] {
+    return [...this.zestStatements];
+  }
+
+  getCurIndex(): number {
+    return this.curIndex;
+  }
+
+  restoreStatements(statements: string[], curIndex: number): void {
+    this.zestStatements = statements;
+    this.curIndex = curIndex;
+  }
+
   getZestStatementCount(): number {
     return this.zestStatements.length;
   }

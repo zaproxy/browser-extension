@@ -877,6 +877,41 @@ function integrationTests(
     );
   });
 
+  test('Should preserve recorded statements after period of inactivity', async () => {
+    // Given
+    await driver.toggleRecording();
+    const wd = await driver.getWebDriver();
+    await wd.get(await driver.getPopupURL());
+    await wd.findElement(By.id('script-name-input')).sendKeys('inactivity');
+    await wd.get(`http://localhost:${_HTTPPORT}/webpages/interactions.html`);
+    await eventsProcessed();
+
+    // When
+    await wd.findElement(By.id('input-1')).sendKeys('inactivity');
+    // Inactivity…
+    await eventsProcessed(35000);
+    await wd.findElement(By.id('click')).click();
+    await eventsProcessed();
+    await wd.get(await driver.getPopupURL());
+    await wd.findElement(By.id('save-script')).click();
+    await eventsProcessed();
+
+    // Then
+    const script = JSON.parse(readDownloadedScript(downloadsDir.path));
+    const types: string[] = script.statements.map(
+      (s: {elementType: string}) => s.elementType
+    );
+    expect(types).toEqual([
+      'ZestComment',
+      'ZestClientLaunch',
+      'ZestClientElementScrollTo',
+      'ZestClientElementSendKeys',
+      'ZestClientElementScrollTo',
+      'ZestClientElementClick',
+      'ZestClientWindowClose',
+    ]);
+  }, 60000);
+
   test('Should send window handle close script when enabled', async () => {
     // Given
     await driver.toggleRecording();
