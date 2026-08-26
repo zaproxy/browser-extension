@@ -41,6 +41,14 @@ console.log('ZAP Service Worker 👋');
 */
 const reportedStorage = new Set<string>();
 const zestScript = new ZestScript();
+const restorePromise = Browser.storage.local
+  .get({zestStatements: [], zestCurIndex: 1})
+  .then((saved) => {
+    zestScript.restoreStatements(
+      saved.zestStatements as string[],
+      saved.zestCurIndex as number
+    );
+  });
 /*
   A callback URL will only be available if the browser has been launched from ZAP, otherwise call the individual endpoints
 */
@@ -176,6 +184,7 @@ async function handleMessage(
   zapurl: string,
   zapkey: string
 ): Promise<boolean | ZestScriptMessage> {
+  await restorePromise;
   console.log(`ZAP Service worker calling ZAP on ${zapurl}`);
   console.log(zapApiUrl(zapurl, REPORT_OBJECT));
   console.log(encodeURIComponent(zapkey));
@@ -225,6 +234,10 @@ async function handleMessage(
     case ZEST_SCRIPT: {
       const data = zestScript.addStatement(request.data);
       sendZestScriptToZAP(data, zapkey, zapurl);
+      Browser.storage.local.set({
+        zestStatements: zestScript.getStatements(),
+        zestCurIndex: zestScript.getCurIndex(),
+      });
       break;
     }
 
@@ -233,6 +246,7 @@ async function handleMessage(
 
     case RESET_ZEST_SCRIPT:
       zestScript.reset();
+      Browser.storage.local.set({zestStatements: [], zestCurIndex: 1});
       break;
 
     case STOP_RECORDING: {
@@ -244,6 +258,10 @@ async function handleMessage(
           const stmt = new ZestStatementWindowClose(0);
           const data = zestScript.addStatement(stmt.toJSON());
           sendZestScriptToZAP(data, zapkey, zapurl);
+          Browser.storage.local.set({
+            zestStatements: zestScript.getStatements(),
+            zestCurIndex: zestScript.getCurIndex(),
+          });
         }
       }
       break;

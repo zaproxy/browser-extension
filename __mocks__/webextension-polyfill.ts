@@ -21,6 +21,25 @@ const mockStorageSyncGet = jest.fn().mockImplementation(() => {
   return Promise.resolve({zapenable: false});
 });
 
+const localStore: Record<string, unknown> = {};
+
+const mockStorageLocalGet = jest
+  .fn()
+  .mockImplementation((defaults: Record<string, unknown>) => {
+    const result: Record<string, unknown> = {...defaults};
+    for (const key of Object.keys(defaults)) {
+      if (key in localStore) result[key] = localStore[key];
+    }
+    return Promise.resolve(result);
+  });
+
+const mockStorageLocalSet = jest
+  .fn()
+  .mockImplementation((items: Record<string, unknown>) => {
+    Object.assign(localStore, items);
+    return Promise.resolve();
+  });
+
 const Browser = {
   runtime: {
     sendMessage: jest.fn(),
@@ -34,6 +53,10 @@ const Browser = {
   storage: {
     sync: {
       get: mockStorageSyncGet,
+    },
+    local: {
+      get: mockStorageLocalGet,
+      set: mockStorageLocalSet,
     },
   },
   cookies: {
