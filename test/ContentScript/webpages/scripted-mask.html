@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Scripted Mask Test</title>
+</head>
+<body>
+  <input type="text" id="masked-input" />
+  <button id="submit">Submit</button>
+  <script>
+    // Mimics jQuery Inputmask: takes over typing, sets the value from script
+    // and never dispatches a native input/change event.
+    const input = document.getElementById('masked-input');
+    input.addEventListener('keypress', (e) => {
+      e.preventDefault();
+      input.value += e.key;
+    });
+  </script>
+</body>
+</html>

@@ -692,6 +692,104 @@ function integrationTests(
     ]);
   });
 
+  test('Should record input set by script without native change event', async () => {
+    // Given / When
+    await driver.toggleRecording();
+    const wd = await driver.getWebDriver();
+    await wd.get(`http://localhost:${_HTTPPORT}/webpages/scripted-mask.html`);
+    await pageLoaded(wd);
+    await wd.findElement(By.id('masked-input')).sendKeys('12345');
+    await wd.findElement(By.id('submit')).click();
+    await eventsProcessed();
+    // Then
+    expect(actualData).toEqual([
+      reportZestStatementComment(),
+      reportZestStatementLaunch(
+        `http://localhost:${_HTTPPORT}/webpages/scripted-mask.html`
+      ),
+      reportZestStatementScrollTo(3, 'masked-input'),
+      reportZestStatementSendKeys(4, 'masked-input', '12345'),
+      reportZestStatementScrollTo(5, 'submit'),
+      reportZestStatementClick(6, 'submit'),
+    ]);
+  });
+
+  test('Should not record value set by script without user edit', async () => {
+    // Given / When
+    await driver.toggleRecording();
+    const wd = await driver.getWebDriver();
+    await wd.get(`http://localhost:${_HTTPPORT}/webpages/scripted-update.html`);
+    await pageLoaded(wd);
+    const input = await wd.findElement(By.id('auto-input'));
+    await input.click();
+    await wd.wait(
+      async () => (await input.getAttribute('value')) === 'set by script',
+      5000
+    );
+    await input.sendKeys(Key.TAB);
+    await wd.findElement(By.id('submit')).click();
+    await eventsProcessed();
+    // Then
+    expect(actualData).toEqual([
+      reportZestStatementComment(),
+      reportZestStatementLaunch(
+        `http://localhost:${_HTTPPORT}/webpages/scripted-update.html`
+      ),
+      reportZestStatementScrollTo(3, 'auto-input'),
+      reportZestStatementClick(4, 'auto-input'),
+      reportZestStatementScrollTo(5, 'submit'),
+      reportZestStatementClick(6, 'submit'),
+    ]);
+  });
+
+  test('Should record final value after script handled deletion', async () => {
+    // Given / When
+    await driver.toggleRecording();
+    const wd = await driver.getWebDriver();
+    await wd.get(`http://localhost:${_HTTPPORT}/webpages/scripted-update.html`);
+    await pageLoaded(wd);
+    await wd
+      .findElement(By.id('masked-input'))
+      .sendKeys('123', Key.BACK_SPACE, '4');
+    await wd.findElement(By.id('submit')).click();
+    await eventsProcessed();
+    // Then
+    expect(actualData).toEqual([
+      reportZestStatementComment(),
+      reportZestStatementLaunch(
+        `http://localhost:${_HTTPPORT}/webpages/scripted-update.html`
+      ),
+      reportZestStatementScrollTo(3, 'masked-input'),
+      reportZestStatementSendKeys(4, 'masked-input', '124'),
+      reportZestStatementScrollTo(5, 'submit'),
+      reportZestStatementClick(6, 'submit'),
+    ]);
+  });
+
+  test('Should not record scripted input when only focus moves', async () => {
+    // Given / When
+    await driver.toggleRecording();
+    const wd = await driver.getWebDriver();
+    await wd.get(`http://localhost:${_HTTPPORT}/webpages/scripted-update.html`);
+    await pageLoaded(wd);
+    const input = await wd.findElement(By.id('masked-input'));
+    await input.click();
+    await input.sendKeys(Key.TAB);
+    await wd.findElement(By.id('submit')).click();
+    await eventsProcessed();
+    // Then
+    expect(actualData).toEqual([
+      reportZestStatementComment(),
+      reportZestStatementLaunch(
+        `http://localhost:${_HTTPPORT}/webpages/scripted-update.html`
+      ),
+      reportZestStatementScrollTo(3, 'masked-input'),
+      reportZestStatementClick(4, 'masked-input'),
+      reportZestStatementScrollTo(5, 'submit'),
+      reportZestStatementClick(6, 'submit'),
+    ]);
+  });
+
   test('Should not record clear on automatically reset input', async () => {
     // Given / When
     await driver.toggleRecording();

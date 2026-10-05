@@ -84,6 +84,12 @@ class Recorder {
 
   private focusedInput: {element: Element; value: string} | null = null;
 
+  // Value of each input when it gained focus / was last recorded
+  private baselineValues = new WeakMap<Element, string>();
+
+  // Inputs the user has edited via keyboard or paste with no 'change' event seen yet
+  private editedInputs = new WeakSet<Element>();
+
   async sendZestScriptToZAP(
     zestStatement: ZestStatement,
     params: {sendCache: boolean; notify: boolean}
@@ -305,6 +311,10 @@ class Recorder {
       this.focusedInput?.element === target ||
       (this.isTrackedInputType(target) && !!target.defaultValue);
     this.focusedInput = null;
+    this.editedInputs.delete(target);
+    if (this.isTrackedInputType(target)) {
+      this.baselineValues.set(target, target.value);
+    }
     if (hadPreExistingValue) {
       this.sendZestScriptToZAP(new ZestStatementElementClear(elementLocator), {
         sendCache: false,
@@ -317,6 +327,38 @@ class Recorder {
     );
     // Now send the cached submit, if there still is one
     this.handleCachedSubmit();
+  }
+
+  handleKeyEdit(event: KeyboardEvent): void {
+    const target = event.target as HTMLElement;
+    if (!this.isTrackedInputType(target)) return;
+    const isEditKey =
+      event.key.length === 1 ||
+      event.key === 'Backspace' ||
+      event.key === 'Delete';
+    if (isEditKey) this.editedInputs.add(target);
+  }
+
+  handleFocusIn(event: Event): void {
+    const target = event.target as HTMLElement;
+    if (this.isTrackedInputType(target)) {
+      this.baselineValues.set(target, target.value);
+      this.editedInputs.delete(target);
+    }
+  }
+
+  // Some sites (e.g. jQuery Inputmask) set the value from script and never fire
+  // a native 'change' event, so fall back to comparing the value on blur.
+  handleFocusOut(
+    params: {level: number; frame: number; element: Document},
+    event: Event
+  ): void {
+    const target = event.target as HTMLElement;
+    if (!this.isTrackedInputType(target)) return;
+    if (!this.editedInputs.has(target)) return;
+    this.editedInputs.delete(target);
+    if (this.baselineValues.get(target) === target.value) return;
+    this.handleChange(params, event);
   }
 
   handleKeypress(
@@ -482,6 +524,25 @@ class Recorder {
     element.addEventListener(
       'change',
       this.handleChange.bind(this, {level, frame, element})
+    );
+    element.addEventListener('keydown', this.handleKeyEdit.bind(this), {
+      capture: true,
+    });
+    element.addEventListener(
+      'paste',
+      (event: Event) => {
+        const target = event.target as HTMLElement;
+        if (this.isTrackedInputType(target)) this.editedInputs.add(target);
+      },
+      {capture: true}
+    );
+    element.addEventListener('focusin', this.handleFocusIn.bind(this), {
+      capture: true,
+    });
+    element.addEventListener(
+      'focusout',
+      this.handleFocusOut.bind(this, {level, frame, element}),
+      {capture: true}
     );
     element.addEventListener(
       'mousedown',

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Scripted Update Test</title>
+</head>
+<body>
+  <input type="text" id="auto-input" />
+  <input type="text" id="masked-input" />
+  <button id="submit">Submit</button>
+  <script>
+    // Value is changed by script shortly after focus, without any user edit.
+    const auto = document.getElementById('auto-input');
+    auto.addEventListener('focus', () => {
+      setTimeout(() => {
+        auto.value = 'set by script';
+      }, 100);
+    });
+
+    // Mimics jQuery Inputmask: handles typing and deletion from script and
+    // never dispatches a native input/change event.
+    const masked = document.getElementById('masked-input');
+    masked.addEventListener('keypress', (e) => {
+      e.preventDefault();
+      masked.value += e.key;
+    });
+    masked.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace') {
+        e.preventDefault();
+        masked.value = masked.value.slice(0, -1);
+      }
+    });
+  </script>
+</body>
+</html>
