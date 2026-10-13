@@ -31,7 +31,6 @@ class FirefoxDriver extends BaseDriver {
 
   protected async createWebDriver(): Promise<WebDriver> {
     const options = new firefox.Options()
-      .addExtensions(`${extensionPath.FIREFOX}.ext.xpi`)
       .setPreference('browser.download.folderList', 2)
       .setPreference('browser.download.dir', this.downloadsDir)
       .setPreference(
@@ -49,7 +48,7 @@ class FirefoxDriver extends BaseDriver {
       .setFirefoxOptions(options)
       .setFirefoxService(service)
       .build()) as firefox.Driver;
-    wd.installAddon(`${extensionPath.FIREFOX}.ext.xpi`, true);
+    await wd.installAddon(`${extensionPath.FIREFOX}.ext.xpi`, true);
     return wd;
   }
 }
