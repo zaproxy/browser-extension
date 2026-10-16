@@ -3,6 +3,11 @@ All notable changes to the full browser extension will be documented in this fil
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## Unreleased
+### Added
+- Script Viewer, opened from the new "View Script" button, which allows a recorded script to be viewed, edited
+  (add, move, edit, delete), replayed in a new window or tab (with optional step through), loaded and saved.
+
 ## 0.2.4 - 2026-10-08
 ### Fixed
 - Record text fields updated via JS with no associated events.

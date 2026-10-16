@@ -19,11 +19,11 @@
  */
 import Browser from 'webextension-polyfill';
 import './styles.scss';
-import i18n from './i18n';
+import i18n from '../utils/i18n';
 
 import {
   GET_ZEST_SCRIPT,
-  IS_FULL_EXTENSION,
+  REFRESH_SCRIPT_VIEW,
   RESET_ZEST_SCRIPT,
   STOP_RECORDING,
   UPDATE_TITLE,
@@ -31,12 +31,17 @@ import {
   ZAP_STOP_RECORDING,
 } from '../utils/constants';
 import {downloadJson} from '../utils/util';
+import showOrCreateTab, {openInBackgroundIfClosed} from '../utils/tabs';
 import {ZestScriptMessage} from '../types/zestScript/ZestScript';
 
 const STOP = i18n.t('stop');
 const START = i18n.t('start');
 const OPTIONS = i18n.t('options');
 const DOWNLOAD = i18n.t('download');
+const VIEW = i18n.t('view');
+const HELP = i18n.t('help');
+const LOGIN_URL = i18n.t('loginUrl');
+const SCRIPT_NAME = i18n.t('scriptName');
 
 const play = document.querySelector('.play');
 const pause = document.querySelector('.pause');
@@ -45,6 +50,8 @@ const wave2 = document.querySelector('.record__back-2');
 const done = document.querySelector('.done');
 const optionsIcon = document.querySelector('.settings') as HTMLImageElement;
 const downloadIcon = document.querySelector('.download') as HTMLImageElement;
+const viewIcon = document.querySelector('.view') as HTMLImageElement;
+const helpIcon = document.querySelector('.help') as HTMLImageElement;
 const zapIcon = document.querySelector('.zapicon') as HTMLImageElement;
 
 const zapImageDark = './assets/icons/ZAP_by_Checkmarx_logo-dark.png';
@@ -52,6 +59,7 @@ const zapImageLight = './assets/icons/ZAP_by_Checkmarx_logo.png';
 
 const recordButton = document.getElementById('record-btn');
 const configureButton = document.getElementById('configure-btn');
+const viewButton = document.getElementById('view-btn');
 const helpButton = document.getElementById('help-btn');
 const saveScript = document.getElementById('save-script');
 const loginUrlInput = document.getElementById(
@@ -99,6 +107,11 @@ async function restoreState(): Promise<void> {
   console.log('Restore state');
   optionsIcon.title = OPTIONS;
   downloadIcon.title = DOWNLOAD;
+  viewIcon.title = VIEW;
+  viewButton?.setAttribute('aria-label', VIEW);
+  helpIcon.title = HELP;
+  loginUrlInput.placeholder = LOGIN_URL;
+  scriptNameInput.placeholder = SCRIPT_NAME;
   Browser.storage.sync
     .get({
       zaprecordingactive: false,
@@ -147,6 +160,11 @@ function startRecording(): void {
   Browser.storage.sync.set({
     zaprecordingactive: true,
   });
+  // Show the script as it is recorded, but without taking the user away from
+  // the page that they are recording
+  openInBackgroundIfClosed('script.html').catch((error) =>
+    console.log(`Could not open the script viewer: ${error}`)
+  );
 }
 
 function toggleRecording(e: Event): void {
@@ -184,6 +202,16 @@ function toggleRecording(e: Event): void {
 
 function openOptionsPage(): void {
   Browser.tabs.create({url: 'options.html', active: true});
+  closePopup();
+}
+
+async function openScriptPage(): Promise<void> {
+  const {tab, existed} = await showOrCreateTab('script.html');
+  if (existed && tab.id !== undefined) {
+    // Show the latest script in the tab that was already open
+    // The viewer is an extension page, so it is reached by runtime messaging
+    Browser.runtime.sendMessage({type: REFRESH_SCRIPT_VIEW}).catch(() => {});
+  }
   closePopup();
 }
 
@@ -263,11 +291,10 @@ window
   });
 
 if (configureButton) {
-  if (IS_FULL_EXTENSION) {
-    configureButton.addEventListener('click', openOptionsPage);
-  } else {
-    configureButton.style.visibility = 'hidden';
-  }
+  configureButton.addEventListener('click', openOptionsPage);
+}
+if (viewButton) {
+  viewButton.addEventListener('click', openScriptPage);
 }
 if (helpButton) {
   helpButton.addEventListener('click', openHelpPage);

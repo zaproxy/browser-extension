@@ -34,4 +34,28 @@ function downloadJson(json: string, title: string): void {
   URL.revokeObjectURL(url);
 }
 
-export {downloadJson};
+/**
+ * Waits for the given time. If a signal is given then it stops waiting as soon
+ * as the signal is aborted, so callers should check for that afterwards.
+ */
+function sleep(msec: number, signal?: AbortSignal): Promise<void> {
+  return new Promise((resolve) => {
+    if (signal?.aborted) {
+      resolve();
+      return;
+    }
+    const state: {timer?: ReturnType<typeof setTimeout>; wake?: () => void} =
+      {};
+    state.wake = (): void => {
+      clearTimeout(state.timer);
+      resolve();
+    };
+    state.timer = setTimeout(() => {
+      signal?.removeEventListener('abort', state.wake as () => void);
+      resolve();
+    }, msec);
+    signal?.addEventListener('abort', state.wake, {once: true});
+  });
+}
+
+export {downloadJson, sleep};

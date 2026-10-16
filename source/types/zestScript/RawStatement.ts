@@ -3,7 +3,7 @@
  *
  * ZAP is an HTTP/HTTPS proxy for assessing web application security.
  *
- * Copyright 2023 The ZAP Development Team
+ * Copyright 2026 The ZAP Development Team
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,27 +17,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import i18n from 'i18next';
-import LanguageDetector from 'i18next-browser-languagedetector';
 
-i18n.use(LanguageDetector).init({
-  resources: {
-    en: {
-      translation: {
-        start: 'Start Recording',
-        stop: 'Stop Recording',
-        download: 'Download Script',
-        options: 'Options',
-        help: 'Help',
-      },
-    },
-  },
-  defaultNS: 'translation',
-  fallbackLng: 'en',
-  debug: false,
-  interpolation: {
-    escapeValue: false,
-  },
-});
+/** A Zest statement as JSON, which may be of a type that the extension does not model. */
+type RawStatement = Record<string, unknown>;
 
-export default i18n;
+export default RawStatement;
