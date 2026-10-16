@@ -34,4 +34,10 @@ function downloadJson(json: string, title: string): void {
   URL.revokeObjectURL(url);
 }
 
-export {downloadJson};
+function sleep(msec: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, msec);
+  });
+}
+
+export {downloadJson, sleep};

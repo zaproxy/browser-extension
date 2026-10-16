@@ -43,7 +43,15 @@ export const ZEST_SCRIPT = 'zestScript';
 export const STOP_RECORDING = 'stopRecording';
 export const RESET_ZEST_SCRIPT = 'resetZestScript';
 export const GET_ZEST_SCRIPT = 'getZestScript';
+export const SET_ZEST_STATEMENTS = 'setZestStatements';
 export const UPDATE_TITLE = 'updateTitle';
+export const REPLAY_STATEMENT = 'replayStatement';
+export const REPLAY_FINISHED = 'replayFinished';
+export const REPLAY_PAUSE = 'replayPause';
+export const REPLAY_NEXT = 'replayNext';
+export const REPLAY_CANCEL = 'replayCancel';
+export const REPLAY_ABORT = 'replayAbort';
+export const REFRESH_SCRIPT_VIEW = 'refreshScriptView';
 
 export const REPORT_EVENT = 'reportEvent';
 export const REPORT_OBJECT = 'reportObject';

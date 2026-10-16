@@ -30,6 +30,7 @@ import {
   REPORT_OBJECT,
   RESET_ZEST_SCRIPT,
   SESSION_STORAGE,
+  SET_ZEST_STATEMENTS,
   STOP_RECORDING,
   ZEST_SCRIPT,
 } from '../utils/constants';
@@ -179,6 +180,27 @@ function sendZestScriptToZAP(
   }
 }
 
+/*
+  Everything that changes the script goes through this queue, so that each change and its write to storage finish before the next one starts.
+  Otherwise, for example, saving edited statements could overwrite statements recorded while the save was being stored.
+*/
+let scriptChanges: Promise<unknown> = Promise.resolve();
+
+function inOrder<T>(change: () => Promise<T> | T): Promise<T> {
+  const result = scriptChanges.then(change);
+  scriptChanges = result.catch(() => undefined);
+  return result;
+}
+
+function storeScript(): Promise<void> {
+  return Browser.storage.local
+    .set({
+      zestStatements: zestScript.getStatements(),
+      zestCurIndex: zestScript.getCurIndex(),
+    })
+    .catch((error) => console.error(`Failed to store the script: ${error}`));
+}
+
 async function handleMessage(
   request: MessageEvent,
   zapurl: string,
@@ -231,41 +253,52 @@ async function handleMessage(
       break;
     }
 
-    case ZEST_SCRIPT: {
-      const data = zestScript.addStatement(request.data);
-      sendZestScriptToZAP(data, zapkey, zapurl);
-      Browser.storage.local.set({
-        zestStatements: zestScript.getStatements(),
-        zestCurIndex: zestScript.getCurIndex(),
+    case ZEST_SCRIPT:
+      await inOrder(async () => {
+        const data = zestScript.addStatement(request.data);
+        sendZestScriptToZAP(data, zapkey, zapurl);
+        await storeScript();
       });
       break;
-    }
 
     case GET_ZEST_SCRIPT:
-      return zestScript.getZestScript();
+      return inOrder(() => zestScript.getZestScript());
+
+    case SET_ZEST_STATEMENTS:
+      await inOrder(async () => {
+        // Only change the script once the new one has been stored, so that if
+        // storing fails the script and what is stored stay the same
+        const prepared = zestScript.prepareStatements(request.data);
+        await Browser.storage.local.set({
+          zestStatements: prepared.statements,
+          zestCurIndex: prepared.curIndex,
+        });
+        zestScript.restoreStatements(prepared.statements, prepared.curIndex);
+      });
+      break;
 
     case RESET_ZEST_SCRIPT:
-      zestScript.reset();
-      Browser.storage.local.set({zestStatements: [], zestCurIndex: 1});
+      await inOrder(async () => {
+        zestScript.reset();
+        await storeScript();
+      });
       break;
 
-    case STOP_RECORDING: {
-      if (zestScript.getZestStatementCount() > 0) {
-        const {zapclosewindowhandle} = await Browser.storage.sync.get({
-          zapclosewindowhandle: false,
-        });
-        if (zapclosewindowhandle) {
-          const stmt = new ZestStatementWindowClose(0);
-          const data = zestScript.addStatement(stmt.toJSON());
-          sendZestScriptToZAP(data, zapkey, zapurl);
-          Browser.storage.local.set({
-            zestStatements: zestScript.getStatements(),
-            zestCurIndex: zestScript.getCurIndex(),
+    case STOP_RECORDING:
+      await inOrder(async () => {
+        if (zestScript.getZestStatementCount() > 0) {
+          const {zapclosewindowhandle} = await Browser.storage.sync.get({
+            zapclosewindowhandle: false,
           });
+          if (zapclosewindowhandle) {
+            const stmt = new ZestStatementWindowClose(0);
+            const data = zestScript.addStatement(stmt.toJSON());
+            sendZestScriptToZAP(data, zapkey, zapurl);
+            await storeScript();
+          }
         }
-      }
+      });
       break;
-    }
 
     default:
       // Handle unknown request type

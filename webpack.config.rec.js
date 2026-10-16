@@ -61,6 +61,7 @@ module.exports = {
     background: path.join(sourcePath, 'Background', 'index.ts'),
     contentScript: path.join(sourcePath, 'ContentScript', 'index.ts'),
     popup: path.join(sourcePath, 'Popup', 'index.tsx'),
+    script: path.join(sourcePath, 'ScriptView', 'index.ts'),
   },
 
   output: {
@@ -155,6 +156,13 @@ module.exports = {
       chunks: ['help'],
       hash: true,
       filename: 'help.html',
+    }),
+    new HtmlWebpackPlugin({
+      template: path.join(viewsPath, 'script.html'),
+      inject: 'body',
+      chunks: ['script'],
+      hash: true,
+      filename: 'script.html',
     }),
     new HtmlWebpackPlugin({
       template: path.join(viewsPath, 'popup.html'),

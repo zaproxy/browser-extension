@@ -20,6 +20,8 @@
 	<p>
 	You can also stop the recording via the extension dialog and then download the recording using a filename you specify.
 	<p>
+	You can view, edit, replay, load and save the recorded script using the Script Viewer, as detailed below.
+	<p>
 	If you are using the full ZAP extension and start recording in ZAP then the Zest script will be automatically updated in
 	the ZAP Script Console so you do not need to download it manually.
 
@@ -66,6 +68,9 @@
 	Clicking on this button will download any recorded script using the name in the above field.
 	You must have recorded something and specified a script name.
 
+    <h3>View Script Button</h3>
+	Opens the Script Viewer in a new tab, as detailed below.
+
     <h3>Config Button</h3>
 	Shows the extension configuration screen. This is only available in the full ZAP extension, the recorder extension
 	does not have this button or any configuration options.
@@ -84,6 +89,68 @@
 
     <h3>Help Button</h3>
 	Shows this screen.
+
+    <h2>Script Viewer</h2>
+    The Script Viewer shows the script you have recorded, one line per Zest statement, in a similar way to ZAP.
+    Open it via the View Script Button in the Recorder Dialog.
+    If the Script Viewer is already open then the button switches to that tab and reloads the script,
+    which clears the results of any previous run.
+    The recorded script can be changed, replayed, loaded and saved from here.
+    <p>
+    Statements cannot be changed or replayed while you are recording or replaying a script.
+    Stop recording first.
+
+    <h3>Toolbar</h3>
+    <ul>
+      <li><b>New</b> - discards the current script and its name, after asking for confirmation.</li>
+      <li><b>Load...</b> - replaces the current script with a Zest script (.zst or .json) from your filestore.
+          The statement delay stored in the file is not used, that is set via the configuration options.
+          Scripts which use settings that the extension cannot keep are not loaded, so that they are not changed without you knowing.
+          These are token definitions (parameters), authentication, a description, a prefix and a script type other than StandAlone.</li>
+      <li><b>Save</b> - downloads the current script, including any changes you have made, as a .zst file.
+          The file is named after the script name, or "script.zst" if it has no name.</li>
+      <li><b>Refresh</b> - reloads the script, e.g. after recording something new.</li>
+      <li><b>Run</b> - replays the script, see below.</li>
+      <li><b>Undo</b> - reverses the last change you made to the script, and can be used repeatedly.</li>
+      <li><b>Add</b> - adds a new statement of the type chosen in the list next to it.
+          It is added after the selected row (click a row to select it) or at the end if no row is selected.</li>
+    </ul>
+
+    <h3>Editing</h3>
+    Hover over a row to show its buttons:
+    <ul>
+      <li><b>&#9650; &#9660;</b> - move the statement up or down.</li>
+      <li><b>&#9998;</b> - edit the statement. Double clicking on the row does the same.
+          This is available for the statement types Launch, Click, Send keys, Clear, Submit, Scroll to,
+          Mouse over, Switch to frame, Close window and Comment.
+          Unticking Enabled keeps the statement in the script but skips it when the script is run.</li>
+      <li><b>&#10005;</b> - delete the statement, after asking for confirmation.</li>
+    </ul>
+    Changes are saved as soon as you make them.
+    When you add or edit a statement you can choose how an element is found using a locator type
+    (id, cssSelector, xpath, className, name, linkText or tagName) and a locator.
+
+    <h3>Running a Script</h3>
+    Choose "in New Window" or "in New Tab" next to the Run button, then click Run.
+    The first Launch statement opens the new window or tab and the other statements are run in it.
+    Each row shows its result as the script runs, and the script stops at the first statement that fails.
+    A box is shown on the page being replayed which shows the statement being run.
+    You can drag it out of the way and it will not affect the script.
+    <p>
+    Comments, Close window statements and disabled statements are not run.
+    Switching to a frame only works for frames from the same site as the page.
+    If the statement has a frame name then the frame with that name or id is used, otherwise the frame index is used.
+    The Statement Delay configuration option is used between statements, if it is set.
+    <p>
+    Clicking Stop cancels the script.
+
+    <h3>Stepping Through a Script</h3>
+    If you tick "Step through" before clicking Run then the first statement is run and the script then pauses.
+    The box on the page shows the next statement with Next and Cancel buttons.
+    The statement is only run when you click Next, and Cancel stops the script.
+    The Script Viewer also has Next and Stop buttons while the script is paused, which can be used if you have moved
+    to a page that is not showing the box.
+    The Statement Delay is not used when stepping through a script.
 
     <h2>Notification Panel</h2>
     When you are recording a script then a notification panel is shown on the current browser tab.

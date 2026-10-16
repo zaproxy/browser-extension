@@ -28,7 +28,8 @@ jobs:
       - name: Lint
         run: yarn lint
 
-      - run: yarn test unitTests
+      - name: Unit tests
+        run: yarn test --testPathIgnorePatterns integrationTests
 
   integration:
     needs: check
@@ -47,4 +48,4 @@ jobs:
       - run: yarn install
       - run: yarn run build
       - name: Test
-        run: yarn test -t "${{ matrix.browser }} Integration Test"
+        run: yarn test integrationTests -t "${{ matrix.browser }} Integration Test"
