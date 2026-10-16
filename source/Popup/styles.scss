@@ -207,7 +207,48 @@ html {
 /*  ICONS  */
 .setting-icon {
   grid-column: 1;
-  grid-row: 1 ;
+  grid-row: 2;
+  &__settings {
+    width: 4rem;
+    height: 4rem;
+    border-radius: 50%;
+    box-shadow: $shadow;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2rem;
+    cursor: pointer;
+    color: var(--greyDark);
+    transition: all .5s ease;
+
+    &:active {
+      box-shadow: $inner-shadow;
+      color: var(--primary);
+    }
+    &:hover {color: var(--primary);}
+  }
+}
+
+.view-icon {
+  grid-column: 1;
+  grid-row: 1;
+  /* A real button, so that it can be used from the keyboard, which looks like the other icons */
+  width: 4rem;
+  height: 4rem;
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: .2rem solid var(--primary);
+    outline-offset: .2rem;
+  }
+
   &__settings {
     width: 4rem;
     height: 4rem;
@@ -295,7 +336,7 @@ html {
   width: 3rem;
 }
 
-.download, .settings, .help, .done{
+.download, .settings, .help, .view, .done{
   width: 2rem;
 }
 
@@ -320,6 +361,7 @@ html {
   .record,
   .form,
   .setting-icon,
+  .view-icon,
   .help-icon {
     filter: invert(1) hue-rotate(180deg) grayscale(0.8) contrast(0.9) brightness(0.95);
   }
