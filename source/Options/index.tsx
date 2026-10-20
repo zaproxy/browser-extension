@@ -18,7 +18,12 @@
  * limitations under the License.
  */
 import Browser from 'webextension-polyfill';
-import {ZAP_ENABLE, ZAP_KEY, ZAP_URL} from '../utils/constants';
+import {
+  IS_FULL_EXTENSION,
+  ZAP_ENABLE,
+  ZAP_KEY,
+  ZAP_URL,
+} from '../utils/constants';
 import {DEFAULT_STATEMENT_DELAY} from '../types/zestScript/ZestScript';
 
 console.log('Options loading');
@@ -26,10 +31,6 @@ console.log('Options loading');
 // Saves options to chrome.storage
 function saveOptions(): void {
   console.log('Options save_options');
-  const zapurl = (document.getElementById(ZAP_URL) as HTMLInputElement).value;
-  const zapkey = (document.getElementById(ZAP_KEY) as HTMLInputElement).value;
-  const zapenable = (document.getElementById(ZAP_ENABLE) as HTMLInputElement)
-    .checked;
   const zapclosewindowhandle = (
     document.getElementById('window-close-input') as HTMLInputElement
   ).checked;
@@ -38,18 +39,49 @@ function saveOptions(): void {
       .value,
     10
   );
-  Browser.storage.sync.set({
-    zapurl,
-    zapkey,
-    zapenable,
+  const settings: Record<string, unknown> = {
     zapclosewindowhandle,
     zapstatementdelay,
-  });
+  };
+  if (IS_FULL_EXTENSION) {
+    // The recorder does not show these, so it should not change them
+    settings.zapenable = (
+      document.getElementById(ZAP_ENABLE) as HTMLInputElement
+    ).checked;
+    settings.zapurl = (
+      document.getElementById(ZAP_URL) as HTMLInputElement
+    ).value;
+    settings.zapkey = (
+      document.getElementById(ZAP_KEY) as HTMLInputElement
+    ).value;
+  }
+  Browser.storage.sync.set(settings);
+}
+
+/**
+ * The recorder does not talk to ZAP, so the page only shows what applies to it:
+ * the text about giving ZAP access to the browser, the settings for how to
+ * reach ZAP, and whether to report to ZAP are only for the full extension.
+ */
+function showWhatApplies(): void {
+  if (typeof Browser.runtime.getManifest === 'function') {
+    const title = document.getElementById('title');
+    if (title) {
+      title.textContent = Browser.runtime.getManifest().name;
+    }
+  }
+  if (!IS_FULL_EXTENSION) {
+    document.querySelectorAll<HTMLElement>('.full-only').forEach((el) => {
+      const element = el;
+      element.hidden = true;
+    });
+  }
 }
 
 // Restores options from chrome.storage.
 function restoreOptions(): void {
   console.log('Options restore_options');
+  showWhatApplies();
 
   Browser.storage.sync
     .get({

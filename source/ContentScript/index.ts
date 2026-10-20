@@ -26,6 +26,7 @@ import {
   InteractableState,
 } from '../types/ReportedModel';
 import Recorder from './recorder';
+import Replayer from './replayer';
 import {
   hasPointerStyle,
   getInteractableState,
@@ -40,6 +41,11 @@ import {
   LOCAL_ZAP_ENABLE,
   LOCAL_ZAP_RECORD,
   REPORT_EVENT,
+  REPLAY_ABORT,
+  REPLAY_FINISHED,
+  REPLAY_PAUSE,
+  REPLAY_PING,
+  REPLAY_STATEMENT,
   REPORT_OBJECT,
   SESSION_STORAGE,
   URL_ZAP_ENABLE,
@@ -57,6 +63,8 @@ const elementInteractableState = new WeakMap<Element, InteractableState>();
 let trackedElementRefs: WeakRef<Element>[] = [];
 
 const recorder = new Recorder();
+
+const replayer = new Replayer();
 
 function reportStorage(
   name: string,
@@ -429,7 +437,26 @@ Browser.runtime.onMessage.addListener(
     message: any,
     _sender: Runtime.MessageSender,
     _sendResponse: (response?: any) => void
-  ) => {
+  ): any => {
+    if (message.type === REPLAY_STATEMENT) {
+      return replayer.execute(message.data, message.display);
+    }
+    if (message.type === REPLAY_PING) {
+      // Lets the player know that the page is ready to be sent statements
+      return Promise.resolve(true);
+    }
+    if (message.type === REPLAY_ABORT) {
+      replayer.abort();
+      return Promise.resolve(true);
+    }
+    if (message.type === REPLAY_PAUSE) {
+      replayer.pause(message.data);
+      return Promise.resolve(true);
+    }
+    if (message.type === REPLAY_FINISHED) {
+      replayer.finish(message.data);
+      return Promise.resolve(true);
+    }
     if (message.type === ZAP_START_RECORDING) {
       configureExtension();
       recorder.recordUserInteractions();

@@ -57,6 +57,32 @@ class ZestScript {
     this.curIndex = 1;
   }
 
+  /**
+   * Works out the statements, numbered from 1, that would replace the current
+   * ones, without changing the script. Use restoreStatements to apply them
+   * once they have been persisted.
+   * @throws if the statements are not a list of objects.
+   */
+  prepareStatements(statements: unknown): {
+    statements: string[];
+    curIndex: number;
+  } {
+    if (
+      !Array.isArray(statements) ||
+      !statements.every(
+        (s) => s !== null && typeof s === 'object' && !Array.isArray(s)
+      )
+    ) {
+      throw new Error('The statements must be a list of objects');
+    }
+    return {
+      statements: statements.map((statement, i) =>
+        JSON.stringify({...statement, index: i + 1})
+      ),
+      curIndex: statements.length + 1,
+    };
+  }
+
   getStatements(): string[] {
     return [...this.zestStatements];
   }
@@ -106,22 +132,21 @@ class ZestScript {
   }
 
   getZestScript(): Promise<ZestScriptMessage> {
-    return new Promise((resolve) => {
-      Browser.storage.sync
-        .get({
-          zapscriptname: this.title,
-          zapstatementdelay: DEFAULT_STATEMENT_DELAY,
-        })
-        .then((items) => {
-          this.title = items.zapscriptname as string;
-          this.statementDelay = items.zapstatementdelay as number;
-          resolve({
-            script: this.toJSON(),
-            title: this.title,
-            statementCount: this.getZestStatementCount(),
-          });
-        });
-    });
+    // A failure to read the settings must reject, not leave the caller waiting
+    return Browser.storage.sync
+      .get({
+        zapscriptname: this.title,
+        zapstatementdelay: DEFAULT_STATEMENT_DELAY,
+      })
+      .then((items) => {
+        this.title = items.zapscriptname as string;
+        this.statementDelay = items.zapstatementdelay as number;
+        return {
+          script: this.toJSON(),
+          title: this.title,
+          statementCount: this.getZestStatementCount(),
+        };
+      });
   }
 }
 

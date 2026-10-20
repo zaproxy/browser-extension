@@ -105,12 +105,25 @@ abstract class BaseDriver {
     await this.selectLatestWindow(wd);
   }
 
-  private waitForExtensionTabClosed(): () => Promise<boolean> {
-    return async () => {
-      const wd = await this.getWebDriver();
-      const handles = await wd.getAllWindowHandles();
-      return handles.length === 2;
-    };
+  /**
+   * Waits for the popup tab to close and returns the handle of the tab that was
+   * opened for the login URL. The script viewer is also opened (in the
+   * background) when recording starts, so the tab cannot be picked by position.
+   */
+  private async selectLoginUrlTab(wd: WebDriver): Promise<void> {
+    await wd.wait(async () => {
+      for (const handle of await wd.getAllWindowHandles()) {
+        try {
+          await wd.switchTo().window(handle);
+          if ((await wd.getCurrentUrl()).startsWith('http://localhost')) {
+            return true;
+          }
+        } catch {
+          // The popup tab closed while looking, so try again
+        }
+      }
+      return false;
+    });
   }
 
   public async toggleRecording(loginUrl = ''): Promise<void> {
@@ -122,9 +135,7 @@ abstract class BaseDriver {
     }
     await wd.findElement(By.id('record-btn')).click();
     if (loginUrl !== '') {
-      await wd.wait(this.waitForExtensionTabClosed());
-      const handles = await wd.getAllWindowHandles();
-      await wd.switchTo().window(handles[1]);
+      await this.selectLoginUrlTab(wd);
     } else {
       await this.selectLatestWindow(wd);
     }
