@@ -167,8 +167,39 @@ function isDisabled(el: Element): boolean {
   return el.matches(':disabled');
 }
 
+const SHADOW_CLICKABLE =
+  'button, a[href], input, select, textarea, [role=button]';
+
+/**
+ * A real click lands on the innermost element at the centre of the target, which
+ * for a web component is inside its open shadow root, where the page's handler
+ * is likely to be. The events are composed, so they still reach the host.
+ */
+function clickTarget(el: HTMLElement): HTMLElement {
+  let target = el;
+  for (let root = target.shadowRoot; root; root = target.shadowRoot) {
+    const rect = target.getBoundingClientRect();
+    const hit =
+      typeof root.elementFromPoint === 'function'
+        ? root.elementFromPoint(
+            rect.left + rect.width / 2,
+            rect.top + rect.height / 2
+          )
+        : null;
+    // Falls back to the first clickable element, e.g. if it is off screen
+    const inner = ((hit && hit !== target ? hit : null) ??
+      root.querySelector(SHADOW_CLICKABLE)) as HTMLElement | null;
+    if (!inner || inner === target) {
+      break;
+    }
+    target = inner;
+  }
+  return target;
+}
+
 /** Sends the events a real click would, as some pages rely on all of them. */
-function click(el: HTMLElement): void {
+function click(host: HTMLElement): void {
+  const el = clickTarget(host);
   fireMouse(el, 'pointerdown');
   fireMouse(el, 'mousedown');
   // Synthetic events do not move the focus, as a real mouse down would
