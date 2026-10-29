@@ -80,6 +80,24 @@ test('click sends the events of a real click, in order', async () => {
   expect(document.activeElement).toBe(button);
 });
 
+test('click goes to the button inside an open shadow root', async () => {
+  document.body.innerHTML = '<div id="host"></div>';
+  const host = document.getElementById('host') as HTMLElement;
+  const root = host.attachShadow({mode: 'open'});
+  root.innerHTML = '<button id="host" type="button">Go</button>';
+  const inner = root.querySelector('button') as HTMLButtonElement;
+  const clicked: string[] = [];
+  inner.addEventListener('click', () => clicked.push('inner'));
+  host.addEventListener('click', () => clicked.push('host'));
+
+  const result = await replayer.execute(
+    stmt('ZestClientElementClick', {element: 'host', type: 'id'})
+  );
+
+  expect(result.ok).toBe(true);
+  expect(clicked).toEqual(['inner', 'host']);
+});
+
 test('send keys appends and fires input and change events', async () => {
   document.body.innerHTML = '<input id="target" value="ab">';
   const input = document.getElementById('target') as HTMLInputElement;
