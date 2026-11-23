@@ -5470,10 +5470,10 @@ i18next-browser-languagedetector@^8.3.0:
   dependencies:
     "@babel/runtime" "^7.29.2"
 
-i18next@^26.7.2:
-  version "26.7.2"
-  resolved "https://registry.yarnpkg.com/i18next/-/i18next-26.7.2.tgz#56e7550d479f05d0150479fbb345e6c29b78bbd1"
-  integrity sha512-RsOY3BeaCDdkk52NeJSFAXELQ2rQXBO/tOub6L8ue2ICPfR/FRDWDOfEDg4xMPd1SqO5goVYQ6i72qWEUB/PPw==
+i18next@^27.2.2:
+  version "27.2.2"
+  resolved "https://registry.yarnpkg.com/i18next/-/i18next-27.2.2.tgz#2e22344c7a2c895a299b1f56065b159001f99f10"
+  integrity sha512-1/AJgz/bpE/YL6tqekQlZAzDhkmrUBbgU8+Xon/Lwv6c5WdYuyFZ9mb86OVfR2C2XujUDT7Rz23Ydaq4l981lA==
 
 iconv-lite@0.6.3:
   version "0.6.3"
