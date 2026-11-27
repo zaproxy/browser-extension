@@ -58,4 +58,11 @@ function sleep(msec: number, signal?: AbortSignal): Promise<void> {
   });
 }
 
-export {downloadJson, sleep};
+/** The element as shown to the user, marked if in shadow DOM. */
+function describeShadowElement(element: string, shadowPath: unknown): string {
+  return Array.isArray(shadowPath) && shadowPath.length > 0
+    ? `[Shadow DOM] ${element}`
+    : element;
+}
+
+export {describeShadowElement, downloadJson, sleep};

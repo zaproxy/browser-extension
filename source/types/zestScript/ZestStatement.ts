@@ -36,16 +36,36 @@ class ElementLocator {
 
   element: string;
 
-  constructor(type: string, element: string) {
+  /**
+   * The CSS selectors of the shadow hosts containing the element, outermost first.
+   * Each one is relative to the root (document or shadow root) that holds the host.
+   */
+  shadowPath: string[];
+
+  constructor(type: string, element: string, shadowPath: string[] = []) {
     this.type = type;
     this.element = element;
+    this.shadowPath = shadowPath;
   }
 
-  toJSON(): {type: string; element: string} {
-    return {
+  equals(other: ElementLocator): boolean {
+    return (
+      this.type === other.type &&
+      this.element === other.element &&
+      this.shadowPath.length === other.shadowPath.length &&
+      this.shadowPath.every((host, i) => host === other.shadowPath[i])
+    );
+  }
+
+  toJSON(): {type: string; element: string; shadowPath?: string[]} {
+    const json: {type: string; element: string; shadowPath?: string[]} = {
       type: this.type,
       element: this.element,
     };
+    if (this.shadowPath.length > 0) {
+      json.shadowPath = this.shadowPath;
+    }
+    return json;
   }
 }
 

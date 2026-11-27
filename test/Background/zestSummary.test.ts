@@ -83,3 +83,32 @@ test('summarizes a statement that finds a link by part of its text', () => {
     },
   ]);
 });
+
+test('summarizes elements in shadow DOM', () => {
+  const script = JSON.stringify({
+    statements: [
+      {
+        index: 1,
+        elementType: 'ZestClientElementClick',
+        type: 'cssSelector',
+        element: '.go',
+        shadowPath: ['#host'],
+      },
+      {
+        index: 2,
+        elementType: 'ZestClientElementClick',
+        type: 'cssSelector',
+        element: '.go',
+        shadowPath: [],
+      },
+    ],
+  });
+  expect(summarizeZestScript(script)).toEqual([
+    {
+      index: 1,
+      enabled: true,
+      summary: 'Click element cssSelector: [Shadow DOM] .go',
+    },
+    {index: 2, enabled: true, summary: 'Click element cssSelector: .go'},
+  ]);
+});

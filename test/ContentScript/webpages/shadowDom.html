@@ -1,0 +1,51 @@
+<html>
+    <head>
+        <style>
+          body { margin: 0; }
+          .host { display: block; width: 200px; }
+        </style>
+    </head>
+    <body>
+        <div id="app"></div>
+        <script>
+          // modes: the mode of each nested shadow root, e.g. "open,closed".
+          // delay: milliseconds to wait before creating the roots.
+          // detached: create the whole tree before adding it to the document.
+          const params = new URLSearchParams(window.location.search);
+          const modes = (params.get('modes') || 'open').split(',');
+          const delay = parseInt(params.get('delay') || '0', 10);
+          const detached = params.get('detached') === 'true';
+
+          function build() {
+            const app = document.getElementById('app');
+            const top = document.createElement('div');
+            let parent = detached ? top : app;
+            modes.forEach((mode, i) => {
+              const host = document.createElement('div');
+              host.id = 'host' + i;
+              host.className = 'host';
+              parent.appendChild(host);
+              parent = host.attachShadow({mode});
+            });
+            const style = document.createElement('style');
+            style.textContent = '* { margin: 0; padding: 0; box-sizing: border-box; } '
+              + 'input, button { display: block; width: 200px; height: 30px; }';
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.id = 'field';
+            const button = document.createElement('button');
+            button.id = 'button';
+            button.textContent = 'Click me';
+            button.addEventListener('click', () => {
+              document.title = 'clicked:' + input.value;
+            });
+            parent.append(style, input, button);
+            if (detached) {
+              app.appendChild(top);
+            }
+          }
+
+          setTimeout(build, delay);
+        </script>
+    </body>
+</html>

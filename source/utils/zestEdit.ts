@@ -33,7 +33,9 @@ import {
 } from './constants';
 import i18n from './i18n';
 
-type FieldKind = 'text' | 'multiline' | 'number' | 'boolean' | 'locatorType';
+/** The kind of the field, `lines` is a list of strings, a string per line. */
+type FieldKind =
+  'text' | 'multiline' | 'lines' | 'number' | 'boolean' | 'locatorType';
 
 interface FieldDef {
   key: string;
@@ -72,6 +74,7 @@ const LOCATOR_FIELDS: FieldDef[] = [
     kind: 'text',
     required: true,
   },
+  {key: 'shadowPath', labelKey: 'edit.field.shadowPath', kind: 'lines'},
 ];
 
 const WAIT_FIELD: FieldDef = {
@@ -222,6 +225,8 @@ function toFieldValues(
     const v = statement[f.key];
     if (f.kind === 'boolean') {
       values[f.key] = f.key === 'enabled' ? v !== false : v === true;
+    } else if (f.kind === 'lines') {
+      values[f.key] = Array.isArray(v) ? v.map(String).join('\n') : '';
     } else {
       values[f.key] = v === undefined || v === null ? '' : String(v);
     }
@@ -248,7 +253,17 @@ function applyFieldValues(
       return;
     }
     const text = typeof raw === 'string' ? raw : '';
-    if (f.kind === 'number') {
+    if (f.kind === 'lines') {
+      const lines = text
+        .split(/\r\n?|\n/)
+        .map((line) => line.trim())
+        .filter((line) => line !== '');
+      if (lines.length > 0) {
+        result[f.key] = lines;
+      } else {
+        delete result[f.key];
+      }
+    } else if (f.kind === 'number') {
       if (!/^-?\d+$/.test(text.trim())) {
         errors.push(
           i18n.t('edit.error.wholeNumber', {field: i18n.t(f.labelKey)})
@@ -269,6 +284,13 @@ function applyFieldValues(
     !isReplayableUrl(result.url.trim())
   ) {
     errors.push(i18n.t('edit.error.badUrl'));
+  }
+  if (
+    Array.isArray(result.shadowPath) &&
+    result.shadowPath.length > 0 &&
+    result.type !== 'cssSelector'
+  ) {
+    errors.push(i18n.t('edit.error.shadowPathType'));
   }
   if (def.elementType === ZEST_CLIENT_SWITCH_TO_FRAME) {
     result.parent = result.frameIndex === -1;

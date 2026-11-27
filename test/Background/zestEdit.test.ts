@@ -265,3 +265,110 @@ describe('the locator types', () => {
     ).toEqual(['Locator is required']);
   });
 });
+
+describe('the shadow path', () => {
+  const ELEMENT_TYPES = [
+    'ZestClientElementClick',
+    'ZestClientElementSendKeys',
+    'ZestClientElementClear',
+    'ZestClientElementSubmit',
+    'ZestClientElementScrollTo',
+    'ZestClientElementMouseOver',
+  ];
+
+  function shadowStatement(
+    elementType = 'ZestClientElementClick'
+  ): Record<string, unknown> {
+    return {
+      ...newStatement(elementType),
+      type: 'cssSelector',
+      element: '#target',
+      shadowPath: ['#outer', 'div > my-el'],
+    };
+  }
+
+  test.each(ELEMENT_TYPES)('can be edited in a %s', (elementType) => {
+    const fields = typeDef(elementType).fields.map((f) => f.key);
+    expect(fields).toContain('shadowPath');
+    expect(fields.indexOf('shadowPath')).toBe(fields.indexOf('element') + 1);
+  });
+
+  test('is shown with a host per line, outermost first', () => {
+    const def = typeDef('ZestClientElementClick');
+    expect(toFieldValues(def, shadowStatement()).shadowPath).toBe(
+      '#outer\ndiv > my-el'
+    );
+  });
+
+  test('is empty when the statement has none', () => {
+    const def = typeDef('ZestClientElementClick');
+    expect(
+      toFieldValues(def, newStatement('ZestClientElementClick')).shadowPath
+    ).toBe('');
+  });
+
+  test('is kept when something else is changed', () => {
+    const def = typeDef('ZestClientElementSendKeys');
+    const stmt = shadowStatement('ZestClientElementSendKeys');
+    const values = toFieldValues(def, stmt);
+    values.value = 'abc';
+
+    const result = applyFieldValues(def, stmt, values);
+
+    expect(result.errors).toEqual([]);
+    expect(result.statement?.shadowPath).toEqual(['#outer', 'div > my-el']);
+  });
+
+  test('is applied a host per line, ignoring blank lines and surrounding spaces', () => {
+    const def = typeDef('ZestClientElementClick');
+    const stmt = shadowStatement();
+    const values = toFieldValues(def, stmt);
+    values.shadowPath = '  #a \r\n\n#b > c\n  ';
+
+    expect(applyFieldValues(def, stmt, values).statement?.shadowPath).toEqual([
+      '#a',
+      '#b > c',
+    ]);
+  });
+
+  test('is removed when emptied', () => {
+    const def = typeDef('ZestClientElementClick');
+    const stmt = shadowStatement();
+    const values = toFieldValues(def, stmt);
+    values.shadowPath = ' \n ';
+
+    const {statement} = applyFieldValues(def, stmt, values);
+
+    expect(statement).toBeDefined();
+    expect(statement).not.toHaveProperty('shadowPath');
+  });
+
+  test('can be added to a statement', () => {
+    const def = typeDef('ZestClientElementClick');
+    const stmt = {
+      ...newStatement('ZestClientElementClick'),
+      type: 'cssSelector',
+      element: '#target',
+    };
+    const values = toFieldValues(def, stmt);
+    values.shadowPath = '#host';
+
+    expect(applyFieldValues(def, stmt, values).statement?.shadowPath).toEqual([
+      '#host',
+    ]);
+  });
+
+  test('requires the cssSelector locator type', () => {
+    const def = typeDef('ZestClientElementClick');
+    const stmt = shadowStatement();
+    const values = toFieldValues(def, stmt);
+    values.type = 'id';
+
+    const result = applyFieldValues(def, stmt, values);
+
+    expect(result.statement).toBeUndefined();
+    expect(result.errors).toEqual([
+      'A shadow path requires the cssSelector locator type',
+    ]);
+  });
+});

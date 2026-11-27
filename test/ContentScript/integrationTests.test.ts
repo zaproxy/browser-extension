@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 import * as http from 'http';
-import {By, Key, until} from 'selenium-webdriver';
+import {By, Key, until, WebDriver} from 'selenium-webdriver';
 import {dir, DirectoryResult, setGracefulCleanup} from 'tmp-promise';
 import {HTTPPORT, JSONPORT, BROWSERNAME} from './constants';
 import {ZapServer} from './ZapServer';
@@ -426,6 +426,273 @@ function integrationTests(
       reportZestStatementScrollTo(3, 'click'),
       reportZestStatementClick(4, 'click'),
     ]);
+  });
+
+  describe('Should record elements in shadow DOM', () => {
+    const MODES = [
+      ['open'],
+      ['closed'],
+      ['open', 'open'],
+      ['closed', 'closed'],
+      ['open', 'closed'],
+      ['closed', 'open'],
+    ];
+    const CASES = [
+      {name: 'before load', query: ''},
+      {name: 'after load', query: '&delay=500'},
+      {
+        name: 'detached, added to the document later',
+        query: '&detached=true',
+      },
+    ];
+
+    MODES.forEach((modes) => {
+      CASES.forEach(({name, query}) => {
+        test(`${modes.join(' > ')} created ${name}`, async () => {
+          // Given
+          const shadowPath = modes.map((_, i) => `#host${i}`);
+          const pageUrl = `http://localhost:${_HTTPPORT}/webpages/shadowDom.html?modes=${modes.join(',')}${query}`;
+          await driver.toggleRecording();
+          const wd = await driver.getWebDriver();
+          await wd.get(pageUrl);
+          await pageLoaded(wd);
+          const host = await wd.wait(
+            until.elementLocated(By.id('host0')),
+            10000
+          );
+          // The elements in closed roots are not reachable, use the pointer.
+          // The input is the top half of the (outermost) host, the button the bottom.
+          await wd.wait(async () => (await host.getRect()).height >= 60, 10000);
+          // When
+          await wd
+            .actions()
+            .move({origin: host, x: 0, y: -15})
+            .click()
+            .sendKeys('testinput')
+            .move({origin: host, x: 0, y: 15})
+            .click()
+            .perform();
+          await eventsProcessed();
+          // Then
+          const scrollTo = (i: number, el: string): object =>
+            reportZestStatementScrollTo(i, el, 'cssSelector', 5000, shadowPath);
+          const click = (i: number, el: string): object =>
+            reportZestStatementClick(i, el, 'cssSelector', 5000, shadowPath);
+          expect(actualData).toEqual([
+            reportZestStatementComment(),
+            reportZestStatementLaunch(pageUrl),
+            scrollTo(3, '#field'),
+            click(4, '#field'),
+            scrollTo(5, '#field'),
+            reportZestStatementSendKeys(
+              6,
+              '#field',
+              'testinput',
+              'cssSelector',
+              5000,
+              shadowPath
+            ),
+            scrollTo(7, '#button'),
+            click(8, '#button'),
+          ]);
+          expect(await wd.getTitle()).toBe('clicked:testinput');
+        });
+      });
+    });
+  });
+
+  describe('Should record elements in declarative shadow DOM', () => {
+    [
+      {host: 'host0', name: 'open root'},
+      {host: 'host1', name: 'closed root'},
+      {host: 'host2', name: 'closed root added after load'},
+    ].forEach(({host, name}) => {
+      test(name, async () => {
+        // Given
+        const pageUrl = `http://localhost:${_HTTPPORT}/webpages/declarativeShadow.html`;
+        await driver.toggleRecording();
+        const wd = await driver.getWebDriver();
+        await wd.get(pageUrl);
+        await pageLoaded(wd);
+        const hostElement = await wd.wait(
+          until.elementLocated(By.id(host)),
+          10000
+        );
+        // When
+        await hostElement.click();
+        await eventsProcessed();
+        // Then
+        expect(actualData).toEqual([
+          reportZestStatementComment(),
+          reportZestStatementLaunch(pageUrl),
+          reportZestStatementScrollTo(3, '#button', 'cssSelector', 5000, [
+            `#${host}`,
+          ]),
+          reportZestStatementClick(4, '#button', 'cssSelector', 5000, [
+            `#${host}`,
+          ]),
+        ]);
+        expect(await wd.getTitle()).toBe(`clicked:${host}`);
+      });
+    });
+  });
+
+  describe('Should record edge cases of shadow DOM', () => {
+    /** Whether the page notifies of a shadow root attached to a connected host. */
+    async function notifiesAttached(
+      wd: WebDriver,
+      startTracking: boolean
+    ): Promise<unknown> {
+      return wd.executeScript(
+        `
+        let seen = false;
+        document.addEventListener('zap-shadow-attached', () => { seen = true; });
+        if (arguments[0]) {
+          document.dispatchEvent(new CustomEvent('zap-shadow-tracking-start'));
+        }
+        const host = document.createElement('div');
+        document.body.appendChild(host);
+        host.attachShadow({mode: 'closed'});
+        return seen;
+      `,
+        startTracking
+      );
+    }
+
+    test('notifies of the shadow roots attached in the page', async () => {
+      // Given
+      const wd = await driver.getWebDriver();
+      await wd.get(
+        `http://localhost:${_HTTPPORT}/webpages/shadowDomEdgeCases.html`
+      );
+      await pageLoaded(wd);
+      // When
+      const notified = await notifiesAttached(wd, true);
+      // Then
+      expect(notified).toBe(true);
+    });
+
+    test('does not notify of the shadow roots attached when not recording', async () => {
+      // Given
+      const wd = await driver.getWebDriver();
+      await wd.get(
+        `http://localhost:${_HTTPPORT}/webpages/shadowDomEdgeCases.html`
+      );
+      await pageLoaded(wd);
+      // When
+      const notified = await notifiesAttached(wd, false);
+      // Then
+      expect(notified).toBe(false);
+    });
+
+    ['srcdoc', 'blank'].forEach((frameId) => {
+      test(`notifies of the shadow roots attached in ${frameId} frame`, async () => {
+        // Given
+        const wd = await driver.getWebDriver();
+        await wd.get(
+          `http://localhost:${_HTTPPORT}/webpages/shadowDomFrames.html`
+        );
+        await pageLoaded(wd);
+        await wd.switchTo().frame(wd.findElement(By.id(frameId)));
+        // When
+        const notified = await notifiesAttached(wd, true);
+        // Then
+        expect(notified).toBe(true);
+      });
+    });
+
+    ['open', 'closed'].forEach((mode) => {
+      test(`keys typed in ${mode} root attached later are recorded`, async () => {
+        // Given
+        const pageUrl = `http://localhost:${_HTTPPORT}/webpages/shadowDomEdgeCases.html?case=late&mode=${mode}`;
+        await driver.toggleRecording();
+        const wd = await driver.getWebDriver();
+        await wd.get(pageUrl);
+        await pageLoaded(wd);
+        await wd.wait(async () => (await wd.getTitle()) === 'attached', 10000);
+        // When: reached with the keyboard, no click to find the root
+        await wd.actions().sendKeys(Key.TAB, 'testinput', Key.TAB).perform();
+        await eventsProcessed();
+        // Then
+        expect(actualData).toEqual([
+          reportZestStatementComment(),
+          reportZestStatementLaunch(pageUrl),
+          reportZestStatementScrollTo(3, '#field', 'cssSelector', 5000, [
+            '#host0',
+          ]),
+          reportZestStatementSendKeys(
+            4,
+            '#field',
+            'testinput',
+            'cssSelector',
+            5000,
+            ['#host0']
+          ),
+        ]);
+      });
+    });
+
+    test('selects only the top level elements of a shadow root with :not(* > *)', async () => {
+      // Given
+      const wd = await driver.getWebDriver();
+      await wd.get(
+        `http://localhost:${_HTTPPORT}/webpages/shadowDomEdgeCases.html`
+      );
+      await pageLoaded(wd);
+      // When
+      const result = await wd.executeScript(`
+        const root = document.createElement('div').attachShadow({mode: 'open'});
+        root.innerHTML = '<div><div></div></div><p><span></span></p>';
+        const tops = Array.from(root.querySelectorAll(':not(* > *)'));
+        return tops.length === root.children.length
+          && tops.every((el, i) => el === root.children[i]);
+      `);
+      // Then
+      expect(result).toBe(true);
+    });
+
+    ['open', 'closed'].forEach((mode) => {
+      test(`click on slotted content in ${mode} root is recorded once`, async () => {
+        // Given
+        const pageUrl = `http://localhost:${_HTTPPORT}/webpages/shadowDomEdgeCases.html?case=slotted&mode=${mode}`;
+        await driver.toggleRecording();
+        const wd = await driver.getWebDriver();
+        await wd.get(pageUrl);
+        await pageLoaded(wd);
+        // When
+        await wd.findElement(By.id('light')).click();
+        await eventsProcessed();
+        // Then
+        expect(actualData).toEqual([
+          reportZestStatementComment(),
+          reportZestStatementLaunch(pageUrl),
+          reportZestStatementScrollTo(3, 'light'),
+          reportZestStatementClick(4, 'light'),
+        ]);
+        expect(await wd.getTitle()).toBe('clicked');
+      });
+
+      test(`click on host with ${mode} root is recorded`, async () => {
+        // Given
+        const pageUrl = `http://localhost:${_HTTPPORT}/webpages/shadowDomEdgeCases.html?case=host&mode=${mode}`;
+        await driver.toggleRecording();
+        const wd = await driver.getWebDriver();
+        await wd.get(pageUrl);
+        await pageLoaded(wd);
+        // When
+        // The centre of the host is not covered by the content of the root.
+        await wd.findElement(By.id('host0')).click();
+        await eventsProcessed();
+        // Then
+        expect(actualData).toEqual([
+          reportZestStatementComment(),
+          reportZestStatementLaunch(pageUrl),
+          reportZestStatementScrollTo(3, 'host0'),
+          reportZestStatementClick(4, 'host0'),
+        ]);
+        expect(await wd.getTitle()).toBe('host-clicked');
+      });
+    });
   });
 
   test('Should record click that does not bubble', async () => {

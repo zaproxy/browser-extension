@@ -19,7 +19,7 @@
  */
 import Browser from 'webextension-polyfill';
 import RawStatement from '../types/zestScript/RawStatement';
-import {sleep} from '../utils/util';
+import {describeShadowElement, sleep} from '../utils/util';
 import {
   ZEST_CLIENT_ELEMENT_CLEAR,
   ZEST_CLIENT_ELEMENT_CLICK,
@@ -33,6 +33,7 @@ import {
   ZEST_COMMENT,
 } from '../utils/constants';
 import ReplayOverlay from './replayOverlay';
+import {getShadowRoot} from './util';
 
 /** What the box on the page shows. The text is translated by the sender. */
 interface ReplayDisplay {
@@ -79,11 +80,36 @@ const POLL_INTERVAL_MSEC = 100;
 const FINISHED_SHOW_MSEC = 4000;
 const FAILED_SHOW_MSEC = 10000;
 
+/**
+ * Gets the shadow root of the last host of the path, or the selector of the first host not found
+ * (yet) or without a shadow root.
+ */
+function getShadowPathRoot(
+  doc: Document,
+  shadowPath: string[]
+): {root: Document | ShadowRoot} | {missingHost: string} {
+  let root: Document | ShadowRoot = doc;
+  for (const selector of shadowPath) {
+    const host: Element | null = root.querySelector(selector);
+    const next: ShadowRoot | null = host ? getShadowRoot(host) : null;
+    if (!next) {
+      return {missingHost: selector};
+    }
+    root = next;
+  }
+  return {root};
+}
+
 function findElement(
   doc: Document,
   type: string,
-  value: string
+  value: string,
+  shadowPath: string[] = []
 ): Element | null {
+  if (shadowPath.length > 0) {
+    const resolved = getShadowPathRoot(doc, shadowPath);
+    return 'root' in resolved ? resolved.root.querySelector(value) : null;
+  }
   switch (type) {
     case 'id':
       return doc.getElementById(value);
@@ -177,7 +203,7 @@ const SHADOW_CLICKABLE =
  */
 function clickTarget(el: HTMLElement): HTMLElement {
   let target = el;
-  for (let root = target.shadowRoot; root; root = target.shadowRoot) {
+  for (let root = getShadowRoot(target); root; root = getShadowRoot(target)) {
     const rect = target.getBoundingClientRect();
     const hit =
       typeof root.elementFromPoint === 'function'
@@ -352,6 +378,18 @@ class Replayer {
   ): Promise<Element> {
     const type = String(statement.type);
     const value = String(statement.element);
+    const shadowPath = statement.shadowPath ?? [];
+    if (
+      !Array.isArray(shadowPath) ||
+      !shadowPath.every((host) => typeof host === 'string')
+    ) {
+      throw new ReplayError('script.error.badShadowPath', {
+        shadowPath: JSON.stringify(shadowPath),
+      });
+    }
+    if (shadowPath.length > 0 && type !== 'cssSelector') {
+      throw new ReplayError('script.error.shadowPathType', {type});
+    }
     const timeout = Math.max(
       Number(statement.waitForMsec) || 0,
       this.minElementWaitMsec
@@ -359,14 +397,25 @@ class Replayer {
     const end = Date.now() + timeout;
     for (;;) {
       this.checkNotAborted();
-      const el = findElement(this.win.document, type, value);
+      const el = findElement(this.win.document, type, value, shadowPath);
       if (el && !(needsEnabled && isDisabled(el))) {
         return el;
       }
       if (Date.now() >= end) {
+        const resolved = el
+          ? null
+          : getShadowPathRoot(this.win.document, shadowPath);
+        if (resolved && 'missingHost' in resolved) {
+          throw new ReplayError('script.error.shadowHostNotFound', {
+            host: resolved.missingHost,
+          });
+        }
         throw new ReplayError(
           el ? 'script.error.elementDisabled' : 'script.error.elementNotFound',
-          {type, element: value}
+          {
+            type,
+            element: describeShadowElement(value, shadowPath),
+          }
         );
       }
       // eslint-disable-next-line no-await-in-loop
