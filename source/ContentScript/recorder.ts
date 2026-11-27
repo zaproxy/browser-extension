@@ -32,8 +32,14 @@ import {
   ZestStatementSwitchToFrame,
 } from '../types/zestScript/ZestStatement';
 import {ZestScriptMessage} from '../types/zestScript/ZestScript';
-import {getPath, markClassAsDynamic, snapshotInputClass} from './util';
-import {downloadJson} from '../utils/util';
+import {
+  getPath,
+  getShadowRoot,
+  isShadowRoot,
+  markClassAsDynamic,
+  snapshotInputClass,
+} from './util';
+import {describeShadowElement, downloadJson} from '../utils/util';
 import {
   GET_ZEST_SCRIPT,
   STOP_RECORDING,
@@ -41,9 +47,22 @@ import {
   ZAP_FLOATING_DIV_ELEMENTS,
   ZEST_SCRIPT,
 } from '../utils/constants';
+import {
+  SHADOW_ATTACHED_EVENT,
+  SHADOW_TRACKING_START_EVENT,
+  SHADOW_TRACKING_STOP_EVENT,
+} from '../utils/shadowEvents';
 
 const STOP_RECORDING_ID = 'ZAP-stop-recording-button';
 const STOP_RECORDING_TEXT = 'Stop and Download Recording';
+
+/** The locator as shown in the notifications, as in the Script Viewer. */
+function describeLocator(locator: ElementLocator): string {
+  return describeShadowElement(locator.element, locator.shadowPath);
+}
+
+/** The level and frame of a document or shadow root. */
+type Position = {level: number; frame: number};
 
 class Recorder {
   readonly timeAdjustmentMillis: number = 3000;
@@ -59,6 +78,27 @@ class Recorder {
   active = false;
 
   haveListenersBeenAdded = false;
+
+  // The roots with listeners and their hosts.
+  trackedShadowRoots = new WeakSet<ShadowRoot>();
+
+  shadowHosts = new WeakSet<Element>();
+
+  // The events already recorded, as an event might be seen by the listeners of several roots.
+  private handledEvents = new WeakSet<Event>();
+
+  // The events seen on a host whose origin was not known, and how to handle them if on the host.
+  private deferredEvents = new WeakMap<Event, () => void>();
+
+  // The events known to have originated on the host itself.
+  private hostEvents = new WeakSet<Event>();
+
+  // The level and frame of the documents and shadow roots with listeners.
+  private rootFrames = new WeakMap<Node, Position>();
+
+  // The documents with listeners, and their level and frame, notified of the shadow roots attached
+  // while recording.
+  private trackedDocuments = new Map<Document, Position>();
 
   floatingWindowInserted = false;
 
@@ -171,10 +211,13 @@ class Recorder {
   }
 
   handleClick(
-    params: {level: number; frame: number; element: Document},
+    params: {level: number; frame: number; element: Document | ShadowRoot},
     event: Event
   ): void {
-    if (!this.shouldRecord(event.target as HTMLElement)) return;
+    const handleLater = (): void => this.handleClick(params, event);
+    if (!this.shouldRecord(event.target as HTMLElement, event, handleLater)) {
+      return;
+    }
     const {level, frame, element} = params;
     const clickTarget = event.target as Element;
     this.handleFrameSwitches(level, frame);
@@ -247,7 +290,7 @@ class Recorder {
   }
 
   handleScroll(params: {level: number; frame: number}, event: Event): void {
-    if (!this.shouldRecord(event.target as HTMLElement)) return;
+    if (!this.shouldRecord(event.target as HTMLElement, event)) return;
     const {level, frame} = params;
     this.handleFrameSwitches(level, frame);
     console.log(event, 'ZAP scrolling.. ');
@@ -255,12 +298,14 @@ class Recorder {
   }
 
   handleMouseOver(
-    params: {level: number; frame: number; element: Document},
+    params: {level: number; frame: number; element: Document | ShadowRoot},
     event: Event
   ): void {
-    if (!this.shouldRecord(event.target as HTMLElement)) return;
+    if (!this.shouldRecord(event.target as HTMLElement, event)) return;
     const {level, frame, element} = params;
-    const currentDOMState = element.documentElement.outerHTML;
+    const currentDOMState = isShadowRoot(element)
+      ? element.innerHTML
+      : element.documentElement.outerHTML;
     if (currentDOMState === this.previousDOMState) {
       return;
     }
@@ -282,10 +327,10 @@ class Recorder {
   }
 
   handleChange(
-    params: {level: number; frame: number; element: Document},
+    params: {level: number; frame: number; element: Document | ShadowRoot},
     event: Event
   ): void {
-    if (!this.shouldRecord(event.target as HTMLElement)) return;
+    if (!this.shouldRecord(event.target as HTMLElement, event)) return;
     const {level, frame, element} = params;
     const waited: number = this.getWaited();
     this.handleFrameSwitches(level, frame);
@@ -294,7 +339,7 @@ class Recorder {
     // Send the keys before a cached submit statement on the same element
     if (
       this.cachedSubmit &&
-      this.cachedSubmit.elementLocator.element !== elementLocator.element
+      !this.cachedSubmit.elementLocator.equals(elementLocator)
     ) {
       // The cached submit was not on the same element, so send it
       this.handleCachedSubmit();
@@ -350,7 +395,7 @@ class Recorder {
   // Some sites (e.g. jQuery Inputmask) set the value from script and never fire
   // a native 'change' event, so fall back to comparing the value on blur.
   handleFocusOut(
-    params: {level: number; frame: number; element: Document},
+    params: {level: number; frame: number; element: Document | ShadowRoot},
     event: Event
   ): void {
     const target = event.target as HTMLElement;
@@ -362,10 +407,10 @@ class Recorder {
   }
 
   handleKeypress(
-    params: {level: number; frame: number; element: Document},
+    params: {level: number; frame: number; element: Document | ShadowRoot},
     event: KeyboardEvent
   ): void {
-    if (!this.shouldRecord(event.target as HTMLElement)) return;
+    if (!this.shouldRecord(event.target as HTMLElement, event)) return;
     const {element} = params;
     if (event.key === 'Enter') {
       if (this.cachedSubmit && this.cachedTimeStamp === event.timeStamp) {
@@ -404,7 +449,7 @@ class Recorder {
     inputField: HTMLElement,
     level: number,
     frame: number,
-    element: Document
+    element: Document | ShadowRoot
   ): void {
     if (!elements.has(inputField)) {
       elements.add(inputField);
@@ -433,6 +478,11 @@ class Recorder {
   }
 
   processFrame(frame: Element, level: number): void {
+    if (isShadowRoot(frame.getRootNode())) {
+      // Not in the frames of the window, there is no index to switch to it.
+      console.warn('ZAP Not recording in a frame in a shadow root', frame);
+      return;
+    }
     const htmlElement = frame as HTMLIFrameElement | HTMLFrameElement;
     let frameDocument;
     try {
@@ -478,7 +528,7 @@ class Recorder {
     });
   }
 
-  processFrames(element: Document | Element, level: number): void {
+  processFrames(element: Document | ShadowRoot | Element, level: number): void {
     element
       .querySelectorAll('frame, iframe')
       .forEach((frame) => this.processFrame(frame, level + 1));
@@ -497,13 +547,73 @@ class Recorder {
     return -1;
   }
 
+  /**
+   * Starts tracking the shadow root of the given host, if any, with the same level and frame as the
+   * host.
+   */
+  trackShadowHost(host: Element, level: number, frame: number): void {
+    const root = getShadowRoot(host);
+    if (!root) return;
+    this.shadowHosts.add(host);
+    if (this.trackedShadowRoots.has(root)) return;
+    this.trackedShadowRoots.add(root);
+    // The events that originated inside the root.
+    const insideEvents = new WeakSet<Event>();
+    root.addEventListener('click', (event: Event) => insideEvents.add(event), {
+      capture: true,
+    });
+    // Seen after the listeners of the root, even if the event does not bubble.
+    host.addEventListener('click', (event: Event) => {
+      const handle = this.deferredEvents.get(event);
+      if (!handle) return;
+      this.deferredEvents.delete(event);
+      if (insideEvents.has(event)) return;
+      this.hostEvents.add(event);
+      handle();
+    });
+    this.addListenersToDocument(root, level, frame);
+  }
+
+  /** Tracks the shadow roots of the given element and its descendants. */
+  trackShadowHosts(
+    container: Document | ShadowRoot | Element,
+    level: number,
+    frame: number
+  ): void {
+    if (container.nodeType === Node.ELEMENT_NODE) {
+      this.trackShadowHost(container as Element, level, frame);
+    }
+    const doc = container.ownerDocument ?? (container as Document);
+    // Cheaper than querying all elements
+    const walker = doc.createTreeWalker(container, NodeFilter.SHOW_ELEMENT);
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      this.trackShadowHost(node as Element, level, frame);
+    }
+  }
+
+  /** Tracks the shadow roots of the given elements, once for those added inside the others. */
+  trackAddedShadowHosts(
+    added: Set<Element>,
+    level: number,
+    frame: number
+  ): void {
+    added.forEach((el) => {
+      for (let p = el.parentNode; p; p = p.parentNode) {
+        if (added.has(p as Element)) return;
+      }
+      this.trackShadowHosts(el, level, frame);
+    });
+  }
+
   addListenersToDocument(
-    element: Document,
+    element: Document | ShadowRoot,
     level: number,
     frame: number
   ): void {
     // A list of all of the text elements that we have added event listeners to
     const textElements = new Set<HTMLElement>();
+
+    this.rootFrames.set(element, {level, frame});
 
     element.addEventListener(
       'click',
@@ -525,9 +635,11 @@ class Recorder {
       'change',
       this.handleChange.bind(this, {level, frame, element})
     );
-    element.addEventListener('keydown', this.handleKeyEdit.bind(this), {
-      capture: true,
-    });
+    element.addEventListener(
+      'keydown',
+      this.handleKeyEdit.bind(this) as EventListener,
+      {capture: true}
+    );
     element.addEventListener(
       'paste',
       (event: Event) => {
@@ -557,7 +669,21 @@ class Recorder {
       {capture: true}
     );
 
+    // Hosts of shadow roots created after this point (the others are tracked below or when added).
+    // Only the host, its descendants are already tracked and the outer roots see it retargeted.
+    element.addEventListener(SHADOW_ATTACHED_EVENT, (event: Event) => {
+      if ((event.target as Node | null)?.nodeType === Node.ELEMENT_NODE) {
+        this.trackShadowHost(event.target as Element, level, frame);
+      }
+    });
+    if (!isShadowRoot(element)) {
+      this.trackedDocuments.set(element, {level, frame});
+      // Before the scan below, the roots attached in between are notified.
+      element.dispatchEvent(new CustomEvent(SHADOW_TRACKING_START_EVENT));
+    }
+
     this.processFrames(element, level);
+    this.trackShadowHosts(element, level, frame);
 
     // Add listeners to all of the text fields
     element.querySelectorAll('input').forEach((input) => {
@@ -566,12 +692,17 @@ class Recorder {
     });
     // Observer callback function to handle DOM mutations to detect wanted elements
     const domMutated: MutationCallback = (mutationsList: MutationRecord[]) => {
+      const added = new Set<Element>();
       mutationsList.forEach((mutation) => {
         if (mutation.type === 'childList') {
           // Use node type instead of instanceof as it does not work reliably
-          if (mutation.target.nodeType === Node.ELEMENT_NODE) {
+          if (
+            mutation.target.nodeType === Node.ELEMENT_NODE ||
+            // The top level children of a shadow root.
+            mutation.target.nodeType === Node.DOCUMENT_FRAGMENT_NODE
+          ) {
             // Look for added input elements
-            const inputs = (mutation.target as Element).getElementsByTagName(
+            const inputs = (mutation.target as Element).querySelectorAll(
               'input'
             );
             for (let j = 0; j < inputs.length; j += 1) {
@@ -595,6 +726,7 @@ class Recorder {
             mutation.addedNodes.forEach((node) => {
               if (node.nodeType === Node.ELEMENT_NODE) {
                 const el = node as Element;
+                added.add(el);
                 const tag = el.tagName;
                 if (tag === 'IFRAME' || tag === 'FRAME') {
                   this.processFrame(el, level + 1);
@@ -606,6 +738,7 @@ class Recorder {
           }
         }
       });
+      this.trackAddedShadowHosts(added, level, frame);
     };
 
     const observer = new MutationObserver(domMutated);
@@ -643,10 +776,75 @@ class Recorder {
     return true;
   }
 
-  shouldRecord(element: HTMLElement): boolean {
+  /**
+   * Whether the event should be recorded, the handler is called later if the event was seen on a
+   * host and was not known if it originated on the host itself.
+   */
+  shouldRecord(
+    element: HTMLElement,
+    event: Event,
+    handler?: () => void
+  ): boolean {
     if (!this.active) return this.active;
     if (element.className === ZAP_FLOATING_DIV_ELEMENTS) return false;
-    return this.isVisible(element);
+    this.trackPendingShadowHost(element);
+    // The events are also seen, retargeted, by the listeners of the outer roots; the ones of the
+    // shadow root handle them.
+    const inside = this.originatesInsideShadow(element, event);
+    if (inside === undefined && handler) {
+      this.deferredEvents.set(event, handler);
+    }
+    if (inside !== false) return false;
+    if (!this.isVisible(element)) return false;
+    // The same event might reach several listeners (e.g. slotted content), record it once.
+    if (this.handledEvents.has(event)) return false;
+    this.handledEvents.add(event);
+    return true;
+  }
+
+  /**
+   * Tracks the shadow root of the given element if not yet tracked, e.g. the host was added in the
+   * same task, before the mutation observers are notified. The listeners added are still called
+   * for the event being dispatched.
+   */
+  private trackPendingShadowHost(element: Element): void {
+    if (this.shadowHosts.has(element)) return;
+    const position = this.rootFrames.get(element.getRootNode());
+    if (position && getShadowRoot(element)) {
+      this.trackShadowHosts(element, position.level, position.frame);
+    }
+  }
+
+  /**
+   * Whether the event, seen with the host as its target, originated in the shadow root of the host
+   * (and not on the host itself), or undefined if not known.
+   */
+  private originatesInsideShadow(
+    target: HTMLElement,
+    event: Event
+  ): boolean | undefined {
+    if (!this.shadowHosts.has(target) || this.hostEvents.has(event)) {
+      return false;
+    }
+    // Reveals the origin in open roots.
+    const origin = event.composedPath()[0];
+    if (origin && origin !== target) return true;
+    // The origin is known for open roots, it is the host itself.
+    if (target.shadowRoot) return false;
+    const root = getShadowRoot(target);
+    if (!root) return false;
+    // Mouse events activated otherwise (e.g. keyboard) have no meaningful position (detail 0).
+    if (
+      'clientX' in event &&
+      (event as MouseEvent).detail > 0 &&
+      typeof root.elementFromPoint === 'function'
+    ) {
+      const {clientX, clientY} = event as MouseEvent;
+      const hit = root.elementFromPoint(clientX, clientY);
+      return !!hit && hit !== target;
+    }
+    // Not known (e.g. closed root and a keyboard event), the listeners of the root tell.
+    return undefined;
   }
 
   getBrowserName(): string {
@@ -704,6 +902,7 @@ class Recorder {
     this.active = true;
     this.previousDOMState = document.documentElement.outerHTML;
     if (this.haveListenersBeenAdded) {
+      this.resumeShadowTracking();
       this.insertFloatingPopup();
       return;
     }
@@ -718,11 +917,30 @@ class Recorder {
     this.insertFloatingPopup();
   }
 
+  /**
+   * Restarts the notifications of attached shadow roots and tracks the ones attached while not
+   * recording.
+   */
+  private resumeShadowTracking(): void {
+    this.trackedDocuments.forEach((position, doc) => {
+      if (!doc.defaultView) {
+        // The frame was removed or navigated.
+        this.trackedDocuments.delete(doc);
+        return;
+      }
+      doc.dispatchEvent(new CustomEvent(SHADOW_TRACKING_START_EVENT));
+      this.trackShadowHosts(doc, position.level, position.frame);
+    });
+  }
+
   stopRecordingUserInteractions(): void {
     console.log('ZAP Stopping Recording User Interactions ...');
     this.handleCachedSubmit();
     Browser.storage.sync.set({zaprecordingactive: false});
     this.active = false;
+    this.trackedDocuments.forEach((_, doc) =>
+      doc.dispatchEvent(new CustomEvent(SHADOW_TRACKING_STOP_EVENT))
+    );
     const floatingDiv = document.getElementById(ZAP_FLOATING_DIV);
     if (floatingDiv) {
       floatingDiv.style.display = 'none';
@@ -911,16 +1129,16 @@ class Recorder {
 
     if (stmt instanceof ZestStatementElementClick) {
       notifyMessage.title = 'Click';
-      notifyMessage.message = stmt.elementLocator.element;
+      notifyMessage.message = describeLocator(stmt.elementLocator);
     } else if (stmt instanceof ZestStatementElementScrollTo) {
       notifyMessage.title = 'Scroll To';
-      notifyMessage.message = stmt.elementLocator.element;
+      notifyMessage.message = describeLocator(stmt.elementLocator);
     } else if (stmt instanceof ZestStatementElementSendKeys) {
       notifyMessage.title = 'Send Keys';
-      notifyMessage.message = `${stmt.elementLocator.element}: ${stmt.keys}`;
+      notifyMessage.message = `${describeLocator(stmt.elementLocator)}: ${stmt.keys}`;
     } else if (stmt instanceof ZestStatementElementSubmit) {
       notifyMessage.title = 'Submit';
-      notifyMessage.message = `${stmt.elementLocator.element}`;
+      notifyMessage.message = describeLocator(stmt.elementLocator);
     } else if (stmt instanceof ZestStatementLaunchBrowser) {
       notifyMessage.title = 'Launch Browser';
       notifyMessage.message = stmt.browserType;

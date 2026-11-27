@@ -1,0 +1,42 @@
+<html>
+    <head>
+        <style>
+          body { margin: 0; }
+          #host0 { display: block; width: 200px; height: 100px; }
+          button { display: block; width: 200px; height: 30px; }
+          span { display: block; width: 50px; height: 20px; }
+        </style>
+    </head>
+    <body>
+        <div id="host0"><button id="light">Light</button></div>
+        <script>
+          // case=slotted: the button in the light DOM is slotted into the root.
+          // case=host: the host has its own click handler and its root covers only
+          //            a small part of it.
+          // case=late: the root is attached to the (connected) host in a later task, it has an
+          //            input reached with the keyboard.
+          // mode: the mode of the shadow root.
+          const params = new URLSearchParams(window.location.search);
+          const mode = params.get('mode') || 'open';
+          const host = document.getElementById('host0');
+          if (params.get('case') === 'late') {
+            host.innerHTML = '';
+            setTimeout(() => {
+              host.attachShadow({mode}).innerHTML = '<input id="field">';
+              document.title = 'attached';
+            }, 300);
+          } else if (params.get('case') === 'slotted') {
+            host.attachShadow({mode}).innerHTML = '<slot></slot>';
+            document.getElementById('light').addEventListener('click', () => {
+              document.title = 'clicked';
+            });
+          } else {
+            host.innerHTML = '';
+            host.attachShadow({mode}).innerHTML = '<span id="inner">in</span>';
+            host.addEventListener('click', () => {
+              document.title = 'host-clicked';
+            });
+          }
+        </script>
+    </body>
+</html>

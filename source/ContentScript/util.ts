@@ -21,6 +21,17 @@ import {ElementLocator} from '../types/zestScript/ZestStatement';
 import {ZAP_FLOATING_DIV} from '../utils/constants';
 import {InteractableState} from '../types/ReportedModel';
 
+type Root = Document | ShadowRoot;
+
+// Do not use instanceof, it does not work with nodes of other frames.
+function isDocument(node: Node): node is Document {
+  return node.nodeType === Node.DOCUMENT_NODE;
+}
+
+function isShadowRoot(node: Node): node is ShadowRoot {
+  return node.nodeType === Node.DOCUMENT_FRAGMENT_NODE && 'host' in node;
+}
+
 const dynamicClassElements = new WeakSet<Element>();
 const inputClassSnapshots = new WeakMap<Element, string>();
 
@@ -41,9 +52,13 @@ function hasClassChangedSinceSnapshot(element: Element): boolean {
   );
 }
 
-function isElementPathUnique(path: string, documentElement: Document): boolean {
-  const elements = documentElement.querySelectorAll(path);
-  return elements.length === 1;
+function isElementPathUnique(path: string, documentElement: Root): boolean {
+  try {
+    return documentElement.querySelectorAll(path).length === 1;
+  } catch {
+    // Not a valid selector (e.g. a class name with special characters).
+    return false;
+  }
 }
 
 function isElementXPathUnique(
@@ -123,6 +138,12 @@ function getFormAbsoluteXPath(
   return `//form[${index}]`;
 }
 
+function isStableClass(element: Element): boolean {
+  return (
+    !dynamicClassElements.has(element) && !hasClassChangedSinceSnapshot(element)
+  );
+}
+
 function isUniqueClassName(
   element: HTMLElement,
   documentElement: Document
@@ -130,8 +151,7 @@ function isUniqueClassName(
   return (
     element.classList.length === 1 &&
     element.classList.item(0) != null &&
-    !dynamicClassElements.has(element) &&
-    !hasClassChangedSinceSnapshot(element) &&
+    isStableClass(element) &&
     isElementPathUnique(`.${element.classList.item(0)}`, documentElement)
   );
 }
@@ -213,7 +233,7 @@ function getXPath(element: HTMLElement, documentElement: Document): string {
   return buildFullXPath(element, documentElement);
 }
 
-function getPath(
+function getLocator(
   element: HTMLElement,
   documentElement: Document
 ): ElementLocator {
@@ -261,6 +281,152 @@ function getPath(
   }
 
   return path;
+}
+
+/** Gets a selector, by id or class, that is unique in the root, if there is one. */
+function getUniqueRootSelector(element: Element, root: Root): string | null {
+  if (element.id) {
+    const idSelector = `#${CSS.escape(element.id)}`;
+    if (isElementPathUnique(idSelector, root)) {
+      return idSelector;
+    }
+  }
+  if (element.classList.length === 1 && isStableClass(element)) {
+    const classSelector = `.${CSS.escape(element.classList.item(0) as string)}`;
+    if (isElementPathUnique(classSelector, root)) {
+      return classSelector;
+    }
+  }
+  return null;
+}
+
+function isFirstMatch(selector: string, element: Element, root: Root): boolean {
+  try {
+    // The first match is the one used when replaying.
+    return root.querySelector(selector) === element;
+  } catch {
+    return false;
+  }
+}
+
+/** The type selector of the element, the case matters for non HTML elements (e.g. SVG). */
+function getTypeSelector(element: Element): string {
+  return CSS.escape(element.localName);
+}
+
+function getNthOfType(element: Element): string {
+  let index = 1;
+  let sibling = element.previousElementSibling;
+  while (sibling) {
+    if (
+      sibling.localName === element.localName &&
+      sibling.namespaceURI === element.namespaceURI
+    ) {
+      index += 1;
+    }
+    sibling = sibling.previousElementSibling;
+  }
+  return `${getTypeSelector(element)}:nth-of-type(${index})`;
+}
+
+/**
+ * Gets a CSS selector of the element, relative to the given root (document or shadow root), that
+ * finds it as the first match.
+ */
+function getRootCssSelector(element: Element, root: Root): string {
+  const unique = getUniqueRootSelector(element, root);
+  if (unique) {
+    return unique;
+  }
+  const parts: string[] = [];
+  const anchored: string[] = [];
+  let current: Element | null = element;
+  while (current) {
+    parts.unshift(getNthOfType(current));
+    current = current.parentNode === root ? null : current.parentElement;
+    const anchor: string | null = current
+      ? getUniqueRootSelector(current, root)
+      : null;
+    if (anchor) {
+      anchored.push(`${anchor} > ${parts.join(' > ')}`);
+    }
+  }
+  const full = parts.join(' > ');
+  // The chain alone is not anchored to the root, it might match other elements first.
+  const candidates = [full, ...anchored];
+  if (isShadowRoot(root)) {
+    // The top level elements of a shadow root are the only ones without a parent element.
+    candidates.push([`${parts[0]}:not(* > *)`, ...parts.slice(1)].join(' > '));
+  }
+  const selector = candidates.find((candidate) =>
+    isFirstMatch(candidate, element, root)
+  );
+  if (!selector) {
+    console.warn('ZAP Failed to find a selector for the element', element);
+    return full;
+  }
+  return selector;
+}
+
+/**
+ * Gets the locator of the given element, if it's in a shadow root the locator is a CSS selector
+ * relative to that root and the CSS selectors of the (open or closed) hosts are in the shadow path.
+ */
+function getPath(
+  element: HTMLElement,
+  documentElement: Document | ShadowRoot
+): ElementLocator {
+  const root = element.getRootNode();
+  if (isDocument(root)) {
+    // The element might be slotted into the given shadow root, locate it in its own document.
+    return getLocator(element, root);
+  }
+  if (!isShadowRoot(root)) {
+    // Not connected.
+    return getLocator(
+      element,
+      isDocument(documentElement) ? documentElement : element.ownerDocument
+    );
+  }
+
+  const hosts: string[] = [];
+  let current: Node = root;
+  while (isShadowRoot(current)) {
+    const {host} = current;
+    const hostRoot = host.getRootNode() as Root;
+    hosts.unshift(getRootCssSelector(host, hostRoot));
+    current = hostRoot;
+  }
+  return new ElementLocator(
+    'cssSelector',
+    getRootCssSelector(element, root),
+    hosts
+  );
+}
+
+/**
+ * Gets the shadow root of the given element, including closed ones (extension APIs only).
+ */
+function getShadowRoot(element: Element): ShadowRoot | null {
+  // Firefox.
+  if ('openOrClosedShadowRoot' in element) {
+    return (
+      (element as Element & {openOrClosedShadowRoot: ShadowRoot | null})
+        .openOrClosedShadowRoot ?? null
+    );
+  }
+  // Chrome and Edge.
+  const dom = (
+    globalThis as unknown as {
+      chrome?: {
+        dom?: {openOrClosedShadowRoot?: (e: Element) => ShadowRoot};
+      };
+    }
+  ).chrome?.dom;
+  if (dom?.openOrClosedShadowRoot) {
+    return dom.openOrClosedShadowRoot(element) ?? null;
+  }
+  return element.shadowRoot;
 }
 
 const INTERACTABLE_TAG_NAMES = new Set([
@@ -332,6 +498,8 @@ function getInteractableState(el: Element): InteractableState {
 
 export {
   getPath,
+  getShadowRoot,
+  isShadowRoot,
   hasPointerStyle,
   getInteractableState,
   hasInteractableTagAncestor,

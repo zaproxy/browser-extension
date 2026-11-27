@@ -195,7 +195,8 @@ function reportZestStatement(
   element: string,
   value: string | undefined = undefined,
   statementType = 'id',
-  wait = 5000
+  wait = 5000,
+  shadowPath: string[] = []
 ): object {
   const data = {
     action: {action: 'reportZestStatement'},
@@ -209,6 +210,7 @@ function reportZestStatement(
         enabled: true,
         elementType,
         value,
+        ...(shadowPath.length > 0 && {shadowPath}),
       },
       apikey: 'not set',
     },
@@ -223,7 +225,8 @@ export function reportZestStatementScrollTo(
   index: number,
   element: string,
   statementType = 'id',
-  wait = 5000
+  wait = 5000,
+  shadowPath: string[] = []
 ): object {
   return reportZestStatement(
     index,
@@ -231,7 +234,8 @@ export function reportZestStatementScrollTo(
     element,
     undefined,
     statementType,
-    wait
+    wait,
+    shadowPath
   );
 }
 
@@ -239,7 +243,8 @@ export function reportZestStatementClick(
   index: number,
   element: string,
   statementType = 'id',
-  wait = 5000
+  wait = 5000,
+  shadowPath: string[] = []
 ): object {
   return reportZestStatement(
     index,
@@ -247,7 +252,8 @@ export function reportZestStatementClick(
     element,
     undefined,
     statementType,
-    wait
+    wait,
+    shadowPath
   );
 }
 
@@ -293,7 +299,8 @@ export function reportZestStatementSendKeys(
   element: string,
   value: string,
   statementType = 'id',
-  wait = 5000
+  wait = 5000,
+  shadowPath: string[] = []
 ): object {
   return reportZestStatement(
     index,
@@ -301,7 +308,8 @@ export function reportZestStatementSendKeys(
     element,
     value,
     statementType,
-    wait
+    wait,
+    shadowPath
   );
 }
 

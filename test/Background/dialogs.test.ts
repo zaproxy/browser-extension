@@ -215,3 +215,34 @@ describe('closing the dialogs', () => {
     expect(confirm.hasAttribute('open')).toBe(false);
   });
 });
+
+describe('shadow path', () => {
+  const def = getStatementType('ZestClientElementClick');
+
+  test('is edited in a text area, a host per line', async () => {
+    const dialogs = await load();
+    const onSave = jest.fn();
+
+    dialogs.openEditor(
+      def as NonNullable<typeof def>,
+      {
+        ...newStatement('ZestClientElementClick'),
+        type: 'cssSelector',
+        element: '#target',
+        shadowPath: ['#outer'],
+      },
+      'Edit',
+      onSave
+    );
+    const field = document.getElementById(
+      'field-shadowPath'
+    ) as HTMLTextAreaElement;
+    expect(field.tagName).toBe('TEXTAREA');
+    expect(field.value).toBe('#outer');
+    field.value = '#outer\n#inner';
+    submit();
+
+    expect(onSave).toHaveBeenCalledTimes(1);
+    expect(onSave.mock.calls[0][0].shadowPath).toEqual(['#outer', '#inner']);
+  });
+});

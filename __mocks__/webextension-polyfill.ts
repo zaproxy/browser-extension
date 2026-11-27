@@ -53,6 +53,7 @@ const Browser = {
   storage: {
     sync: {
       get: mockStorageSyncGet,
+      set: jest.fn(),
     },
     local: {
       get: mockStorageLocalGet,

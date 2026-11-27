@@ -1,0 +1,36 @@
+<html>
+    <head>
+        <style>
+          body { margin: 0; }
+          .host { display: block; width: 200px; height: 30px; }
+        </style>
+    </head>
+    <body>
+        <div id="host0" class="host">
+            <template shadowrootmode="open">
+                <style>button { display: block; width: 200px; height: 30px; margin: 0; }</style>
+                <button id="button">Open</button>
+            </template>
+        </div>
+        <div id="host1" class="host">
+            <template shadowrootmode="closed">
+                <style>button { display: block; width: 200px; height: 30px; margin: 0; }</style>
+                <button id="button">Closed</button>
+            </template>
+        </div>
+        <div id="late"></div>
+        <script>
+          document.body.addEventListener('click', (event) => {
+            document.title = 'clicked:' + event.target.id;
+          });
+          // A declarative root added after the page is loaded.
+          setTimeout(() => {
+            document.getElementById('late').setHTMLUnsafe(
+              '<div id="host2" class="host"><template shadowrootmode="closed">'
+                + '<style>button { display: block; width: 200px; height: 30px; margin: 0; }</style>'
+                + '<button id="button">Late</button></template></div>'
+            );
+          }, 500);
+        </script>
+    </body>
+</html>

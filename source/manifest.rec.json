@@ -35,7 +35,8 @@
 
   "__firefox__browser_specific_settings": {
     "gecko": {
-      "id": "browser-recorder@zaproxy.org"
+      "id": "browser-recorder@zaproxy.org",
+      "strict_min_version": "128.0"
     }
   },
 
@@ -64,6 +65,18 @@
   },
   
   "content_scripts": [{
+    "matches": [
+      "http://*/*",
+      "https://*/*"
+    ],
+    "js": [
+      "js/shadowTracker.bundle.js"
+    ],
+    "world": "MAIN",
+    "run_at": "document_start",
+    "all_frames": true,
+    "match_about_blank": true
+  }, {
     "matches": [
       "http://*/*",
       "https://*/*"

@@ -31,6 +31,7 @@ import {
   ZEST_COMMENT,
 } from './constants';
 import i18n from './i18n';
+import {describeShadowElement} from './util';
 
 interface ZestStatementSummary {
   index: number;
@@ -43,7 +44,10 @@ function str(value: unknown): string {
 }
 
 function describeElement(statement: RawStatement): string {
-  return `${str(statement.type)}: ${str(statement.element)}`;
+  return `${str(statement.type)}: ${describeShadowElement(
+    str(statement.element),
+    statement.shadowPath
+  )}`;
 }
 
 function describeFrame(statement: RawStatement): string {

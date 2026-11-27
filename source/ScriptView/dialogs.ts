@@ -58,10 +58,10 @@ function addEditField(
   labelEl.htmlFor = id;
   labelEl.textContent = label;
   let input: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
-  if (kind === 'multiline') {
+  if (kind === 'multiline' || kind === 'lines') {
     // A text input would remove any line breaks from the value
     const textarea = document.createElement('textarea');
-    textarea.rows = 4;
+    textarea.rows = kind === 'lines' ? 2 : 4;
     textarea.value = String(value);
     input = textarea;
   } else if (kind === 'locatorType') {

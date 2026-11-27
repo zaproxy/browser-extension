@@ -96,6 +96,10 @@ i18n.use(LanguageDetector).init({
             elementNotFound: 'Element not found: {{type}}: {{element}}',
             elementDisabled: 'Element is disabled: {{type}}: {{element}}',
             badLocator: 'Unsupported locator type: {{type}}',
+            shadowPathType:
+              'A shadow path requires the cssSelector locator type, not: {{type}}',
+            badShadowPath: 'Invalid shadow path: {{shadowPath}}',
+            shadowHostNotFound: 'Shadow host not found: {{host}}',
             badStatement: 'Unsupported statement: {{type}}',
             optionNotFound: 'Option not found: {{option}}',
             frameNotFound: 'Frame not found: {{frame}}',
@@ -138,6 +142,8 @@ i18n.use(LanguageDetector).init({
           field: {
             locatorType: 'Locator type',
             locator: 'Locator',
+            shadowPath:
+              'Shadow hosts (CSS selectors, outermost first, one per line)',
             waitFor: 'Wait for (ms)',
             keys: 'Keys',
             browser: 'Browser',
@@ -152,6 +158,8 @@ i18n.use(LanguageDetector).init({
             required: '{{field}} is required',
             wholeNumber: '{{field}} must be a whole number',
             badUrl: 'URL must be a valid http or https URL',
+            shadowPathType:
+              'A shadow path requires the cssSelector locator type',
             notJson: 'The file is not valid JSON',
             notZest: 'The file is not a Zest script',
             unsupportedMetadata:

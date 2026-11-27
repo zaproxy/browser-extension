@@ -21,6 +21,7 @@
  * limitations under the License.
  */
 import Replayer from '../../source/ContentScript/replayer';
+import {attachRoot, installClosedRoots} from '../ContentScript/shadowMocks';
 
 jest.mock('webextension-polyfill', () => ({
   __esModule: true,
@@ -878,5 +879,271 @@ describe('finding a link by part of its text', () => {
     );
 
     expect(result).toEqual({ok: true});
+  });
+});
+
+describe('elements in shadow DOM', () => {
+  const closedRoots = installClosedRoots();
+
+  function addHost(
+    id: string,
+    mode: 'open' | 'closed',
+    html: string,
+    parent: ParentNode = document.body
+  ): ShadowRoot {
+    const host = document.createElement('div');
+    host.id = id;
+    parent.appendChild(host);
+    return attachRoot(closedRoots, host, mode, html);
+  }
+
+  function shadowStmt(
+    elementType: string,
+    extra: Record<string, unknown> = {}
+  ): Record<string, unknown> {
+    return stmt(elementType, {
+      type: 'cssSelector',
+      element: '#target',
+      shadowPath: ['#host'],
+      ...extra,
+    });
+  }
+
+  test.each(['open', 'closed'] as const)('click in a %s root', async (mode) => {
+    const root = addHost('host', mode, '<button id="target">Go</button>');
+    const clicked = jest.fn();
+    (root.getElementById('target') as HTMLElement).addEventListener(
+      'click',
+      clicked
+    );
+
+    const result = await replayer.execute(shadowStmt('ZestClientElementClick'));
+
+    expect(result).toEqual({ok: true});
+    expect(clicked).toHaveBeenCalledTimes(1);
+  });
+
+  test('click in nested open and closed roots', async () => {
+    const outer = addHost('host0', 'closed', '');
+    const inner = addHost(
+      'host1',
+      'open',
+      '<button id="target">Go</button>',
+      outer
+    );
+    const clicked = jest.fn();
+    (inner.getElementById('target') as HTMLElement).addEventListener(
+      'click',
+      clicked
+    );
+
+    const result = await replayer.execute(
+      shadowStmt('ZestClientElementClick', {shadowPath: ['#host0', '#host1']})
+    );
+
+    expect(result).toEqual({ok: true});
+    expect(clicked).toHaveBeenCalledTimes(1);
+  });
+
+  test('send keys in a closed root', async () => {
+    const root = addHost('host', 'closed', '<input id="target" value="ab">');
+    const input = root.getElementById('target') as HTMLInputElement;
+    const seen: string[] = [];
+    ['input', 'change'].forEach((n) =>
+      input.addEventListener(n, () => seen.push(n))
+    );
+
+    const result = await replayer.execute(
+      shadowStmt('ZestClientElementSendKeys', {value: 'cd'})
+    );
+
+    expect(result.ok).toBe(true);
+    expect(input.value).toBe('abcd');
+    expect(seen).toEqual(['input', 'change']);
+  });
+
+  test('clear in an open root', async () => {
+    const root = addHost('host', 'open', '<input id="target" value="abc">');
+
+    await replayer.execute(shadowStmt('ZestClientElementClear'));
+
+    expect((root.getElementById('target') as HTMLInputElement).value).toBe('');
+  });
+
+  test('scroll to in a closed root', async () => {
+    addHost('host', 'closed', '<div id="target"></div>');
+    const scroll = jest.spyOn(window.Element.prototype, 'scrollIntoView');
+    scroll.mockClear();
+
+    const result = await replayer.execute(
+      shadowStmt('ZestClientElementScrollTo')
+    );
+
+    expect(result.ok).toBe(true);
+    expect(scroll).toHaveBeenCalledTimes(1);
+  });
+
+  test('submit in a root', async () => {
+    const root = addHost(
+      'host',
+      'open',
+      '<form id="f"><input id="target" value="x"></form>'
+    );
+    const submitted = jest.fn((e: Event) => e.preventDefault());
+    (root.getElementById('f') as HTMLElement).addEventListener(
+      'submit',
+      submitted
+    );
+
+    const result = await replayer.execute(
+      shadowStmt('ZestClientElementSubmit')
+    );
+
+    expect(result.ok).toBe(true);
+    expect(submitted).toHaveBeenCalledTimes(1);
+  });
+
+  test('waits for the root to be attached', async () => {
+    const host = document.createElement('div');
+    host.id = 'host';
+    document.body.appendChild(host);
+    const clicked = jest.fn();
+    setTimeout(() => {
+      const root = attachRoot(
+        closedRoots,
+        host,
+        'closed',
+        '<button id="target">Go</button>'
+      );
+      (root.getElementById('target') as HTMLElement).addEventListener(
+        'click',
+        clicked
+      );
+    }, 100);
+
+    const result = await replayer.execute(
+      shadowStmt('ZestClientElementClick', {waitForMsec: 2000})
+    );
+
+    expect(result).toEqual({ok: true});
+    expect(clicked).toHaveBeenCalledTimes(1);
+  });
+
+  test('reports the shadow path of a missing element', async () => {
+    addHost('host', 'open', '');
+
+    const result = await replayer.execute(shadowStmt('ZestClientElementClick'));
+
+    expect(result).toEqual({
+      ok: false,
+      errorKey: 'script.error.elementNotFound',
+      errorParams: {type: 'cssSelector', element: '[Shadow DOM] #target'},
+    });
+  });
+
+  test('reports a missing host', async () => {
+    const result = await replayer.execute(shadowStmt('ZestClientElementClick'));
+
+    expect(result).toEqual({
+      ok: false,
+      errorKey: 'script.error.shadowHostNotFound',
+      errorParams: {host: '#host'},
+    });
+  });
+
+  test('reports the first missing host of nested roots', async () => {
+    addHost('host0', 'closed', '');
+
+    const result = await replayer.execute(
+      shadowStmt('ZestClientElementClick', {shadowPath: ['#host0', '#host1']})
+    );
+
+    expect(result).toEqual({
+      ok: false,
+      errorKey: 'script.error.shadowHostNotFound',
+      errorParams: {host: '#host1'},
+    });
+  });
+
+  test('reports a host without a shadow root', async () => {
+    document.body.insertAdjacentHTML('beforeend', '<div id="host"></div>');
+
+    const result = await replayer.execute(shadowStmt('ZestClientElementClick'));
+
+    expect(result).toEqual({
+      ok: false,
+      errorKey: 'script.error.shadowHostNotFound',
+      errorParams: {host: '#host'},
+    });
+  });
+
+  test('finds an element only in the shadow root, not in the document', async () => {
+    document.body.insertAdjacentHTML(
+      'beforeend',
+      '<button id="target">Out</button>'
+    );
+    const outside = jest.fn();
+    (document.getElementById('target') as HTMLElement).addEventListener(
+      'click',
+      outside
+    );
+    const root = addHost('host', 'open', '<button id="target">In</button>');
+    const inside = jest.fn();
+    (root.getElementById('target') as HTMLElement).addEventListener(
+      'click',
+      inside
+    );
+
+    await replayer.execute(shadowStmt('ZestClientElementClick'));
+
+    expect(inside).toHaveBeenCalledTimes(1);
+    expect(outside).not.toHaveBeenCalled();
+  });
+
+  test('requires the CSS selector type with a shadow path', async () => {
+    addHost('host', 'open', '<button id="target">Go</button>');
+
+    const result = await replayer.execute(
+      shadowStmt('ZestClientElementClick', {type: 'id', element: 'target'})
+    );
+
+    expect(result).toEqual({
+      ok: false,
+      errorKey: 'script.error.shadowPathType',
+      errorParams: {type: 'id'},
+    });
+  });
+
+  test.each([['#host'], [[1]], [['#host', null]]])(
+    'rejects the malformed shadow path %j',
+    async (shadowPath) => {
+      addHost('host', 'open', '<button id="target">Go</button>');
+
+      const result = await replayer.execute(
+        shadowStmt('ZestClientElementClick', {shadowPath})
+      );
+
+      expect(result).toEqual({
+        ok: false,
+        errorKey: 'script.error.badShadowPath',
+        errorParams: {shadowPath: JSON.stringify(shadowPath)},
+      });
+    }
+  );
+
+  test('click on a host goes to the button inside its closed root', async () => {
+    const root = addHost('host', 'closed', '<button>Go</button>');
+    const clicked = jest.fn();
+    (root.querySelector('button') as HTMLElement).addEventListener(
+      'click',
+      clicked
+    );
+
+    const result = await replayer.execute(
+      stmt('ZestClientElementClick', {type: 'id', element: 'host'})
+    );
+
+    expect(result.ok).toBe(true);
+    expect(clicked).toHaveBeenCalledTimes(1);
   });
 });
